@@ -1,25 +1,36 @@
-
+---
+format: gfm
+---
 
 <!-- README.md is generated from README.qmd. Please edit that file -->
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
 
 # vaultkeepr
 
 <!-- badges: start -->
-
-[![CRAN-status](https://www.r-pkg.org/badges/version/vaultkeepr.png)](https://CRAN.R-project.org/package=vaultkeepr)
+[![CRAN-status](https://www.r-pkg.org/badges/version/vaultkeepr)](https://CRAN.R-project.org/package=vaultkeepr)
 [![R-CMD-check](https://github.com/OndrejMottl/vaultkeepr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/OndrejMottl/vaultkeepr/actions/workflows/R-CMD-check.yaml)
 [![Codecov-test-coverage](https://codecov.io/gh/OndrejMottl/vaultkeepr/branch/main/graph/badge.svg)](https://app.codecov.io/gh/OndrejMottl/vaultkeepr?branch=main)
 <!-- badges: end -->
 
-The goal of vaultkeepr is to providing the interface to access the
-**VegVault** database
+The goal of vaultkeepr is to providing the interface to access the **VegVault** database
 
 ## Installation
 
-You can install the development version of vaultkeepr from
-[GitHub](https://github.com/) with:
+You can install the development version of vaultkeepr from [GitHub](https://github.com/) with:
 
-``` r
+```{r}
+#| label: install
+#| eval: false
 # install.packages("remotes")
 remotes::install_github("OndrejMottl/vaultkeepr")
 ```
@@ -28,7 +39,9 @@ remotes::install_github("OndrejMottl/vaultkeepr")
 
 This is a basic example which shows you how to solve a common problem:
 
-``` r
+```{r}
+#| label: example
+#| eval: false
 library(vaultkeepr)
 ## basic example code
 ```
