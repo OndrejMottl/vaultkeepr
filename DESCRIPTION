@@ -14,13 +14,14 @@ Imports:
     RSQLite,
     tibble
 Suggests: 
-    dplyr,
     dbplyr,
+    dplyr,
     purrr,
     stringr,
     testthat (>= 3.0.0),
     tidyr
 Config/testthat/edition: 3
+Config/testthat/start-first:open_vault, get_datasets
 Encoding: UTF-8
 Language: en-GB
 Roxygen: list(markdown = TRUE)
