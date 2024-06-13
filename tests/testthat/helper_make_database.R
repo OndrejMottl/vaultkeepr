@@ -220,9 +220,10 @@ CREATE TABLE 'References' (
   data_dataset_type <-
     tibble::tibble(
       dataset_type = c(
-        "A",
-        "B",
-        "C"
+        "vegetation_plot",
+        "fossil_pollen_archive",
+        "traits",
+        "gridpoints"
       )
     )
 
@@ -292,7 +293,7 @@ CREATE TABLE 'References' (
   data_datasets <-
     tidyr::expand_grid(
       data_source_id = 1:3,
-      dataset_type_id = 1:3,
+      dataset_type_id = 1:4,
       data_source_type_id = 1:3,
       sampling_method_id = 1:3,
       tibble::tribble(
