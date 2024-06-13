@@ -1,3 +1,17 @@
+testthat::test_that("return correct class-high", {
+  test_datasets <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    get_datasets()
+
+  testthat::expect_s3_class(test_datasets, "vault_pipe")
+})
+
 testthat::test_that("basic data.frame structure", {
   test_datasets <-
     open_vault(
@@ -55,7 +69,7 @@ testthat::test_that("data.frame nrows", {
     test_datasets %>%
       dplyr::collect() %>%
       nrow(),
-    486
+    648
   )
 })
 
@@ -75,7 +89,7 @@ testthat::test_that("data.frame values", {
   data_temp <-
     tidyr::expand_grid(
       data_source_id = 1:3,
-      dataset_type_id = 1:3,
+      dataset_type_id = 1:4,
       data_source_type_id = 1:3,
       sampling_method_id = 1:3,
       tibble::tribble(
