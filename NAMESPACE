@@ -3,6 +3,7 @@
 export("%>%")
 export(get_datasets)
 export(open_vault)
+export(select_dataset_by_geo)
 export(select_dataset_by_type)
 importFrom(magrittr,"%>%")
 importFrom(tibble,tibble)
