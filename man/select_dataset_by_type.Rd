@@ -5,7 +5,7 @@
 \title{get Datasets by selected type}
 \usage{
 select_dataset_by_type(
-  con,
+  con = NULL,
   sel_dataset_type = c("vegetation_plot", "fossil_pollen_archive", "traits",
     "gridpoints")
 )

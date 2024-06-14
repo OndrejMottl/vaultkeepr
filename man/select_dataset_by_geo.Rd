@@ -5,7 +5,7 @@
 \title{Select dataset by geographical location}
 \usage{
 select_dataset_by_geo(
-  con,
+  con = NULL,
   long_lim = c(-180, 180),
   lat_lim = c(-90, 90),
   sel_dataset_type = c("vegetation_plot", "fossil_pollen_archive", "gridpoints"),
