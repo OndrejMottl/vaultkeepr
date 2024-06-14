@@ -2,6 +2,7 @@
 requireNamespace("tidyr", quietly = TRUE)
 requireNamespace("stringr", quietly = TRUE)
 requireNamespace("purrr", quietly = TRUE)
+requireNamespace("magrittr", quietly = TRUE)
 
 if (
   !file.exists(
@@ -286,9 +287,9 @@ CREATE TABLE 'References' (
   )
 
   # Datasets
-  # create a tibble with 486 datasets
-  # 486 = 6 (continents) * 81 (datasets per continent)
-  # 81 =  3 (dataset types) * 3 (data source types) * 3 (data sources) * 3 (sampling methods)
+  # create a tibble with 648 datasets
+  # 648 = 6 (continents) * 108 (datasets per continent)
+  # 108 =  3 (dataset types) * 4 (data source types) * 3 (data sources) * 3 (sampling methods)
 
   data_datasets <-
     tidyr::expand_grid(
@@ -314,6 +315,40 @@ CREATE TABLE 'References' (
     con_db,
     data_datasets,
     name = "Datasets",
+    append = TRUE
+  )
+
+  data_samples <-
+    tidyr::expand_grid(
+      init = 1:50,
+      sample_size_id = 1:10,
+      age = seq(0, 8000, by = 500)
+    ) %>%
+    dplyr::mutate(
+      sample_name = paste0("sample_", dplyr::row_number())
+    ) %>%
+    dplyr::select(-init)
+
+  dplyr::copy_to(
+    con_db,
+    data_samples,
+    name = "Samples",
+    append = TRUE
+  )
+
+  data_dataset_sample <-
+    tibble::tibble(
+      dataset_id = rep(
+        1:648,
+        ceiling(8500 / 648)
+      )[1:8500],
+      sample_id = 1:8500
+    )
+
+  dplyr::copy_to(
+    con_db,
+    data_dataset_sample,
+    name = "DatasetSample",
     append = TRUE
   )
 

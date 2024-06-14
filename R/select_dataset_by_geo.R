@@ -11,7 +11,7 @@
 #' There is an option to filter only specific dataset types (as some dataset types may not have lat/long information).
 #' To do this, use the `sel_dataset_type` argument.
 select_dataset_by_geo <- function(
-    con,
+    con = NULL,
     long_lim = c(-180, 180),
     lat_lim = c(-90, 90),
     sel_dataset_type = c("vegetation_plot", "fossil_pollen_archive", "gridpoints"),
@@ -37,7 +37,7 @@ select_dataset_by_geo <- function(
   sel_data <- con$data
 
   assertthat::assert_that(
-    inherits(sel_data, "tbl_sql"),
+    inherits(sel_data, "tbl"),
     msg = "data must be a class of `tbl`"
   )
 

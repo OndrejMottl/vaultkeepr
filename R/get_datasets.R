@@ -3,7 +3,7 @@
 #' @param con A connection object created by `open_vault()`
 #' @return A `vault_pipe` object with the Datasets table
 #' @export
-get_datasets <- function(con) {
+get_datasets <- function(con = NULL) {
   assertthat::assert_that(
     inherits(con, "vault_pipe"),
     msg = paste(

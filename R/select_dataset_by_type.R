@@ -5,7 +5,7 @@
 #' @return A `vault_pipe` object with the filtered Datasets table
 #' @export
 select_dataset_by_type <- function(
-    con,
+    con = NULL,
     sel_dataset_type = c("vegetation_plot", "fossil_pollen_archive", "traits", "gridpoints")) {
   .data <- rlang::.data
 
@@ -41,7 +41,7 @@ select_dataset_by_type <- function(
   sel_data <- con$data
 
   assertthat::assert_that(
-    inherits(sel_data, "tbl_sql"),
+    inherits(sel_data, "tbl"),
     msg = "data must be a class of `tbl`"
   )
 
@@ -105,7 +105,7 @@ select_dataset_by_type <- function(
       by = "dataset_type_id"
     ) %>%
     dplyr::filter(
-     .data$dataset_type %in% sel_dataset_type
+      .data$dataset_type %in% sel_dataset_type
     )
 
   res <-

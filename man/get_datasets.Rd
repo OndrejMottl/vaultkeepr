@@ -4,7 +4,7 @@
 \alias{get_datasets}
 \title{get Datasets}
 \usage{
-get_datasets(con)
+get_datasets(con = NULL)
 }
 \arguments{
 \item{con}{A connection object created by \code{open_vault()}}
