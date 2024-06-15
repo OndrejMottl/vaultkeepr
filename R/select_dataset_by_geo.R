@@ -95,66 +95,17 @@ select_dataset_by_geo <- function(
   )
 
   assertthat::assert_that(
-    verbose %in% c(TRUE, FALSE),
+    inherits(verbose, "logical"),
     msg = "`verbose` must be a logical value"
   )
 
-  assertthat::assert_that(
-    all(sel_dataset_type %in% c(
-      "vegetation_plot", "fossil_pollen_archive", "traits", "gridpoints"
-    )),
-    msg = paste(
-      "The `sel_dataset_type` must be one of the following:",
-      "`vegetation_plot`, `fossil_pollen_archive`, `traits`, `gridpoints`"
+
+  sel_dataset_type <-
+    get_common_dataset_type(
+      data_source = sel_data,
+      vec_dataset_type = sel_dataset_type,
+      verbose = verbose
     )
-  )
-
-  vec_present_dataset_type <-
-    sel_data %>%
-    dplyr::distinct(.data$dataset_type) %>%
-    dplyr::collect() %>%
-    purrr::pluck(1)
-
-  vec_common_dataset_type <-
-    intersect(vec_present_dataset_type, sel_dataset_type)
-
-  if (
-    !all(sel_dataset_type %in% vec_present_dataset_type)
-  ) {
-    if (
-      isTRUE(verbose)
-    ) {
-      message(
-        paste(
-          "The data does not contain the all dataset types specified in",
-          "`sel_dataset_type`.", "\n",
-          "Changing `sel_dataset_type` to the dataset types",
-          "present in the data as:",
-          paste(vec_common_dataset_type, collapse = ", ")
-        )
-      )
-    }
-
-    sel_dataset_type <- vec_common_dataset_type
-  }
-
-  if (
-    !all(vec_present_dataset_type %in% sel_dataset_type)
-  ) {
-    dataset_type_missing <-
-      setdiff(vec_present_dataset_type, sel_dataset_type)
-
-    if (
-      isTRUE(verbose)
-    ) {
-      message(
-        paste(
-          "The selected dataset type will not be filtered by geo:",
-          paste(dataset_type_missing, collapse = ", ")
-        )
-      )
-    }
-  }
 
   data_res <-
     sel_data %>%
