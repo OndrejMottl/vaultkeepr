@@ -7,6 +7,8 @@
 #' @return A character vector of common dataset type
 #' @keywords internal
 get_common_dataset_type <- function(data_source, vec_dataset_type, verbose = TRUE) {
+  .data <- rlang::.data
+
   assertthat::assert_that(
     inherits(data_source, "tbl"),
     msg = "data_source must be a class of `tbl`"
@@ -81,7 +83,7 @@ get_common_dataset_type <- function(data_source, vec_dataset_type, verbose = TRU
     ) {
       message(
         paste(
-          "The selected dataset type will not be filtered by geo:",
+          "The selected dataset type will not be filtered:",
           paste(dataset_type_missing, collapse = ", ")
         )
       )
