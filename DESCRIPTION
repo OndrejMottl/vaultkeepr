@@ -25,7 +25,7 @@ Config/testthat/edition: 3
 Config/testthat/start-first: open_vault, get_datasets, extract_data,
     get_common_dataset_type, select_dataset_by_type,
     select_dataset_by_geo, get_samples, select_samples_by_age,
-    classify_taxa
+    classify_taxa, get_taxa, select_taxa_by_name, select_taxa_by_id,
 Encoding: UTF-8
 Language: en-GB
 Roxygen: list(markdown = TRUE)
