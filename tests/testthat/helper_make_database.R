@@ -172,7 +172,7 @@ CREATE TABLE 'TraitsReference' (
 CREATE TABLE 'AbioticData' (
   'sample_id' INTEGER,
   'abiotic_variable_id' INTEGER,
-  'value' REAL,
+  'abiotic_value' REAL,
   FOREIGN KEY ('sample_id') REFERENCES 'Samples' ('sample_id'),
   FOREIGN KEY ('abiotic_variable_id') REFERENCES 'AbioticVariable' ('abiotic_variable_id')
 );
@@ -216,6 +216,8 @@ CREATE TABLE 'References' (
   )
 
   # 2. insert data into the database -----
+
+  # Datasets -----
 
   # DatasetType
   data_dataset_type <-
@@ -318,7 +320,7 @@ CREATE TABLE 'References' (
     append = TRUE
   )
 
-  # Samples
+  # Samples -----
   data_samples <-
     tidyr::expand_grid(
       init = 1:50,
@@ -353,7 +355,6 @@ CREATE TABLE 'References' (
     name = "DatasetSample",
     append = TRUE
   )
-
 
   # Taxa -----
   data_taxa <-
@@ -426,6 +427,68 @@ CREATE TABLE 'References' (
     con_db,
     data_sample_taxa,
     name = "SampleTaxa",
+    append = TRUE
+  )
+
+  # AbioticData -----
+
+  data_abiotic_variable <-
+    tibble::tibble(
+      abiotic_variable_name = c(
+        "temperature",
+        "precipitation",
+        "soil_moisture"
+      ),
+      abiotic_variable_unit = c(
+        "C",
+        "mm",
+        "percent"
+      ),
+      measure_details = c(
+        "daily average",
+        "annual average",
+        "monthly average"
+      )
+    )
+
+  dplyr::copy_to(
+    con_db,
+    data_abiotic_variable,
+    name = "AbioticVariable",
+    append = TRUE
+  )
+
+  vec_abiotic_sample_id <-
+    dplyr::tbl(con_db, "Datasets") %>%
+    dplyr::filter(dataset_type_id == 4) %>%
+    dplyr::inner_join(
+      dplyr::tbl(con_db, "DatasetSample"),
+      by = "dataset_id"
+    ) %>%
+    dplyr::distinct(sample_id) %>%
+    dplyr::collect() %>%
+    dplyr::pull(sample_id)
+
+  data_abiotic <-
+    tibble::tibble(
+      sample_id = rep(
+        vec_abiotic_sample_id,
+        3
+      ),
+      abiotic_variable_id = rep(
+        1:3,
+        length(vec_abiotic_sample_id)
+      ),
+      abiotic_value = rep(
+        c(-5, 0, 5),
+        ceiling(3 * length(vec_abiotic_sample_id) / 3)
+      )[(3 * length(vec_abiotic_sample_id))]
+    )
+
+  dplyr::copy_to(
+    con_db,
+    data_abiotic,
+    name = "AbioticData",
     append = TRUE
   )
 
