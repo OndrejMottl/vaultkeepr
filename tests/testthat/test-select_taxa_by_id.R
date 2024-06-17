@@ -107,6 +107,10 @@ testthat::test_that("subset dataset", {
     dplyr::count() %>%
     dplyr::pull(n)
 
+  testthat::expect_true(is.numeric(nrows_full))
+  testthat::expect_true(is.numeric(nrows_sub))
+  testthat::expect_true(nrows_full > 0)
+  testthat::expect_true(nrows_sub > 0)
   testthat::expect_true(nrows_sub < nrows_full)
 })
 
