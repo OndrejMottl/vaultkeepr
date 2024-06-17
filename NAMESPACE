@@ -2,6 +2,7 @@
 
 export("%>%")
 export(extract_data)
+export(get_abiotic)
 export(get_datasets)
 export(get_samples)
 export(get_taxa)
