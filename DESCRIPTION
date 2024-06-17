@@ -22,8 +22,10 @@ Suggests:
     testthat (>= 3.0.0),
     tidyr
 Config/testthat/edition: 3
-Config/testthat/start-first: open_vault, get_datasets,
-    select_dataset_by_type, select_dataset_by_geo
+Config/testthat/start-first: open_vault, get_datasets, extract_data,
+    get_common_dataset_type, select_dataset_by_type,
+    select_dataset_by_geo, get_samples, select_samples_by_age,
+    classify_taxa
 Encoding: UTF-8
 Language: en-GB
 Roxygen: list(markdown = TRUE)
