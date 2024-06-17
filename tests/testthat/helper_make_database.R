@@ -318,6 +318,7 @@ CREATE TABLE 'References' (
     append = TRUE
   )
 
+  # Samples
   data_samples <-
     tidyr::expand_grid(
       init = 1:50,
@@ -336,6 +337,7 @@ CREATE TABLE 'References' (
     append = TRUE
   )
 
+  # DatasetSample
   data_dataset_sample <-
     tibble::tibble(
       dataset_id = rep(
@@ -349,6 +351,81 @@ CREATE TABLE 'References' (
     con_db,
     data_dataset_sample,
     name = "DatasetSample",
+    append = TRUE
+  )
+
+
+  # Taxa -----
+  data_taxa <-
+    tibble::tibble(
+      taxon_name = paste0("taxon_", 1:57)
+    )
+
+  dplyr::copy_to(
+    con_db,
+    data_taxa,
+    name = "Taxa",
+    append = TRUE
+  )
+
+  # There will be 3 families
+  #   each with 3 unique genera
+  #   each with 5 unique species
+  data_classification <-
+    tibble::tibble(
+      taxon_species = 1:45,
+      taxon_genus = rep(46:54, each = 5),
+      taxon_family = rep(55:57, each = 15),
+    )
+
+  data_classification_species <-
+    data_classification %>%
+    dplyr::mutate(
+      taxon_id = taxon_species
+    ) %>%
+    dplyr::relocate(taxon_id)
+
+  data_classification_genus <-
+    data_classification %>%
+    dplyr::distinct(taxon_genus, taxon_family) %>%
+    dplyr::mutate(
+      taxon_id = taxon_genus
+    )
+
+  data_classification_merged <-
+    dplyr::bind_rows(
+      data_classification_species,
+      data_classification_genus
+    )
+
+  dplyr::copy_to(
+    con_db,
+    data_classification_merged,
+    name = "TaxonClassification",
+    append = TRUE
+  )
+
+  # SampleTaxa
+  data_sample_taxa <-
+    tibble::tibble(
+      sample_id = rep(
+        rep(1:8500, 7),
+        ceiling(85e3 / (8500 * 7))
+      )[1:85e3],
+      taxon_id = rep(
+        rep(1:45, each = 9),
+        ceiling(85e3 / (45 * 9))
+      )[1:85e3],
+      value = rep(
+        c(1, 10, 100),
+        ceiling(85e3 / 3)
+      )[1:85e3]
+    )
+
+  dplyr::copy_to(
+    con_db,
+    data_sample_taxa,
+    name = "SampleTaxa",
     append = TRUE
   )
 
