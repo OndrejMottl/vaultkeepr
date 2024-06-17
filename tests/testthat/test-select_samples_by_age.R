@@ -102,7 +102,7 @@ testthat::test_that("only filter by sel_dataset_type", {
 })
 
 testthat::test_that("get a message when sel_dataset_type differ", {
-  testthat::expect_message(
+  test_f <- function() {
     open_vault(
       path = paste(
         tempdir(),
@@ -120,7 +120,15 @@ testthat::test_that("get a message when sel_dataset_type differ", {
         age_lim = c(0, 5000),
         verbose = TRUE
       )
-  )
+  }
+
+  quiet_f <-
+    purrr::quietly(test_f)
+
+  res <-
+    quiet_f()
+
+  testthat::expect_true(length(res$messages) > 0)
 })
 
 # errors ----
