@@ -38,6 +38,15 @@ select_abiotic_var_by_name <- function(con = NULL, sel_var_name = NULL) {
     )
   )
 
+  assertthat::assert_that(
+    "dataset_type" %in% colnames(sel_data),
+    msg = paste(
+      "The data should be filtered only for `gridpoints`.",
+      "However, the does not contain `dataset_type` columns. Please add",
+      "`select_dataset_by_type()` to the pipe before this function."
+    )
+  )
+
   sel_con <- con$db_con
 
   assertthat::assert_that(
@@ -50,15 +59,6 @@ select_abiotic_var_by_name <- function(con = NULL, sel_var_name = NULL) {
     msg = paste(
       "AbioticVariable table does not exist in the Vault database",
       "Make sure to connect to the correct database"
-    )
-  )
-
-  assertthat::assert_that(
-    "dataset_type" %in% colnames(sel_data),
-    msg = paste(
-      "The data should be filtered only for `gridpoints`.",
-      "However, the does not contain `dataset_type` columns. Please add",
-      "`select_dataset_by_type()` to the pipe before this function."
     )
   )
 
