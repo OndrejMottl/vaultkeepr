@@ -1,6 +1,6 @@
 Package: vaultkeepr
 Title: Providing the Interface to Access the VegVault Database
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: 
     person("Ondrej", "Mottl", , "ondrej.mottl@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9796-5081"))
@@ -26,6 +26,8 @@ Config/testthat/start-first: open_vault, get_datasets, extract_data,
     get_common_dataset_type, select_dataset_by_type,
     select_dataset_by_geo, get_samples, select_samples_by_age,
     classify_taxa, get_taxa, select_taxa_by_name, select_taxa_by_id,
+    get_abiotic, select_abiotic_var_by_id, select_abiotic_var_by_name,
+    get_traits, select_traits_by_domain_name
 Encoding: UTF-8
 Language: en-GB
 Roxygen: list(markdown = TRUE)
