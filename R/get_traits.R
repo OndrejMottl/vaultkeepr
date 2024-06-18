@@ -137,8 +137,16 @@ get_traits <- function(
 
       message(
         paste(
-          "! Important !", "\n",
+          "! Important !: ",
           "Make sure to set `classify_to` to same value as in `get_taxa()`"
+        )
+      )
+
+      message(
+        paste(
+          "In addition, the column `taxon_id`",
+          "is going to be renamed to `taxon_id_trait`",
+          "to avoid any conflict.", "\n"
         )
       )
     }
@@ -155,7 +163,7 @@ get_traits <- function(
           data_taxa,
           by = "taxon_id"
         ),
-        by = c("dataset_id", "sample_id", "taxon_id"),
+        by = c("dataset_id", "sample_id"),
         suffix = c("", "_trait")
       )
   } else {
