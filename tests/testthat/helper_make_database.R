@@ -409,18 +409,18 @@ CREATE TABLE 'References' (
   # SampleTaxa
   data_sample_taxa <-
     tibble::tibble(
-      sample_id = rep(
+      sample_id = rep_len(
         rep(1:8500, 7),
-        ceiling(85e3 / (8500 * 7))
-      )[1:85e3],
-      taxon_id = rep(
+        length.out = 85e3
+      ),
+      taxon_id = rep_len(
         rep(1:45, each = 9),
-        ceiling(85e3 / (45 * 9))
-      )[1:85e3],
-      value = rep(
+        length.out = 85e3
+      ),
+      value = rep_len(
         c(1, 10, 100),
-        ceiling(85e3 / 3)
-      )[1:85e3]
+        length.out = 85e3
+      )
     )
 
   dplyr::copy_to(
@@ -489,6 +489,70 @@ CREATE TABLE 'References' (
     con_db,
     data_abiotic,
     name = "AbioticData",
+    append = TRUE
+  )
+
+  # Traits -----
+
+  data_trait_domain <-
+    tibble::tibble(
+      trait_domain_name = c(
+        "Stem specific density",
+        "Diaspore mass",
+        "Plant heigh"
+      ),
+      trait_domanin_description = c(
+        "Density of the stem",
+        "The mass of a single seed or fruit",
+        "The height of the plant"
+      )
+    )
+
+  dplyr::copy_to(
+    con_db,
+    data_trait_domain,
+    name = "TraitsDomain",
+    append = TRUE
+  )
+
+  data_trait <-
+    tibble::tibble(
+      trait_domain_id = rep(1:3, each = 3),
+      trait_name = paste0("trait_", 1:9)
+    )
+
+  dplyr::copy_to(
+    con_db,
+    data_trait,
+    name = "Traits",
+    append = TRUE
+  )
+
+  data_trait_dataset_sample <-
+    dplyr::tbl(con_db, "Datasets") %>%
+    dplyr::filter(dataset_type_id == 3) %>%
+    dplyr::inner_join(
+      dplyr::tbl(con_db, "DatasetSample"),
+      by = "dataset_id"
+    ) %>%
+    dplyr::select(sample_id, dataset_id) %>%
+    dplyr::distinct() %>%
+    dplyr::collect()
+
+  data_traits_value <-
+    tidyr::expand_grid(
+      trait_id = 1:9,
+      data_trait_dataset_sample
+    ) %>%
+    dplyr::mutate(
+      taxon_id = rep_len(1:45, length.out = nrow(.)),
+      trait_value = rep_len(c(0, 5, 100), length.out = nrow(.))
+    )
+
+  dplyr::copy_to(
+    con_db,
+    data_traits_value,
+    name = "TraitsValue",
     append = TRUE
   )
 
