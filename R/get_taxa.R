@@ -96,19 +96,19 @@ get_taxa <- function(
       to = classify_to
     )
 
-  # TODO: test for presence of abiotic and/or trait values and output a warning
+  # test for presence of trait values and output a warning
   #  that the column is going to be renamed
   if (
     c("taxon_id") %in% colnames(sel_data)
   ) {
     message(
       paste(
-        "The column `taxon_id` is already present in the data.",
-        "It is possibly from Abiotic or Trait data.",
+        "The column `taxon_id` is already present in the data,",
+        "possibly from Trait data.",
         "Therefore, the column `taxon_id` from the `SampleTaxa` table",
-        "is going to be renamed to `taxon_id_taxa`",
+        "is going to be renamed to `taxon_id_vegetation`",
         "to avoid any conflict.", "\n",
-        "We recommned using `get_taxa()` before `get_abiotic()` or `get_traits()`"
+        "We recommned using `get_taxa()` before `get_traits()`"
       )
     )
   }
@@ -118,7 +118,7 @@ get_taxa <- function(
     dplyr::left_join(
       data_taxa_classified,
       by = "sample_id",
-      suffix = c("", "_taxa")
+      suffix = c("", "_vegetation")
     )
 
   res <-
