@@ -46,9 +46,9 @@ select_dataset_by_type <- function(
   )
 
   assertthat::assert_that(
-    "dataset_type_id" %in% colnames(sel_data),
+    "dataset_type" %in% colnames(sel_data),
     msg = paste(
-      "The dataset does not contain `dataset_type_id` columns. Please add",
+      "The dataset does not contain `dataset_type` columns. Please add",
       "`get_datasets()` to the pipe before this function."
     )
   )
@@ -60,34 +60,10 @@ select_dataset_by_type <- function(
     msg = "db_con must be a class of `SQLiteConnection`"
   )
 
-  assertthat::assert_that(
-    "DatasetTypeID" %in% DBI::dbListTables(sel_con),
-    msg = paste(
-      "DatasetTypeID table does not exist in the Vault database",
-      "Make sure to connect to the correct database"
-    )
-  )
-
-  assertthat::assert_that(
-    "dataset_type_id" %in% colnames(dplyr::tbl(sel_con, "DatasetTypeID")),
-    msg = paste(
-      "The DatasetTypeID does not contain `dataset_type_id` column in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
-  )
-
-  assertthat::assert_that(
-    "dataset_type" %in% colnames(dplyr::tbl(sel_con, "DatasetTypeID")),
-    msg = paste(
-      "The DatasetTypeID does not contain `dataset_type` column in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
-  )
-
   vec_present_dataset_type <-
-    dplyr::tbl(sel_con, "DatasetTypeID") %>%
+    sel_data %>%
+    dplyr::distinct(.data$dataset_type) %>%
     dplyr::collect() %>%
-    dplyr::distinct(get("dataset_type")) %>%
     purrr::pluck(1)
 
   assertthat::assert_that(
@@ -100,10 +76,6 @@ select_dataset_by_type <- function(
 
   dat_res <-
     sel_data %>%
-    dplyr::left_join(
-      dplyr::tbl(sel_con, "DatasetTypeID"),
-      by = "dataset_type_id"
-    ) %>%
     dplyr::filter(
       .data$dataset_type %in% sel_dataset_type
     )

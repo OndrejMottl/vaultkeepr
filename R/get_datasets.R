@@ -1,5 +1,5 @@
 #' @title get Datasets
-#' @description Get the Datasets table from the Vault database
+#' @description Get the Datasets tables from the Vault database
 #' @param con A connection object created by `open_vault()`
 #' @return A `vault_pipe` object with the Datasets table
 #' @export
@@ -51,8 +51,36 @@ get_datasets <- function(con = NULL) {
     )
   )
 
+  assertthat::assert_that(
+    "DatasetTypeID" %in% DBI::dbListTables(sel_con),
+    msg = paste(
+      "Datasets table does not exist in the Vault database",
+      "Make sure to connect to the correct database"
+    )
+  )
+
+  assertthat::assert_that(
+    "dataset_type_id" %in% colnames(dplyr::tbl(sel_con, "Datasets")),
+    msg = paste(
+      "The Datasets does not contain `dataset_type_id` column in the Vault database.",
+      "Make sure to connect to the correct database"
+    )
+  )
+
+  assertthat::assert_that(
+    "dataset_type_id" %in% colnames(dplyr::tbl(sel_con, "DatasetTypeID")),
+    msg = paste(
+      "The DatasetTypeID does not contain `dataset_type_id` column in the Vault database.",
+      "Make sure to connect to the correct database"
+    )
+  )
+
   dat_res <-
-    dplyr::tbl(sel_con, "Datasets")
+    dplyr::left_join(
+      dplyr::tbl(sel_con, "Datasets"),
+      dplyr::tbl(sel_con, "DatasetTypeID"),
+      by = "dataset_type_id"
+    )
 
   res <-
     structure(
