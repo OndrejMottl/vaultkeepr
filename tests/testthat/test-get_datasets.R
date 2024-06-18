@@ -48,7 +48,8 @@ testthat::test_that("data.frame colnames", {
       "data_source_type_id",
       "coord_long",
       "coord_lat",
-      "sampling_method_id"
+      "sampling_method_id",
+      "dataset_type"
     )
   )
 })
@@ -72,7 +73,6 @@ testthat::test_that("data.frame nrows", {
     648
   )
 })
-
 
 testthat::test_that("data.frame values", {
   test_datasets <-
@@ -100,6 +100,14 @@ testthat::test_that("data.frame values", {
         -60, -15,
         -15, -30,
         -135, -30
+      )
+    ) %>%
+    dplyr::mutate(
+      dataset_type = dplyr::case_when(
+        dataset_type_id == 1 ~ "vegetation_plot",
+        dataset_type_id == 2 ~ "fossil_pollen_archive",
+        dataset_type_id == 3 ~ "traits",
+        dataset_type_id == 4 ~ "gridpoints"
       )
     ) %>%
     dplyr::mutate(,

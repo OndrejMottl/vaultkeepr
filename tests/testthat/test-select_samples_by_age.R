@@ -8,7 +8,6 @@ testthat::test_that("return correct class-high", {
       )
     ) %>%
     get_datasets() %>%
-    select_dataset_by_type() %>%
     get_samples() %>%
     select_samples_by_age(verbose = FALSE)
 
@@ -25,7 +24,6 @@ testthat::test_that("basic data.frame structure", {
       )
     ) %>%
     get_datasets() %>%
-    select_dataset_by_type() %>%
     get_samples() %>%
     select_samples_by_age(verbose = FALSE)
 
@@ -165,21 +163,6 @@ testthat::test_that("error wihtout `get_samples()`", {
   )
 })
 
-testthat::test_that("error wihtout `select_dataset_by_type()`", {
-  testthat::expect_error(
-    open_vault(
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      )
-    ) %>%
-      get_datasets() %>%
-      get_samples() %>%
-      select_samples_by_age()
-  )
-})
-
 testthat::test_that("error with bad `sel_dataset_type` class", {
   testthat::expect_error(
     open_vault(
@@ -190,7 +173,6 @@ testthat::test_that("error with bad `sel_dataset_type` class", {
       )
     ) %>%
       get_datasets() %>%
-      select_dataset_by_type() %>%
       get_samples() %>%
       select_samples_by_age(
         sel_dataset_type = 123,
@@ -210,7 +192,6 @@ testthat::test_that("error with bad `age_lim` class", {
       )
     ) %>%
       get_datasets() %>%
-      select_dataset_by_type() %>%
       get_samples() %>%
       select_samples_by_age(
         age_lim = "bad",
@@ -229,7 +210,6 @@ testthat::test_that("error with bad `verbose` class", {
       )
     ) %>%
       get_datasets() %>%
-      select_dataset_by_type() %>%
       get_samples() %>%
       select_samples_by_age(
         verbose = 123

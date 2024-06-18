@@ -26,7 +26,7 @@ testthat::test_that("basic data.frame structure", {
       )
     ) %>%
     get_datasets() %>%
-    select_dataset_by_type() %>%
+    select_dataset_by_type("gridpoints") %>%
     get_samples() %>%
     get_abiotic() %>%
     select_abiotic_var_by_name("temperature")
@@ -191,22 +191,6 @@ testthat::test_that("error wihtout `get_abiotic()`", {
       get_datasets() %>%
       select_dataset_by_type("gridpoints") %>%
       get_samples() %>%
-      select_abiotic_var_by_name("temperature")
-  )
-})
-
-testthat::test_that("error wihtout `select_dataset_by_type()`", {
-  testthat::expect_error(
-    open_vault(
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      )
-    ) %>%
-      get_datasets() %>%
-      get_samples() %>%
-      get_abiotic() %>%
       select_abiotic_var_by_name("temperature")
   )
 })
