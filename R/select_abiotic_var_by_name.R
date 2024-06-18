@@ -43,7 +43,7 @@ select_abiotic_var_by_name <- function(con = NULL, sel_var_name = NULL) {
     msg = paste(
       "The data should be filtered only for `gridpoints`.",
       "However, the does not contain `dataset_type` columns. Please add",
-      "`select_dataset_by_type()` to the pipe before this function."
+      "`get_datasets()` to the pipe before this function."
     )
   )
 
