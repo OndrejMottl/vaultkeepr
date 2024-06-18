@@ -8,7 +8,6 @@ testthat::test_that("return correct class-high", {
       )
     ) %>%
     get_datasets() %>%
-    select_dataset_by_type() %>%
     select_dataset_by_geo(verbose = FALSE)
 
   testthat::expect_s3_class(test_datasets, "vault_pipe")
@@ -24,7 +23,6 @@ testthat::test_that("basic data.frame structure", {
       )
     ) %>%
     get_datasets() %>%
-    select_dataset_by_type() %>%
     select_dataset_by_geo(verbose = FALSE)
 
   testthat::expect_s3_class(test_datasets$data, "tbl_sql")
@@ -199,20 +197,6 @@ testthat::test_that("error wihtout `get_datasets()`", {
   )
 })
 
-testthat::test_that("error wihtout `select_dataset_by_type()`", {
-  testthat::expect_error(
-    open_vault(
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      )
-    ) %>%
-      get_datasets() %>%
-      select_dataset_by_geo()
-  )
-})
-
 testthat::test_that("error with bad `sel_dataset_type` class", {
   testthat::expect_error(
     open_vault(
@@ -223,7 +207,6 @@ testthat::test_that("error with bad `sel_dataset_type` class", {
       )
     ) %>%
       get_datasets() %>%
-      select_dataset_by_type() %>%
       select_dataset_by_geo(
         sel_dataset_type = 123,
         verbose = FALSE
@@ -241,7 +224,6 @@ testthat::test_that("error with bad `sel_dataset_type`", {
       )
     ) %>%
       get_datasets() %>%
-      select_dataset_by_type() %>%
       select_dataset_by_geo(
         sel_dataset_type = "bad",
         verbose = FALSE
@@ -259,7 +241,6 @@ testthat::test_that("error with bad `long_lim` class", {
       )
     ) %>%
       get_datasets() %>%
-      select_dataset_by_type() %>%
       select_dataset_by_geo(
         long_lim = "bad",
         verbose = FALSE
@@ -277,7 +258,6 @@ testthat::test_that("error with bad `lat_lim` class", {
       )
     ) %>%
       get_datasets() %>%
-      select_dataset_by_type() %>%
       select_dataset_by_geo(
         lat_lim = "bad",
         verbose = FALSE
@@ -295,7 +275,6 @@ testthat::test_that("error with bad `verbose` class", {
       )
     ) %>%
       get_datasets() %>%
-      select_dataset_by_type() %>%
       select_dataset_by_geo(
         verbose = 123
       )

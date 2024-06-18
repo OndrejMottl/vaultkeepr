@@ -13,5 +13,5 @@ get_datasets(con = NULL)
 A \code{vault_pipe} object with the Datasets table
 }
 \description{
-Get the Datasets table from the Vault database
+Get the Datasets tables from the Vault database
 }
