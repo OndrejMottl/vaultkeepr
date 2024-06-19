@@ -10,14 +10,16 @@ License: MIT + file LICENSE
 Imports: 
     assertthat,
     DBI,
+    geosphere,
+    lifecycle,
     magrittr,
+    purrr,
     rlang,
     RSQLite,
     tibble
 Suggests: 
     dbplyr,
     dplyr,
-    purrr,
     stringr,
     testthat (>= 3.0.0),
     tidyr
