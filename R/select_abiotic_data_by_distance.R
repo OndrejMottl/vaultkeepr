@@ -204,7 +204,14 @@ select_abiotic_data_by_distance <- function(
         )
       )
     ) %>%
-    dplyr::filter((.data$distance_in_m * 1e3) < sel_km_distance) %>%
+    dplyr::mutate(keep = (.data$distance_in_m / 1e3) < sel_km_distance) %>%
+    dplyr::select("dataset_id", "keep") %>%
+    dplyr::group_by(.data$dataset_id) %>%
+    dplyr::summarise(
+      .groups = "drop",
+      keep_any = any(.data$keep),
+    ) %>%
+    dplyr::filter(.data$keep_any) %>%
     dplyr::distinct(.data$dataset_id) %>%
     dplyr::pull(.data$dataset_id)
 
