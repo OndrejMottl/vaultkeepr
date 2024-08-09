@@ -17,17 +17,31 @@ select_abiotic_data_by_distance(
 
 \item{sel_km_distance}{A maximal distance in km from the vegetation data}
 
-\item{sel_degree_grid}{A a helper grid size in degrees to help to minime the caluclation proces}
+\item{sel_degree_grid}{A a helper grid size in degrees to
+help to minime the caluclation proces}
 
-\item{sel_dataset_type}{A dataset types to use to as basis for the distance calculation}
+\item{sel_dataset_type}{A character vector of dataset types to filter}
 
 \item{verbose}{A logical value specifying whether to print messages}
+
+\item{sel_grid_ofset}{A grid offset to shift the gridpoints}
+
+\item{data_source}{A class of \code{tbl}}
 }
 \value{
 A class of \code{vault_pipe}
+
+A class of \code{tbl}
+
+A numeric vector of valid gridpoints ids
 }
 \description{
 Filter the abitotic data by distance from the vegetation data
+
+Add bin coordinates to the data
+
+Get valid gridpoints ids based on the distance from
+the vegetation data
 }
 \details{
 The function filters the data by distance from the vegetation data.
@@ -35,6 +49,11 @@ It will first subset gripoints (abitoic data) that are within the same
 square calculated by \code{sel_degree_grid}.
 It will then estimate the excat distance from the vegetation data and
 filter out all points abothe the \code{sel_km_distance} threshold.
+In order to speed up the calculation, the function will first create the grid
+5 times with different offsets to the original grid.
+This will help to reduce the number of calculations.
+We recomend to use a relatively small grid.
 Warning: This function may take a while to run, especially for big datasets.
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 }
+\keyword{internal}
