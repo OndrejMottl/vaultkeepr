@@ -51,7 +51,35 @@ testthat::test_that("number of trait ids", {
     dplyr::count(name = "N") %>%
     dplyr::pull("N")
 
-  testthat::expect_equal(test_n_trait_id, 9)
+  con_db <-
+    DBI::dbConnect(
+      RSQLite::SQLite(),
+      paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    )
+
+  actual_n_trait_id <-
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Datasets"),
+      dplyr::tbl(con_db, "DatasetSample"),
+      by = "dataset_id"
+    ) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "TraitsValue"),
+      by = c("sample_id")
+    ) %>%
+    dplyr::distinct(trait_id) %>%
+    dplyr::collect() %>%
+    tidyr::drop_na() %>%
+    dplyr::count(name = "N") %>%
+    dplyr::pull("N")
+
+  testthat::expect_equal(test_n_trait_id, actual_n_trait_id)
+
+  DBI::dbDisconnect(con_db)
 })
 
 testthat::test_that("size of a total dataset", {
@@ -73,7 +101,33 @@ testthat::test_that("size of a total dataset", {
     dplyr::collect() %>%
     dplyr::pull("N")
 
-  testthat::expect_equal(test_n_datasets, 25348)
+  con_db <-
+    DBI::dbConnect(
+      RSQLite::SQLite(),
+      paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    )
+
+  actual_n_datasets <-
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Datasets"),
+      dplyr::tbl(con_db, "DatasetSample"),
+      by = "dataset_id"
+    ) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "TraitsValue"),
+      by = "sample_id"
+    ) %>%
+    dplyr::count(name = "N") %>%
+    dplyr::collect() %>%
+    dplyr::pull("N")
+
+  testthat::expect_equal(test_n_datasets, actual_n_datasets)
+
+  DBI::dbDisconnect(con_db)
 })
 
 testthat::test_that("filtering the trait data by taxa data", {
@@ -124,15 +178,66 @@ testthat::test_that("filtering the trait data by taxa-classified ", {
     purrr::chuck("data") %>%
     dplyr::collect()
 
+  test_vec_taxon_id <-
+    test_datasets_with_taxa %>%
+    dplyr::distinct(taxon_id) %>%
+    tidyr::drop_na() %>%
+    dplyr::arrange(taxon_id) %>%
+    dplyr::pull("taxon_id")
+
+  con_db <-
+    DBI::dbConnect(
+      RSQLite::SQLite(),
+      paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    )
+
+  actual_vec_taxon_id <-
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Datasets"),
+      dplyr::tbl(con_db, "DatasetSample"),
+      by = "dataset_id"
+    ) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "SampleTaxa"),
+      by = "sample_id"
+    ) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "TaxonClassification"),
+      by = "taxon_id"
+    ) %>%
+    dplyr::select(-"taxon_id") %>%
+    dplyr::rename(
+      taxon_id = "taxon_family"
+    ) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "TraitsValue") %>%
+        dplyr::left_join(
+          dplyr::tbl(con_db, "TaxonClassification"),
+          by = "taxon_id"
+        ) %>%
+        dplyr::select(-"taxon_id") %>%
+        dplyr::rename(
+          taxon_id = "taxon_family"
+        ),
+      by = c("sample_id", "taxon_id")
+    ) %>%
+    dplyr::distinct(taxon_id) %>%
+    dplyr::collect() %>%
+    tidyr::drop_na() %>%
+    dplyr::pull("taxon_id")
+
   testthat::expect_true(nrow(test_datasets_with_taxa) > 0)
   testthat::expect_true("taxon_id" %in% colnames(test_datasets_with_taxa))
   testthat::expect_equal(
-    test_datasets_with_taxa %>%
-      dplyr::distinct(taxon_id) %>%
-      dplyr::arrange(taxon_id) %>%
-      dplyr::pull("taxon_id"),
-    c(55:57)
+    test_vec_taxon_id,
+    actual_vec_taxon_id
   )
+
+  DBI::dbDisconnect(con_db)
 })
 
 testthat::test_that("get a message when adding taxa ", {

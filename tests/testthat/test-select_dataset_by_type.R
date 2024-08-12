@@ -97,7 +97,27 @@ testthat::test_that("size of a dataset", {
     dplyr::collect() %>%
     dplyr::pull("N")
 
-  testthat::expect_equal(test_n_datasets, 162)
+  con_db <-
+    DBI::dbConnect(
+      RSQLite::SQLite(),
+      paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    )
+
+  actual_n_datasets <-
+    dplyr::tbl(con_db, "Datasets") %>%
+    dplyr::filter(dataset_type_id == 1) %>%
+    dplyr::count(name = "N") %>%
+    dplyr::collect() %>%
+    dplyr::pull("N")
+
+
+  testthat::expect_equal(test_n_datasets, actual_n_datasets)
+
+  DBI::dbDisconnect(con_db)
 })
 
 # errors ----

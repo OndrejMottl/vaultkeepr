@@ -46,11 +46,31 @@ testthat::test_that("number of raw taxa", {
   test_n_taxa <-
     test_datasets$data %>%
     dplyr::distinct(taxon_id) %>%
+    dplyr::collect() %>%
+    tidyr::drop_na() %>%
+    dplyr::count(name = "N") %>%
+    dplyr::pull("N")
+
+  con_db <-
+    DBI::dbConnect(
+      RSQLite::SQLite(),
+      paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    )
+
+  actual_n_taxa <-
+    dplyr::tbl(con_db, "SampleTaxa") %>%
+    dplyr::distinct(taxon_id) %>%
     dplyr::count(name = "N") %>%
     dplyr::collect() %>%
     dplyr::pull("N")
 
-  testthat::expect_equal(test_n_taxa, 45)
+  testthat::expect_equal(test_n_taxa, actual_n_taxa)
+
+  DBI::dbDisconnect(con_db)
 })
 
 testthat::test_that("number of taxa by family", {
@@ -71,11 +91,35 @@ testthat::test_that("number of taxa by family", {
   test_n_taxa <-
     test_datasets$data %>%
     dplyr::distinct(taxon_id) %>%
+    dplyr::collect() %>%
+    tidyr::drop_na() %>%
+    dplyr::count(name = "N") %>%
+    dplyr::pull("N")
+
+  con_db <-
+    DBI::dbConnect(
+      RSQLite::SQLite(),
+      paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    )
+
+  actual_n_taxa <-
+    dplyr::left_join(
+      dplyr::tbl(con_db, "SampleTaxa"),
+      dplyr::tbl(con_db, "TaxonClassification"),
+      by = "taxon_id"
+    ) %>%
+    dplyr::distinct(taxon_family) %>%
     dplyr::count(name = "N") %>%
     dplyr::collect() %>%
     dplyr::pull("N")
 
-  testthat::expect_equal(test_n_taxa, 3)
+  testthat::expect_equal(test_n_taxa, actual_n_taxa)
+
+  DBI::dbDisconnect(con_db)
 })
 
 testthat::test_that("size of a total dataset", {
@@ -97,5 +141,32 @@ testthat::test_that("size of a total dataset", {
     dplyr::collect() %>%
     dplyr::pull("N")
 
-  testthat::expect_equal(test_n_datasets, 85e3)
+  con_db <-
+    DBI::dbConnect(
+      RSQLite::SQLite(),
+      paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    )
+
+  actual_n_datasets <-
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Datasets"),
+      dplyr::tbl(con_db, "DatasetSample"),
+      by = "dataset_id"
+    ) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "SampleTaxa"),
+      by = "sample_id"
+    ) %>%
+    dplyr::count(name = "N") %>%
+    dplyr::collect() %>%
+    dplyr::pull("N")
+
+
+  testthat::expect_equal(test_n_datasets, actual_n_datasets)
+
+  DBI::dbDisconnect(con_db)
 })

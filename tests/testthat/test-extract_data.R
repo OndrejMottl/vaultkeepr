@@ -38,7 +38,23 @@ testthat::test_that("return full data.frame", {
     get_datasets() %>%
     extract_data()
 
-  testthat::expect_equal(nrow(test_datasets), 648)
+  con_db <-
+    DBI::dbConnect(
+      RSQLite::SQLite(),
+      paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    )
+
+  actual_datasets <-
+    dplyr::tbl(con_db, "Datasets") %>%
+    dplyr::collect()
+
+  testthat::expect_equal(nrow(test_datasets), nrow(actual_datasets))
+
+  DBI::dbDisconnect(con_db)
 })
 
 # errors -----

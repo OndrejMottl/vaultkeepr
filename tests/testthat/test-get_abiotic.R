@@ -51,7 +51,29 @@ testthat::test_that("number of abiotic variables", {
     dplyr::count(name = "N") %>%
     dplyr::pull("N")
 
-  testthat::expect_equal(test_n_abiotic_variables, 3)
+  con_db <-
+    DBI::dbConnect(
+      RSQLite::SQLite(),
+      paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    )
+
+  actual_n_abiotic_variables <-
+    dplyr::tbl(con_db, "AbioticData") %>%
+    dplyr::distinct(abiotic_variable_id) %>%
+    dplyr::count(name = "N") %>%
+    dplyr::collect() %>%
+    dplyr::pull("N")
+
+  testthat::expect_equal(
+    test_n_abiotic_variables,
+    actual_n_abiotic_variables
+  )
+
+  DBI::dbDisconnect(con_db)
 })
 
 testthat::test_that("abiotic data only preset for dataset type 4", {
@@ -98,7 +120,34 @@ testthat::test_that("size of a total dataset", {
     dplyr::collect() %>%
     dplyr::pull("N")
 
-  testthat::expect_equal(test_n_datasets, 6318)
+  con_db <-
+    DBI::dbConnect(
+      RSQLite::SQLite(),
+      paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    )
+
+  actual_n_datasets <-
+    dplyr::tbl(con_db, "Datasets") %>%
+    dplyr::filter(dataset_type_id == 4) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "DatasetSample"),
+      by = "dataset_id"
+    ) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "AbioticData"),
+      by = "sample_id"
+    ) %>%
+    dplyr::count(name = "N") %>%
+    dplyr::collect() %>%
+    dplyr::pull("N")
+
+  testthat::expect_equal(test_n_datasets, actual_n_datasets)
+
+  DBI::dbDisconnect(con_db)
 })
 
 # errors -----
