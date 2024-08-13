@@ -14,10 +14,33 @@ get_abiotic_data(
 }
 \arguments{
 \item{con}{A connection object created by \code{open_vault()}}
+
+\item{mode}{A character string specifying the mode of abiotic data
+aggregation. It must be one of \code{nearest}, \code{mean}, or \code{median}.}
+
+\item{limit_by_distance_km}{A numeric value specifying the maximum distance
+in kilometers between the non-gridpoint and gridpoint samples.}
+
+\item{limit_by_age_years}{A numeric value specifying the maximum age in
+years between the non-gridpoint and gridpoint samples.}
+
+\item{verbose}{A logical value specifying whether to print messages}
 }
 \value{
 A connection object with abiotic data
 }
 \description{
-Get abiotic data from the Vault database
+Get abiotic data from the Vault database. The function will filter out the
+gridpoints samples in such way, to keep only one gridpoint sample per
+non-gridpoint sample.
+First it will filter out gridpoint samples to only keep samples that are
+within the \code{limit_by_distance_km} and \code{limit_by_age_years} from non-gridpoint
+Next, it add \code{sample_id_link} column to the non-gridpoint samples, which
+is the closest gridpoint sample to the non-gridpoint sample.
+Finally, it will add abiotic data to the gridpoint samples, specified by
+\code{mode} argument. For \code{mode = "nearest"}, it will add the abiotic data from
+the closest gridpoint sample. For \code{mode = "mean"} and \code{mode = "median"}, it
+will first calculate the mean or median abiotic data for each
+gridpoint sample.
+The non-gridpoint samples are the samples that are not associated with the
 }

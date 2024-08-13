@@ -1,6 +1,26 @@
 #' @title Get abiotic data
-#' @description Get abiotic data from the Vault database
+#' @description
+#' Get abiotic data from the Vault database. The function will filter out the
+#' gridpoints samples in such way, to keep only one gridpoint sample per
+#' non-gridpoint sample.
+#' First it will filter out gridpoint samples to only keep samples that are
+#' within the `limit_by_distance_km` and `limit_by_age_years` from non-gridpoint
+#' Next, it add `sample_id_link` column to the non-gridpoint samples, which
+#' is the closest gridpoint sample to the non-gridpoint sample.
+#' Finally, it will add abiotic data to the gridpoint samples, specified by
+#' `mode` argument. For `mode = "nearest"`, it will add the abiotic data from
+#' the closest gridpoint sample. For `mode = "mean"` and `mode = "median"`, it
+#' will first calculate the mean or median abiotic data for each
+#' gridpoint sample.
+#' The non-gridpoint samples are the samples that are not associated with the
 #' @param con A connection object created by `open_vault()`
+#' @param mode A character string specifying the mode of abiotic data
+#'  aggregation. It must be one of `nearest`, `mean`, or `median`.
+#' @param limit_by_distance_km A numeric value specifying the maximum distance
+#' in kilometers between the non-gridpoint and gridpoint samples.
+#' @param limit_by_age_years A numeric value specifying the maximum age in
+#' years between the non-gridpoint and gridpoint samples.
+#' @param verbose A logical value specifying whether to print messages
 #' @return A connection object with abiotic data
 #' @export
 get_abiotic_data <- function(
@@ -123,6 +143,18 @@ get_abiotic_data <- function(
     )
   )
 
+  if (
+    isTRUE(verbose)
+  ) {
+    message(
+      switch(mode,
+        "nearest" = "Getting value of the nearest gridpont data",
+        "mean" = "Getting the mean value of all gridpoint within the limit",
+        "median" = "Getting the median  value of all gridpoint within the limit"
+      )
+    )
+  }
+
   assertthat::assert_that(
     is.numeric(limit_by_distance_km),
     msg = paste(
@@ -162,6 +194,13 @@ get_abiotic_data <- function(
     limit_by_age_years > 0,
     msg = paste(
       "`limit_by_age_years` must be greater than 0"
+    )
+  )
+
+  assertthat::assert_that(
+    is.logical(verbose),
+    msg = paste(
+      "`verbose` must be a logical value"
     )
   )
 
@@ -209,7 +248,7 @@ get_abiotic_data <- function(
     # there are someties multiple gridpoints are closest to
     #   the same vegetation sample.
     #   In this case, we take the first one
-    dplyr::distinct(sample_id, .keep_all = TRUE)
+    dplyr::distinct(.data$sample_ref_id, .keep_all = TRUE)
 
   vec_gridpoints_sample_id_subset <-
     data_link_sub %>%
