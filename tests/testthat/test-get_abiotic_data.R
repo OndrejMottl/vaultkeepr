@@ -9,7 +9,7 @@ testthat::test_that("return correct class-high", {
     ) %>%
     get_datasets() %>%
     get_samples() %>%
-    get_abiotic()
+    get_abiotic_data()
 
   testthat::expect_s3_class(test_datasets, "vault_pipe")
 })
@@ -25,7 +25,7 @@ testthat::test_that("basic data.frame structure", {
     ) %>%
     get_datasets() %>%
     get_samples() %>%
-    get_abiotic()
+    get_abiotic_data()
 
   testthat::expect_s3_class(test_datasets$data, "tbl_sql")
 })
@@ -41,7 +41,7 @@ testthat::test_that("number of abiotic variables", {
     ) %>%
     get_datasets() %>%
     get_samples() %>%
-    get_abiotic()
+    get_abiotic_data()
 
   test_n_abiotic_variables <-
     test_datasets$data %>%
@@ -87,7 +87,7 @@ testthat::test_that("abiotic data only preset for dataset type 4", {
     ) %>%
     get_datasets() %>%
     get_samples() %>%
-    get_abiotic()
+    get_abiotic_data()
 
   test_abiotic_variables_na <-
     test_datasets$data %>%
@@ -111,11 +111,12 @@ testthat::test_that("size of a total dataset", {
     ) %>%
     get_datasets() %>%
     get_samples() %>%
-    get_abiotic()
+    get_abiotic_data()
 
   test_n_datasets <-
     test_datasets$data %>%
-    dplyr::filter(!is.na(abiotic_variable_id)) %>%
+    #dplyr::filter(!is.na(abiotic_variable_id)) %>%
+    dplyr::filter(dataset_type_id == 4) %>%
     dplyr::count(name = "N") %>%
     dplyr::collect() %>%
     dplyr::pull("N")
@@ -153,7 +154,7 @@ testthat::test_that("size of a total dataset", {
 # errors -----
 testthat::test_that("error wihtout `open_vault()`", {
   testthat::expect_error(
-    get_abiotic()
+    get_abiotic_data()
   )
 })
 
@@ -166,7 +167,7 @@ testthat::test_that("error wihtout `get_datasets()`", {
         sep = "/"
       )
     ) %>%
-      get_abiotic()
+      get_abiotic_data()
   )
 })
 
@@ -180,6 +181,6 @@ testthat::test_that("error wihtout `get_samples()`", {
       )
     ) %>%
       get_datasets() %>%
-      get_abiotic()
+      get_abiotic_data()
   )
 })

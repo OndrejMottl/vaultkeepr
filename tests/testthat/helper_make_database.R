@@ -176,6 +176,16 @@ CREATE TABLE 'AbioticData' (
   FOREIGN KEY ('sample_id') REFERENCES 'Samples' ('sample_id'),
   FOREIGN KEY ('abiotic_variable_id') REFERENCES 'AbioticVariable' ('abiotic_variable_id')
 );
+
+CREATE TABLE 'AbioticDataReference' (
+  'sample_id' INTEGER,
+  'sample_ref_id' INTEGER,
+  'distance_in_km' INTEGER,
+  'distance_in_years' INTEGER,
+  FOREIGN KEY ('sample_id') REFERENCES 'Samples' ('sample_id'),
+  FOREIGN KEY ('sample_ref_id') REFERENCES 'Samples' ('sample_id')
+);
+
 CREATE TABLE 'AbioticVariable' (
   'abiotic_variable_id' INTEGER PRIMARY KEY,
   'abiotic_variable_name' TEXT,
@@ -289,25 +299,56 @@ CREATE TABLE 'References' (
   )
 
   # Datasets
-  # create a tibble with 648 datasets
-  # 648 = 6 (continents) * 108 (datasets per continent)
-  # 108 =  3 (dataset types) * 4 (data source types) * 3 (data sources) * 3 (sampling methods)
+  # create a tibble with 486 datasets
+  # 486 = 6 (continents) * 81 (datasets per continent)
+  # 81 =  3 (dataset types) * 3 (data source types) * 3 (data sources) * 3 (sampling methods)
+
+  data_dummy_coord <-
+    tibble::tribble(
+      ~coord_long, ~coord_lat,
+      -115, 45,
+      15, 45,
+      115, 45,
+      -60, -15,
+      -15, -30,
+      -135, -30
+    )
+
+  c(0000 - 0002 - 9796 - 5081) %>%
+    as.character() %>%
+    set.seed()
+
+  data_datasets_gridpoints <-
+    purrr::map(
+      .x = 1:5,
+      .f = ~ data_dummy_coord %>%
+        dplyr::mutate(
+          coord_long = coord_long + runif(1, -0.05, 0.05),
+          coord_lat = coord_lat + runif(1, -0.05, 0.05)
+        )
+    ) %>%
+    dplyr::bind_rows() %>%
+    dplyr::distinct() %>%
+    dplyr::mutate(
+      data_source_id = 4,
+      dataset_type_id = 4,
+      data_source_type_id = 4,
+      sampling_method_id = NA_integer_
+    )
+
+  data_datasets_vegetation <-
+    tidyr::expand_grid(
+      data_dummy_coord,
+      data_source_id = 1:3,
+      dataset_type_id = 1:3,
+      data_source_type_id = 1:3,
+      sampling_method_id = 1:3
+    )
 
   data_datasets <-
-    tidyr::expand_grid(
-      data_source_id = 1:3,
-      dataset_type_id = 1:4,
-      data_source_type_id = 1:3,
-      sampling_method_id = 1:3,
-      tibble::tribble(
-        ~coord_long, ~coord_lat,
-        -115, 45,
-        15, 45,
-        115, 45,
-        -60, -15,
-        -15, -30,
-        -135, -30
-      )
+    dplyr::bind_rows(
+      data_datasets_vegetation,
+      data_datasets_gridpoints
     ) %>%
     dplyr::mutate(,
       dataset_name = paste0("dataset_", dplyr::row_number())
@@ -343,8 +384,8 @@ CREATE TABLE 'References' (
   data_dataset_sample <-
     tibble::tibble(
       dataset_id = rep(
-        1:648,
-        ceiling(8500 / 648)
+        seq_len(nrow(data_datasets)),
+        ceiling(8500 / nrow(data_datasets))
       )[1:8500],
       sample_id = 1:8500
     )
@@ -406,11 +447,23 @@ CREATE TABLE 'References' (
     append = TRUE
   )
 
+  vec_vegetation_sample_id_db <-
+    dplyr::tbl(con_db, "Datasets") %>%
+    dplyr::filter(dataset_type_id %in% 1:2) %>%
+    dplyr::collect() %>%
+    dplyr::inner_join(
+      data_dataset_sample,
+      by = "dataset_id"
+    ) %>%
+    dplyr::select(sample_id) %>%
+    dplyr::distinct() %>%
+    purrr::chuck("sample_id")
+
   # SampleTaxa
   data_sample_taxa <-
     tibble::tibble(
       sample_id = rep_len(
-        rep(1:8500, 7),
+        rep(vec_vegetation_sample_id_db, 7),
         length.out = 85e3
       ),
       taxon_id = rep_len(
@@ -481,14 +534,194 @@ CREATE TABLE 'References' (
       ),
       abiotic_value = rep(
         c(-5, 0, 5),
-        ceiling(3 * length(vec_abiotic_sample_id) / 3)
-      )[(3 * length(vec_abiotic_sample_id))]
+        length(vec_abiotic_sample_id)
+      )
     )
 
   dplyr::copy_to(
     con_db,
     data_abiotic,
     name = "AbioticData",
+    append = TRUE
+  )
+
+  # AbioticDataReference -----
+
+  data_abiotic_geo <-
+    dplyr::tbl(con_db, "Datasets") %>%
+    dplyr::filter(dataset_type_id == 4) %>%
+    dplyr::inner_join(
+      dplyr::tbl(con_db, "DatasetSample"),
+      by = "dataset_id"
+    ) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Samples"),
+      by = "sample_id"
+    ) %>%
+    dplyr::select(
+      sample_id,
+      coord_lat,
+      coord_long
+    ) %>%
+    dplyr::distinct() %>%
+    dplyr::collect() %>%
+    dplyr::rename_with(
+      ~ paste0(.x, "_abiotic")
+    )
+
+  data_vegetation_geo <-
+    dplyr::tbl(con_db, "Datasets") %>%
+    dplyr::filter(dataset_type_id %in% 1:2) %>%
+    dplyr::inner_join(
+      dplyr::tbl(con_db, "DatasetSample"),
+      by = "dataset_id"
+    ) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Samples"),
+      by = "sample_id"
+    ) %>%
+    dplyr::select(
+      sample_id,
+      coord_lat,
+      coord_long
+    ) %>%
+    dplyr::distinct() %>%
+    dplyr::collect() %>%
+    dplyr::rename_with(
+      ~ paste0(.x, "_vegetation")
+    )
+
+  data_vegetation_geo_nest <-
+    data_vegetation_geo %>%
+    dplyr::group_by(
+      coord_lat_vegetation, coord_long_vegetation
+    ) %>%
+    tidyr::nest() %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(
+      dummy_id = dplyr::row_number()
+    )
+
+  data_vegetation_geo_lookup <-
+    data_vegetation_geo_nest %>%
+    tidyr::unnest(data) %>%
+    dplyr::distinct(
+      dummy_id,
+      sample_id_vegetation
+    )
+
+  data_to_estimate_distance <-
+    tidyr::expand_grid(
+      data_abiotic_geo,
+      data_vegetation_geo_nest %>%
+        dplyr::select(
+          coord_lat_vegetation,
+          coord_long_vegetation,
+          dummy_id
+        )
+    )
+    
+  data_with_distance <-
+    data_to_estimate_distance %>%
+    dplyr::mutate(
+      distance_in_m = purrr::pmap_dbl(
+        .l = list(
+          coord_long_abiotic,
+          coord_lat_abiotic,
+          coord_long_vegetation,
+          coord_lat_vegetation
+        ),
+        .f = ~ geosphere::distGeo(
+          p1 = c(..1, ..2),
+          p2 = c(..3, ..4)
+        )
+      ),
+      distance_in_km = distance_in_m / 1e3,
+    ) %>%
+    dplyr::filter(distance_in_km <= 50) %>%
+    dplyr::select(-"distance_in_m")
+
+  data_abiotic_reference <-
+    data_with_distance %>%
+    dplyr::select(
+      !dplyr::starts_with("coord_")
+    ) %>%
+    dplyr::left_join(
+      data_vegetation_geo_lookup,
+      by = "dummy_id",
+      relationship = "many-to-many"
+    ) %>%
+    dplyr::select(-"dummy_id")
+
+  data_gridpoints_ages <-
+    dplyr::tbl(con_db, "Datasets") %>%
+    dplyr::filter(dataset_type_id == 4) %>%
+    dplyr::inner_join(
+      dplyr::tbl(con_db, "DatasetSample"),
+      by = "dataset_id"
+    ) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Samples"),
+      by = "sample_id"
+    ) %>%
+    dplyr::distinct(
+      .data$sample_id,
+      .data$age
+    ) %>%
+    dplyr::collect()
+
+  data_vegetation_ages <-
+    dplyr::tbl(con_db, "Datasets") %>%
+    dplyr::filter(dataset_type_id != 4) %>%
+    dplyr::inner_join(
+      dplyr::tbl(con_db, "DatasetSample"),
+      by = "dataset_id"
+    ) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Samples"),
+      by = "sample_id"
+    ) %>%
+    dplyr::distinct(
+      .data$sample_id,
+      .data$age
+    ) %>%
+    dplyr::collect()
+
+  data_abiotic_reference_to_add <-
+    data_abiotic_reference %>%
+    dplyr::left_join(
+      data_gridpoints_ages,
+      by = c("sample_id_abiotic" = "sample_id")
+    ) %>%
+    dplyr::rename(
+      age_abiotic = "age"
+    ) %>%
+    dplyr::left_join(
+      data_vegetation_ages,
+      by = c("sample_id_vegetation" = "sample_id")
+    ) %>%
+    dplyr::rename(
+      age_vegetation = "age"
+    ) %>%
+    dplyr::mutate(
+      distance_in_years = abs(age_abiotic - age_vegetation)
+    ) %>%
+    dplyr::filter(distance_in_years <= 5e3) %>%
+    dplyr::distinct(
+      sample_id_vegetation,
+      sample_id_abiotic,
+      distance_in_km,
+      distance_in_years
+    ) %>%
+    dplyr::rename(
+      sample_id = sample_id_vegetation,
+      sample_ref_id = sample_id_abiotic
+    )
+
+  dplyr::copy_to(
+    con_db,
+    data_abiotic_reference_to_add,
+    name = "AbioticDataReference",
     append = TRUE
   )
 
