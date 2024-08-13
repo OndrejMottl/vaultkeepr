@@ -30,6 +30,7 @@ get_abiotic_data <- function(
     limit_by_age_years = 5e3,
     verbose = TRUE) {
   .data <- rlang::.data
+  `%>%` <- magrittr::`%>%`
 
   assertthat::assert_that(
     inherits(con, "vault_pipe"),
@@ -81,6 +82,21 @@ get_abiotic_data <- function(
     n_datasets_gridpoints > 0,
     msg = paste(
       "The dataset does not contain any gridpoints.",
+      "Please make sure to not filter them out."
+    )
+  )
+  
+  n_datasets_non_gridpoints <-
+    sel_data %>%
+    dplyr::filter(.data$dataset_type_id != 4) %>%
+    dplyr::count(name = "N") %>%
+    dplyr::collect() %>%
+    dplyr::pull("N")
+
+  assertthat::assert_that(
+    n_datasets_non_gridpoints > 0,
+    msg = paste(
+      "The dataset does not contain any non-gridpoints.",
       "Please make sure to not filter them out."
     )
   )
@@ -259,7 +275,7 @@ get_abiotic_data <- function(
   sel_data_sub <-
     sel_data %>%
     dplyr::filter(
-      sample_id %in% c(
+      .data$sample_id %in% c(
         vec_vegetation_sample_id,
         vec_gridpoints_sample_id_subset
       )
@@ -296,7 +312,7 @@ get_abiotic_data <- function(
         .groups = "drop",
         abiotic_value = switch(mode,
           "mean" = mean(.data$abiotic_value, na.rm = TRUE),
-          "median" = median(.data$abiotic_value, na.rm = TRUE)
+          "median" = stats::median(.data$abiotic_value, na.rm = TRUE)
         )
       )
 
