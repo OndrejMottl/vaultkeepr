@@ -526,7 +526,7 @@ CREATE TABLE 'References' (
     tibble::tibble(
       sample_id = rep(
         vec_abiotic_sample_id,
-        3
+        each = 3
       ),
       abiotic_variable_id = rep(
         1:3,
@@ -620,7 +620,7 @@ CREATE TABLE 'References' (
           dummy_id
         )
     )
-    
+
   data_with_distance <-
     data_to_estimate_distance %>%
     dplyr::mutate(
