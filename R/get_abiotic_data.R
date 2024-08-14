@@ -30,6 +30,7 @@ get_abiotic_data <- function(
     limit_by_age_years = 5e3,
     verbose = TRUE) {
   .data <- rlang::.data
+  median <- stats::median
   `%>%` <- magrittr::`%>%`
 
   assertthat::assert_that(
@@ -85,7 +86,7 @@ get_abiotic_data <- function(
       "Please make sure to not filter them out."
     )
   )
-  
+
   n_datasets_non_gridpoints <-
     sel_data %>%
     dplyr::filter(.data$dataset_type_id != 4) %>%
@@ -159,18 +160,6 @@ get_abiotic_data <- function(
     )
   )
 
-  if (
-    isTRUE(verbose)
-  ) {
-    message(
-      switch(mode,
-        "nearest" = "Getting value of the nearest gridpont data",
-        "mean" = "Getting the mean value of all gridpoint within the limit",
-        "median" = "Getting the median  value of all gridpoint within the limit"
-      )
-    )
-  }
-
   assertthat::assert_that(
     is.numeric(limit_by_distance_km),
     msg = paste(
@@ -234,6 +223,18 @@ get_abiotic_data <- function(
     dplyr::collect() %>%
     dplyr::pull("sample_id")
 
+
+  if (
+    isTRUE(verbose)
+  ) {
+    message(
+      paste(
+        "Getting the information about sample connections.",
+        "This may take a while."
+      )
+    )
+  }
+
   data_ref_subset <-
     dplyr::tbl(sel_con, "AbioticDataReference") %>%
     dplyr::filter(.data$sample_id %in% vec_vegetation_sample_id) %>%
@@ -264,7 +265,7 @@ get_abiotic_data <- function(
     # there are someties multiple gridpoints are closest to
     #   the same vegetation sample.
     #   In this case, we take the first one
-    dplyr::distinct(.data$sample_ref_id, .keep_all = TRUE)
+    dplyr::distinct(.data$sample_id, .keep_all = TRUE)
 
   vec_gridpoints_sample_id_subset <-
     data_link_sub %>%
@@ -287,6 +288,18 @@ get_abiotic_data <- function(
     )
 
   if (
+    isTRUE(verbose)
+  ) {
+    message(
+      switch(mode,
+        "nearest" = "Getting value of the nearest gridpont data",
+        "mean" = "Getting the mean value of all gridpoint within the limit",
+        "median" = "Getting the median  value of all gridpoint within the limit"
+      )
+    )
+  }
+
+  if (
     mode == "nearest"
   ) {
     data_abiotic <-
@@ -301,20 +314,33 @@ get_abiotic_data <- function(
     mode == "mean" ||
       mode == "median"
   ) {
-    data_abiotic_summed <-
+    data_abiotic_grouped <-
       data_ref_subset %>%
       dplyr::left_join(
         dplyr::tbl(sel_con, "AbioticData"),
         by = c("sample_ref_id" = "sample_id")
       ) %>%
-      dplyr::group_by(.data$sample_id, .data$abiotic_variable_id) %>%
-      dplyr::summarise(
-        .groups = "drop",
-        abiotic_value = switch(mode,
-          "mean" = mean(.data$abiotic_value, na.rm = TRUE),
-          "median" = stats::median(.data$abiotic_value, na.rm = TRUE)
+      dplyr::group_by(.data$sample_id, .data$abiotic_variable_id)
+
+    # there is some issue to call `.data$abiotic_value` in the `switch`
+    #   statement. So, we use `if` statement instead.
+    if (
+      mode == "mean"
+    ) {
+      data_abiotic_summed <-
+        data_abiotic_grouped %>%
+        dplyr::summarise(
+          .groups = "drop",
+          abiotic_value = mean(.data$abiotic_value, na.rm = TRUE)
         )
-      )
+    } else {
+      data_abiotic_summed <-
+        data_abiotic_grouped %>%
+        dplyr::summarise(
+          .groups = "drop",
+          abiotic_value = median(.data$abiotic_value, na.rm = TRUE)
+        )
+    }
 
     data_abiotic <-
       sel_data_sub %>%
