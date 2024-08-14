@@ -116,6 +116,8 @@ testthat::test_that("size of a total dataset", {
   test_n_datasets <-
     test_datasets$data %>%
     dplyr::filter(dataset_type_id == 4) %>%
+    dplyr::select(-"sample_id_link") %>%
+    dplyr::distinct() %>%
     dplyr::count(name = "N") %>%
     dplyr::collect() %>%
     dplyr::pull("N")
