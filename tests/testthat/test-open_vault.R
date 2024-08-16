@@ -79,6 +79,7 @@ testthat::test_that("return corrent tables", {
     DBI::dbListTables(con_db$db_con),
     c(
       "AbioticData",
+      "AbioticDataReference",
       "AbioticVariable",
       "AbioticVariableReference",
       "DatasetReferences",

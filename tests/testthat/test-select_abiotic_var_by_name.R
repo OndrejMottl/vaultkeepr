@@ -8,9 +8,8 @@ testthat::test_that("return correct class-high", {
       )
     ) %>%
     get_datasets() %>%
-    select_dataset_by_type("gridpoints") %>%
     get_samples() %>%
-    get_abiotic() %>%
+    get_abiotic_data(verbose = FALSE) %>%
     select_abiotic_var_by_name("temperature")
 
   testthat::expect_s3_class(test_datasets, "vault_pipe")
@@ -26,9 +25,8 @@ testthat::test_that("basic data.frame structure", {
       )
     ) %>%
     get_datasets() %>%
-    select_dataset_by_type("gridpoints") %>%
     get_samples() %>%
-    get_abiotic() %>%
+    get_abiotic_data(verbose = FALSE) %>%
     select_abiotic_var_by_name("temperature")
 
   testthat::expect_s3_class(test_datasets$data, "tbl_sql")
@@ -44,13 +42,13 @@ testthat::test_that("get only correct variable", {
       )
     ) %>%
     get_datasets() %>%
-    select_dataset_by_type("gridpoints") %>%
     get_samples() %>%
-    get_abiotic() %>%
+    get_abiotic_data(verbose = FALSE) %>%
     select_abiotic_var_by_name("temperature") %>%
     purrr::chuck("data") %>%
     dplyr::distinct(abiotic_variable_name) %>%
     dplyr::collect() %>%
+    tidyr::drop_na() %>%
     purrr::chuck("abiotic_variable_name")
 
   testthat::expect_true(is.character(test_datasets_values))
@@ -68,15 +66,15 @@ testthat::test_that("get correct taxa for multi-taxa selection", {
       )
     ) %>%
     get_datasets() %>%
-    select_dataset_by_type("gridpoints") %>%
     get_samples() %>%
-    get_abiotic() %>%
+    get_abiotic_data(verbose = FALSE) %>%
     select_abiotic_var_by_name(
       sel_var_name = c("temperature", "precipitation")
     ) %>%
     purrr::chuck("data") %>%
     dplyr::distinct(abiotic_variable_name) %>%
     dplyr::collect() %>%
+    tidyr::drop_na() %>%
     purrr::chuck("abiotic_variable_name")
 
   testthat::expect_true(is.character(test_datasets_values))
@@ -97,9 +95,8 @@ testthat::test_that("subset dataset", {
       )
     ) %>%
     get_datasets() %>%
-    select_dataset_by_type("gridpoints") %>%
     get_samples() %>%
-    get_abiotic()
+    get_abiotic_data(verbose = FALSE)
 
   test_datasets_sub <-
     test_datasets_full %>%
@@ -132,12 +129,12 @@ testthat::test_that("return empty dataset", {
       )
     ) %>%
     get_datasets() %>%
-    select_dataset_by_type("gridpoints") %>%
     get_samples() %>%
-    get_abiotic() %>%
+    get_abiotic_data(verbose = FALSE) %>%
     # select a variable that does not exist
     select_abiotic_var_by_name("pikachu") %>%
     purrr::chuck("data") %>%
+    dplyr::filter(dataset_type == "gridpoints") %>%
     dplyr::count() %>%
     dplyr::pull(n)
 
@@ -179,7 +176,7 @@ testthat::test_that("error wihtout `get_samples()`", {
   )
 })
 
-testthat::test_that("error wihtout `get_abiotic()`", {
+testthat::test_that("error wihtout `get_abiotic_data(verbose = FALSE)`", {
   testthat::expect_error(
     open_vault(
       path = paste(
@@ -207,7 +204,7 @@ testthat::test_that("error with bad `sel_var_name` class", {
       get_datasets() %>%
       select_dataset_by_type("gridpoints") %>%
       get_samples() %>%
-      get_abiotic() %>%
+      get_abiotic_data(verbose = FALSE) %>%
       select_abiotic_var_by_name(
         sel_var_name = 123
       )

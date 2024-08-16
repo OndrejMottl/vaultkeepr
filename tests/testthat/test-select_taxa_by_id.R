@@ -56,6 +56,8 @@ testthat::test_that("get only correct taxa", {
 })
 
 testthat::test_that("get correct taxa for multi-taxa selection", {
+  test_vec_taxa_id <- 2:3
+
   test_datasets_values <-
     open_vault(
       path = paste(
@@ -68,7 +70,7 @@ testthat::test_that("get correct taxa for multi-taxa selection", {
     get_samples() %>%
     get_taxa() %>%
     select_taxa_by_id(
-      sel_id = 2:3
+      sel_id = test_vec_taxa_id
     ) %>%
     purrr::chuck("data") %>%
     dplyr::distinct(taxon_id) %>%
@@ -77,7 +79,7 @@ testthat::test_that("get correct taxa for multi-taxa selection", {
 
   testthat::expect_true(is.numeric(test_datasets_values))
   testthat::expect_true(length(test_datasets_values) == 2)
-  testthat::expect_equal(test_datasets_values, 2:3)
+  testthat::expect_equal(test_datasets_values, test_vec_taxa_id)
 })
 
 testthat::test_that("subset dataset", {

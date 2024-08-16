@@ -66,12 +66,27 @@ testthat::test_that("data.frame nrows", {
     get_datasets() %>%
     purrr::chuck("data")
 
+  con_db <-
+    DBI::dbConnect(
+      RSQLite::SQLite(),
+      paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    )
+  actual_datasets <-
+    dplyr::tbl(con_db, "Datasets") %>%
+    dplyr::collect()
+
   testthat::expect_equal(
     test_datasets %>%
       dplyr::collect() %>%
       nrow(),
-    648
+    nrow(actual_datasets)
   )
+
+  DBI::dbDisconnect(con_db)
 })
 
 testthat::test_that("data.frame values", {
@@ -86,39 +101,26 @@ testthat::test_that("data.frame values", {
     get_datasets() %>%
     purrr::chuck("data")
 
-  data_temp <-
-    tidyr::expand_grid(
-      data_source_id = 1:3,
-      dataset_type_id = 1:4,
-      data_source_type_id = 1:3,
-      sampling_method_id = 1:3,
-      tibble::tribble(
-        ~coord_long, ~coord_lat,
-        -115, 45,
-        15, 45,
-        115, 45,
-        -60, -15,
-        -15, -30,
-        -135, -30
+  con_db <-
+    DBI::dbConnect(
+      RSQLite::SQLite(),
+      paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
       )
-    ) %>%
-    dplyr::mutate(
-      dataset_type = dplyr::case_when(
-        dataset_type_id == 1 ~ "vegetation_plot",
-        dataset_type_id == 2 ~ "fossil_pollen_archive",
-        dataset_type_id == 3 ~ "traits",
-        dataset_type_id == 4 ~ "gridpoints"
-      )
-    ) %>%
-    dplyr::mutate(,
-      dataset_name = paste0("dataset_", dplyr::row_number())
-    ) %>%
-    dplyr::select(
-      colnames(test_datasets)[-1]
     )
+
+  actual_datasets <-
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Datasets"),
+      dplyr::tbl(con_db, "DatasetTypeID"),
+      by = "dataset_type_id"
+    ) %>%
+    dplyr::collect()
 
   testthat::expect_equal(
     dplyr::collect(test_datasets)[, -1],
-    data_temp
+    actual_datasets[, -1]
   )
 })

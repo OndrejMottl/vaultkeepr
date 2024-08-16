@@ -34,7 +34,7 @@ select_abiotic_var_by_id <- function(con = NULL, sel_var_id = NULL) {
     "abiotic_variable_id" %in% colnames(sel_data),
     msg = paste(
       "The data does not contain `abiotic_variable_id` columns. Please add",
-      "`get_abiotic()` to the pipe before this function."
+      "`get_abiotic_data()` to the pipe before this function."
     )
   )
 
