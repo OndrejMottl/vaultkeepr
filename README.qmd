@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# vaultkeepr
+# vaultkeepr <img src="man/figures/vaultkeeper_logo.png" align="right" width="200" />
 
 <!-- badges: start -->
 [![CRAN-status](https://www.r-pkg.org/badges/version/vaultkeepr)](https://CRAN.R-project.org/package=vaultkeepr)
@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 [![Codecov-test-coverage](https://codecov.io/gh/OndrejMottl/vaultkeepr/branch/main/graph/badge.svg)](https://app.codecov.io/gh/OndrejMottl/vaultkeepr?branch=main)
 <!-- badges: end -->
 
-The goal of vaultkeepr is to providing the interface to access the **VegVault** database
+The goal of vaultkeepr is to providing the interface to access the [**VegVault** database](https://ondrejmottl.github.io/VegVault/).
 
 ## Installation
 
@@ -33,15 +33,4 @@ You can install the development version of vaultkeepr from [GitHub](https://gith
 #| eval: false
 # install.packages("remotes")
 remotes::install_github("OndrejMottl/vaultkeepr")
-```
-
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-```{r}
-#| label: example
-#| eval: false
-library(vaultkeepr)
-## basic example code
 ```
