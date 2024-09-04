@@ -2,7 +2,7 @@
 
 <!-- README.md is generated from README.qmd. Please edit that file -->
 
-# vaultkeepr
+# vaultkeepr <img src="man/figures/vaultkeeper_logo.png" align="right" width="200" />
 
 <!-- badges: start -->
 
@@ -12,7 +12,7 @@
 <!-- badges: end -->
 
 The goal of vaultkeepr is to providing the interface to access the
-**VegVault** database
+[**VegVault** database](https://ondrejmottl.github.io/VegVault/).
 
 ## Installation
 
@@ -22,13 +22,4 @@ You can install the development version of vaultkeepr from
 ``` r
 # install.packages("remotes")
 remotes::install_github("OndrejMottl/vaultkeepr")
-```
-
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-library(vaultkeepr)
-## basic example code
 ```
