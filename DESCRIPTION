@@ -5,7 +5,7 @@ Authors@R:
     person("Ondrej", "Mottl", , "ondrej.mottl@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9796-5081"))
 Maintainer: Ondrej Mottl <ondrej.mottl@gmail.com>
-Description: What the package does (one paragraph).
+Description: An R package for extracting and analyzing data from the VegVault database.
 License: MIT + file LICENSE
 Imports: 
     assertthat,
