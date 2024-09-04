@@ -1,0 +1,21 @@
+home:
+  title: "vegvault: Providing the interface to access the VegVault database"
+  description: "An R package for extracting and analyzing data from the VegVault database"
+
+url: ~
+template:
+  bootstrap: 5
+  opengraph:
+    image:
+      src: man/figures/vaultkeeper_logo.png
+    twitter:
+      creator: "@OndrejMottl"
+      card: summary_large_image
+navbar:
+  structure:
+    right: [search, twitter, github]
+  component:
+      twitter:
+        icon: fa-twitter
+        href: http://twitter.com/OndrejMottl
+        aria-label: Twitter
