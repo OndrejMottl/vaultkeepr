@@ -70,19 +70,16 @@ get_references <- function(
 
   # helper function to get unique references for specific columns in a table
   get_uniq_refs <- function(data_source, sel_con, sel_column, sel_table) {
-    sel_column_noquo <-
-      rlang::noquote(sel_column)
-
     vec_variable_id <-
       data_source %>%
-      dplyr::distinct({{ sel_column_noquo }}) %>%
+      dplyr::distinct(!!dplyr::sym(sel_column)) %>%
       dplyr::collect() %>%
       purrr::chuck(sel_column)
 
     data_refs <-
       dplyr::tbl(sel_con, sel_table) %>%
       dplyr::filter(
-        {{ sel_column_noquo }} %in% vec_variable_id
+        !!dplyr::sym(sel_column) %in% vec_variable_id
       ) %>%
       dplyr::distinct(.data$reference_id) %>%
       dplyr::collect() %>%
@@ -107,7 +104,7 @@ get_references <- function(
         data_source = data_source,
         sel_con = sel_con,
         sel_column = "dataset_id",
-        sel_table = "DatasetReference"
+        sel_table = "DatasetReferences"
       )
 
     vec_refs <-
@@ -130,7 +127,7 @@ get_references <- function(
         data_source = data_source,
         sel_con = sel_con,
         sel_column = "data_source_id",
-        sel_table = "DataSourceReference"
+        sel_table = "DatasetSourcesReference"
       )
 
     vec_refs <-
@@ -153,7 +150,7 @@ get_references <- function(
         data_source = data_source,
         sel_con = sel_con,
         sel_column = "data_source_type_id",
-        sel_table = "DataSourceTypeReference"
+        sel_table = "DatasetSourceTypeReference"
       )
 
     vec_refs <-
@@ -245,7 +242,7 @@ get_references <- function(
         data_source = data_source,
         sel_con = sel_con,
         sel_column = "trait_id",
-        sel_table = "TraitReference"
+        sel_table = "TraitsReference"
       )
 
     vec_refs <-
@@ -277,7 +274,7 @@ get_references <- function(
 
   # extract all references
   res <-
-    dplyr::tbl(sel_con, "Reference") %>%
+    dplyr::tbl(sel_con, "References") %>%
     dplyr::filter(
       .data$reference_id %in% vec_refs
     ) %>%
