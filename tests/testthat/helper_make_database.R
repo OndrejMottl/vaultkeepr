@@ -4,6 +4,69 @@ requireNamespace("stringr", quietly = TRUE)
 requireNamespace("purrr", quietly = TRUE)
 requireNamespace("magrittr", quietly = TRUE)
 
+.data <- rlang::.data
+`%>%` <- magrittr::`%>%`
+
+set_seed <- function(seed = c(0000 - 0002 - 9796 - 5081)) {
+  seed %>%
+    as.character() %>%
+    set.seed()
+}
+
+process_references <- function(
+    con_db,
+    id_table_name, ref_table_name,
+    name_column_id,
+    dummy_ref_name,
+    n_refs = 5) {
+  db <-
+    dplyr::tbl(con_db, id_table_name) %>%
+    dplyr::distinct(!!dplyr::sym(name_column_id)) %>%
+    dplyr::collect()
+
+  set_seed()
+  data_references <-
+    db %>%
+    dplyr::mutate(
+      reference_dummy = sample(
+        x = c(NA_integer_, 1:n_refs),
+        size = nrow(.),
+        replace = TRUE
+      )
+    ) %>%
+    dplyr::filter(!is.na(.data$reference_dummy)) %>%
+    dplyr::mutate(
+      reference_detail = paste0(dummy_ref_name, "_", .data$reference_dummy)
+    )
+
+  data_references %>%
+    dplyr::distinct(.data$reference_detail) %>%
+    dplyr::arrange(.data$reference_detail) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "References",
+      append = TRUE
+    )
+
+  data_references_db <-
+    dplyr::tbl(con_db, "References") %>%
+    dplyr::collect()
+
+  data_references %>%
+    dplyr::left_join(
+      data_references_db,
+      by = "reference_detail"
+    ) %>%
+    dplyr::distinct(!!dplyr::sym(name_column_id), .data$reference_id) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = ref_table_name,
+      append = TRUE
+    )
+}
+
 if (
   !file.exists(
     paste(
@@ -227,76 +290,68 @@ CREATE TABLE 'References' (
 
   # 2. insert data into the database -----
 
-  # Datasets -----
+  ## Datasets -----
 
   # DatasetType
-  data_dataset_type <-
-    tibble::tibble(
-      dataset_type = c(
-        "vegetation_plot",
-        "fossil_pollen_archive",
-        "traits",
-        "gridpoints"
-      )
+  tibble::tibble(
+    dataset_type = c(
+      "vegetation_plot",
+      "fossil_pollen_archive",
+      "traits",
+      "gridpoints"
     )
-
-  dplyr::copy_to(
-    con_db,
-    data_dataset_type,
-    name = "DatasetTypeID",
-    append = TRUE
-  )
+  ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "DatasetTypeID",
+      append = TRUE
+    )
 
   # DatasetSourceType
-  data_dataset_source_type <-
-    tibble::tibble(
-      dataset_source_type = c(
-        "alpha",
-        "beta",
-        "gamma"
-      )
+  tibble::tibble(
+    dataset_source_type = c(
+      "alpha",
+      "beta",
+      "gamma"
     )
-
-  dplyr::copy_to(
-    con_db,
-    data_dataset_source_type,
-    name = "DatasetSourceTypeID",
-    append = TRUE
-  )
+  ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "DatasetSourceTypeID",
+      append = TRUE
+    )
 
   # DatasetSources
-  data_dataset_sources <-
-    tibble::tibble(
-      data_source_desc = c(
-        "source1",
-        "source2",
-        "source3"
-      )
+  tibble::tibble(
+    data_source_desc = c(
+      "source1",
+      "source2",
+      "source3"
     )
-
-  dplyr::copy_to(
-    con_db,
-    data_dataset_sources,
-    name = "DatasetSourcesID",
-    append = TRUE
-  )
+  ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "DatasetSourcesID",
+      append = TRUE
+    )
 
   # SamplingMethod
-  data_sampling_method <-
-    tibble::tibble(
-      sampling_method_details = c(
-        "method1",
-        "method2",
-        "method3"
-      )
+  tibble::tibble(
+    sampling_method_details = c(
+      "method1",
+      "method2",
+      "method3"
     )
-
-  dplyr::copy_to(
-    con_db,
-    data_sampling_method,
-    name = "SamplingMethodID",
-    append = TRUE
-  )
+  ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "SamplingMethodID",
+      append = TRUE
+    )
 
   # Datasets
   # create a tibble with 486 datasets
@@ -314,10 +369,7 @@ CREATE TABLE 'References' (
       -135, -30
     )
 
-  c(0000 - 0002 - 9796 - 5081) %>%
-    as.character() %>%
-    set.seed()
-
+  set_seed()
   data_datasets_gridpoints <-
     purrr::map(
       .x = 1:5,
@@ -361,23 +413,73 @@ CREATE TABLE 'References' (
     append = TRUE
   )
 
-  # Samples -----
-  data_samples <-
-    tidyr::expand_grid(
-      init = 1:50,
-      sample_size_id = 1:10,
-      age = seq(0, 8000, by = 500)
-    ) %>%
+  ### Dataset References -----
+
+  # DatasetSourceReference
+  process_references(
+    con_db,
+    id_table_name = "DatasetSourcesID",
+    ref_table_name = "DatasetSourcesReference",
+    name_column_id = "data_source_id",
+    dummy_ref_name = "data_source",
+    n_refs = 3
+  )
+
+  # DatasetSourceTypeReference
+  process_references(
+    con_db,
+    id_table_name = "DatasetSourceTypeID",
+    ref_table_name = "DatasetSourceTypeReference",
+    name_column_id = "data_source_type_id",
+    dummy_ref_name = "data_source_type",
+    n_refs = 3
+  )
+
+  # SamplingMethodReference
+  process_references(
+    con_db,
+    id_table_name = "SamplingMethodID",
+    ref_table_name = "SamplingMethodReference",
+    name_column_id = "sampling_method_id",
+    dummy_ref_name = "sampling_method",
+    n_refs = 3
+  )
+
+  # DatasetReferences
+  process_references(
+    con_db,
+    id_table_name = "Datasets",
+    ref_table_name = "DatasetReferences",
+    name_column_id = "dataset_id",
+    dummy_ref_name = "dataset",
+    n_refs = 5
+  )
+
+  ## Samples -----
+  tidyr::expand_grid(
+    init = 1:50,
+    sample_size_id = 1:10,
+    age = seq(0, 8000, by = 500)
+  ) %>%
     dplyr::mutate(
       sample_name = paste0("sample_", dplyr::row_number())
     ) %>%
-    dplyr::select(-init)
+    dplyr::select(-init) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "Samples",
+      append = TRUE
+    )
 
-  dplyr::copy_to(
+  ### Sample references -----
+  process_references(
     con_db,
-    data_samples,
-    name = "Samples",
-    append = TRUE
+    id_table_name = "Samples",
+    ref_table_name = "SampleReference",
+    name_column_id = "sample_id",
+    dummy_ref_name = "sample",
+    n_refs = 10
   )
 
   # DatasetSample
@@ -397,19 +499,28 @@ CREATE TABLE 'References' (
     append = TRUE
   )
 
-  # Taxa -----
-  data_taxa <-
-    tibble::tibble(
-      taxon_name = paste0("taxon_", 1:57)
+  ## Taxa -----
+  tibble::tibble(
+    taxon_name = paste0("taxon_", 1:57)
+  ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "Taxa",
+      append = TRUE
     )
 
-  dplyr::copy_to(
+  ### Taxon references -----
+  process_references(
     con_db,
-    data_taxa,
-    name = "Taxa",
-    append = TRUE
+    id_table_name = "Taxa",
+    ref_table_name = "TaxonReference",
+    name_column_id = "taxon_id",
+    dummy_ref_name = "taxon",
+    n_refs = 5
   )
 
+  ### TaxonClassification -----
   # There will be 3 families
   #   each with 3 unique genera
   #   each with 5 unique species
@@ -434,18 +545,16 @@ CREATE TABLE 'References' (
       taxon_id = taxon_genus
     )
 
-  data_classification_merged <-
-    dplyr::bind_rows(
-      data_classification_species,
-      data_classification_genus
+  dplyr::bind_rows(
+    data_classification_species,
+    data_classification_genus
+  ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "TaxonClassification",
+      append = TRUE
     )
-
-  dplyr::copy_to(
-    con_db,
-    data_classification_merged,
-    name = "TaxonClassification",
-    append = TRUE
-  )
 
   vec_vegetation_sample_id_db <-
     dplyr::tbl(con_db, "Datasets") %>%
@@ -460,56 +569,51 @@ CREATE TABLE 'References' (
     purrr::chuck("sample_id")
 
   # SampleTaxa
-  data_sample_taxa <-
-    tibble::tibble(
-      sample_id = rep_len(
-        rep(vec_vegetation_sample_id_db, 7),
-        length.out = 85e3
-      ),
-      taxon_id = rep_len(
-        rep(1:45, each = 9),
-        length.out = 85e3
-      ),
-      value = rep_len(
-        c(1, 10, 100),
-        length.out = 85e3
-      )
+  tibble::tibble(
+    sample_id = rep_len(
+      rep(vec_vegetation_sample_id_db, 7),
+      length.out = 85e3
+    ),
+    taxon_id = rep_len(
+      rep(1:45, each = 9),
+      length.out = 85e3
+    ),
+    value = rep_len(
+      c(1, 10, 100),
+      length.out = 85e3
+    )
+  ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "SampleTaxa",
+      append = TRUE
     )
 
-  dplyr::copy_to(
-    con_db,
-    data_sample_taxa,
-    name = "SampleTaxa",
-    append = TRUE
-  )
-
-  # AbioticData -----
-
-  data_abiotic_variable <-
-    tibble::tibble(
-      abiotic_variable_name = c(
-        "temperature",
-        "precipitation",
-        "soil_moisture"
-      ),
-      abiotic_variable_unit = c(
-        "C",
-        "mm",
-        "percent"
-      ),
-      measure_details = c(
-        "daily average",
-        "annual average",
-        "monthly average"
-      )
+  ## AbioticData -----
+  tibble::tibble(
+    abiotic_variable_name = c(
+      "temperature",
+      "precipitation",
+      "soil_moisture"
+    ),
+    abiotic_variable_unit = c(
+      "C",
+      "mm",
+      "percent"
+    ),
+    measure_details = c(
+      "daily average",
+      "annual average",
+      "monthly average"
     )
-
-  dplyr::copy_to(
-    con_db,
-    data_abiotic_variable,
-    name = "AbioticVariable",
-    append = TRUE
-  )
+  ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "AbioticVariable",
+      append = TRUE
+    )
 
   vec_abiotic_sample_id <-
     dplyr::tbl(con_db, "Datasets") %>%
@@ -522,30 +626,38 @@ CREATE TABLE 'References' (
     dplyr::collect() %>%
     dplyr::pull(sample_id)
 
-  data_abiotic <-
-    tibble::tibble(
-      sample_id = rep(
-        vec_abiotic_sample_id,
-        each = 3
-      ),
-      abiotic_variable_id = rep(
-        1:3,
-        length(vec_abiotic_sample_id)
-      ),
-      abiotic_value = rep(
-        c(-5, 0, 5),
-        length(vec_abiotic_sample_id)
-      )
+  tibble::tibble(
+    sample_id = rep(
+      vec_abiotic_sample_id,
+      each = 3
+    ),
+    abiotic_variable_id = rep(
+      1:3,
+      length(vec_abiotic_sample_id)
+    ),
+    abiotic_value = rep(
+      c(-5, 0, 5),
+      length(vec_abiotic_sample_id)
+    )
+  ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "AbioticData",
+      append = TRUE
     )
 
-  dplyr::copy_to(
+  ### AbioticVariable references -----
+  process_references(
     con_db,
-    data_abiotic,
-    name = "AbioticData",
-    append = TRUE
+    id_table_name = "AbioticVariable",
+    ref_table_name = "AbioticVariableReference",
+    name_column_id = "abiotic_variable_id",
+    dummy_ref_name = "abiotic_variable",
+    n_refs = 3
   )
 
-  # AbioticDataReference -----
+  ## AbioticDataReference -----
 
   data_abiotic_geo <-
     dplyr::tbl(con_db, "Datasets") %>%
@@ -687,8 +799,7 @@ CREATE TABLE 'References' (
     ) %>%
     dplyr::collect()
 
-  data_abiotic_reference_to_add <-
-    data_abiotic_reference %>%
+  data_abiotic_reference %>%
     dplyr::left_join(
       data_gridpoints_ages,
       by = c("sample_id_abiotic" = "sample_id")
@@ -716,50 +827,45 @@ CREATE TABLE 'References' (
     dplyr::rename(
       sample_id = sample_id_vegetation,
       sample_ref_id = sample_id_abiotic
+    ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "AbioticDataReference",
+      append = TRUE
     )
 
-  dplyr::copy_to(
-    con_db,
-    data_abiotic_reference_to_add,
-    name = "AbioticDataReference",
-    append = TRUE
-  )
+  ## Traits -----
 
-  # Traits -----
-
-  data_trait_domain <-
-    tibble::tibble(
-      trait_domain_name = c(
-        "Stem specific density",
-        "Diaspore mass",
-        "Plant heigh"
-      ),
-      trait_domanin_description = c(
-        "Density of the stem",
-        "The mass of a single seed or fruit",
-        "The height of the plant"
-      )
+  tibble::tibble(
+    trait_domain_name = c(
+      "Stem specific density",
+      "Diaspore mass",
+      "Plant heigh"
+    ),
+    trait_domanin_description = c(
+      "Density of the stem",
+      "The mass of a single seed or fruit",
+      "The height of the plant"
+    )
+  ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "TraitsDomain",
+      append = TRUE
     )
 
-  dplyr::copy_to(
-    con_db,
-    data_trait_domain,
-    name = "TraitsDomain",
-    append = TRUE
-  )
-
-  data_trait <-
-    tibble::tibble(
-      trait_domain_id = rep(1:3, each = 3),
-      trait_name = paste0("trait_", 1:9)
+  tibble::tibble(
+    trait_domain_id = rep(1:3, each = 3),
+    trait_name = paste0("trait_", 1:9)
+  ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "Traits",
+      append = TRUE
     )
-
-  dplyr::copy_to(
-    con_db,
-    data_trait,
-    name = "Traits",
-    append = TRUE
-  )
 
   data_trait_dataset_sample <-
     dplyr::tbl(con_db, "Datasets") %>%
@@ -772,21 +878,29 @@ CREATE TABLE 'References' (
     dplyr::distinct() %>%
     dplyr::collect()
 
-  data_traits_value <-
-    tidyr::expand_grid(
-      trait_id = 1:9,
-      data_trait_dataset_sample
-    ) %>%
+  tidyr::expand_grid(
+    trait_id = 1:9,
+    data_trait_dataset_sample
+  ) %>%
     dplyr::mutate(
       taxon_id = rep_len(1:45, length.out = nrow(.)),
       trait_value = rep_len(c(0, 5, 100), length.out = nrow(.))
+    ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "TraitsValue",
+      append = TRUE
     )
 
-  dplyr::copy_to(
+  ### Trait references -----
+  process_references(
     con_db,
-    data_traits_value,
-    name = "TraitsValue",
-    append = TRUE
+    id_table_name = "Traits",
+    ref_table_name = "TraitsReference",
+    name_column_id = "trait_id",
+    dummy_ref_name = "trait",
+    n_refs = 5
   )
 
   # disconnect
