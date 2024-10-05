@@ -1,3 +1,7 @@
+# vaultkeepr 0.0.3
+
+* `get_reference_data()` - new function to get the references present in the data compilation extracted from the database
+
 # vaultkeepr 0.0.2
 
 * `get_abiotic_data()`- now link with the distance data (i.e., needs to have both "gridpoints" samples and "non-gridpoints" samples to be present)
