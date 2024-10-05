@@ -1,3 +1,15 @@
+#' @title Get references for selected data compilation
+#' @description This function extracts all references for selected
+#' data compilation, which have been extracted from VegVault.
+#' @param data_source A tibble containing the data compilation, which
+#' has been obtained using the `extract_data()` function.
+#' @param path A character string specifying the path to the VegVault file.
+#' @param type A character vector specifying the type of references to be
+#' extracted. The following types are available: `Dataset`, `DatasetSource`,
+#' `DatasetSourceType`, `SamplingMethod`, `Sample`, `Taxon`, `Trait`, and
+#' `AbioticVariable`.
+#' @return A tibble containing all references for the selected data compilation.
+#' @export
 get_references <- function(
     data_source = NULL,
     path = NULL,
