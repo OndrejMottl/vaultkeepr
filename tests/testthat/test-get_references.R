@@ -17,7 +17,8 @@ testthat::test_that("Dataset", {
         "example.sqlite",
         sep = "/"
       ),
-      type = "Dataset"
+      type = "Dataset",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -45,7 +46,8 @@ testthat::test_that("DatasetSource", {
         "example.sqlite",
         sep = "/"
       ),
-      type = "DatasetSource"
+      type = "DatasetSource",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -73,7 +75,8 @@ testthat::test_that("DatasetSourceType", {
         "example.sqlite",
         sep = "/"
       ),
-      type = "DatasetSourceType"
+      type = "DatasetSourceType",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -101,7 +104,8 @@ testthat::test_that("SamplingMethod", {
         "example.sqlite",
         sep = "/"
       ),
-      type = "SamplingMethod"
+      type = "SamplingMethod",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -130,7 +134,8 @@ testthat::test_that("Sample", {
         "example.sqlite",
         sep = "/"
       ),
-      type = "Sample"
+      type = "Sample",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -160,7 +165,8 @@ testthat::test_that("Taxon", {
         "example.sqlite",
         sep = "/"
       ),
-      type = "Taxon"
+      type = "Taxon",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -190,7 +196,8 @@ testthat::test_that("Trait", {
         "example.sqlite",
         sep = "/"
       ),
-      type = "Trait"
+      type = "Trait",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -220,7 +227,8 @@ testthat::test_that("AbioticVariable", {
         "example.sqlite",
         sep = "/"
       ),
-      type = "AbioticVariable"
+      type = "AbioticVariable",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -228,6 +236,127 @@ testthat::test_that("AbioticVariable", {
     stringr::str_detect("abiotic_variable") %>%
     all() %>%
     testthat::expect_true()
+})
+
+
+testthat::test_that("return null - data_source - Dataset - empty", {
+  testthat::expect_null(
+    get_references(
+      data_source = tibble::tibble(),
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      ),
+      type = "Dataset",
+      verbose = FALSE
+    )
+  )
+})
+
+testthat::test_that("return null - data_source - DatasetSource - empty", {
+  testthat::expect_null(
+    get_references(
+      data_source = tibble::tibble(),
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      ),
+      type = "DatasetSource",
+      verbose = FALSE
+    )
+  )
+})
+
+testthat::test_that("return null - data_source - DatasetSourceType - empty", {
+  testthat::expect_null(
+    get_references(
+      data_source = tibble::tibble(),
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      ),
+      type = "DatasetSourceType",
+      verbose = FALSE
+    )
+  )
+})
+
+testthat::test_that("return null - data_source - SamplingMethod - empty", {
+  testthat::expect_null(
+    get_references(
+      data_source = tibble::tibble(),
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      ),
+      type = "SamplingMethod",
+      verbose = FALSE
+    )
+  )
+})
+
+testthat::test_that("return null - data_source - Sample - empty", {
+  testthat::expect_null(
+    get_references(
+      data_source = tibble::tibble(),
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      ),
+      type = "Sample",
+      verbose = FALSE
+    )
+  )
+})
+
+testthat::test_that("return null - data_source - Taxon - empty", {
+  testthat::expect_null(
+    get_references(
+      data_source = tibble::tibble(),
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      ),
+      type = "Taxon",
+      verbose = FALSE
+    )
+  )
+})
+
+testthat::test_that("return null - data_source - Trait - empty", {
+  testthat::expect_null(
+    get_references(
+      data_source = tibble::tibble(),
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      ),
+      type = "Trait",
+      verbose = FALSE
+    )
+  )
+})
+
+testthat::test_that("return null - data_source - AbioticVariable - empty", {
+  testthat::expect_null(
+    get_references(
+      data_source = tibble::tibble(),
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      ),
+      type = "AbioticVariable",
+      verbose = FALSE
+    )
+  )
 })
 
 # multiple reference types
@@ -249,7 +378,8 @@ testthat::test_that("Dataset-alike", {
         "example.sqlite",
         sep = "/"
       ),
-      type = c("Dataset", "DatasetSource", "DatasetSourceType")
+      type = c("Dataset", "DatasetSource", "DatasetSourceType"),
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -292,7 +422,8 @@ testthat::test_that("all types", {
         "Taxon",
         "Trait",
         "AbioticVariable"
-      )
+      ),
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -320,7 +451,8 @@ testthat::test_that("error - data_source - empty", {
         tempdir(),
         "example.sqlite",
         sep = "/"
-      )
+      ),
+      verbose = FALSE
     )
   )
 })
@@ -333,122 +465,12 @@ testthat::test_that("error - data_source - wrong class", {
         tempdir(),
         "example.sqlite",
         sep = "/"
-      )
+      ),
+      verbose = FALSE
     )
   )
 })
 
-testthat::test_that("error - data_source - Dataset - empty", {
-  testthat::expect_error(
-    get_references(
-      data_source = tibble::tibble(),
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      ),
-      type = "Dataset"
-    )
-  )
-})
-
-testthat::test_that("error - data_source - DatasetSource - empty", {
-  testthat::expect_error(
-    get_references(
-      data_source = tibble::tibble(),
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      ),
-      type = "DatasetSource"
-    )
-  )
-})
-
-testthat::test_that("error - data_source - DatasetSourceType - empty", {
-  testthat::expect_error(
-    get_references(
-      data_source = tibble::tibble(),
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      ),
-      type = "DatasetSourceType"
-    )
-  )
-})
-
-testthat::test_that("error - data_source - SamplingMethod - empty", {
-  testthat::expect_error(
-    get_references(
-      data_source = tibble::tibble(),
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      ),
-      type = "SamplingMethod"
-    )
-  )
-})
-
-testthat::test_that("error - data_source - Sample - empty", {
-  testthat::expect_error(
-    get_references(
-      data_source = tibble::tibble(),
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      ),
-      type = "Sample"
-    )
-  )
-})
-
-testthat::test_that("error - data_source - Taxon - empty", {
-  testthat::expect_error(
-    get_references(
-      data_source = tibble::tibble(),
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      ),
-      type = "Taxon"
-    )
-  )
-})
-
-testthat::test_that("error - data_source - Trait - empty", {
-  testthat::expect_error(
-    get_references(
-      data_source = tibble::tibble(),
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      ),
-      type = "Trait"
-    )
-  )
-})
-
-testthat::test_that("error - data_source - AbioticVariable - empty", {
-  testthat::expect_error(
-    get_references(
-      data_source = tibble::tibble(),
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      ),
-      type = "AbioticVariable"
-    )
-  )
-})
 
 testthat::test_that("error - path - empty", {
   testthat::expect_error(
@@ -553,6 +575,54 @@ testthat::test_that("error - type - wrong type", {
           sep = "/"
         ),
         type = "wrong_type"
+      )
+  )
+})
+
+testthat::test_that("error - verbose - wrong class", {
+  testthat::expect_error(
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+      get_datasets() %>%
+      extract_data() %>%
+      get_references(
+        data_source = .,
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        ),
+        type = "Dataset",
+        verbose = 1:10
+      )
+  )
+})
+
+testthat::test_that("error - verbose - wrong type", {
+  testthat::expect_error(
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+      get_datasets() %>%
+      extract_data() %>%
+      get_references(
+        data_source = .,
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        ),
+        type = "Dataset",
+        verbose = "wrong_type"
       )
   )
 })

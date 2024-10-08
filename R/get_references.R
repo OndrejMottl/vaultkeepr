@@ -5,9 +5,12 @@
 #' has been obtained using the `extract_data()` function.
 #' @param path A character string specifying the path to the VegVault file.
 #' @param type A character vector specifying the type of references to be
-#' extracted. The following types are available: `Dataset`, `DatasetSource`,
+#' extracted. The function will try to extract all possible reference types.
+#' The following types are available: `Dataset`, `DatasetSource`,
 #' `DatasetSourceType`, `SamplingMethod`, `Sample`, `Taxon`, `Trait`, and
 #' `AbioticVariable`.
+#' @param verbose A logical indicating whether to print messages about the
+#' progress of the function. Default is `TRUE`.
 #' @return A tibble containing all references for the selected data compilation.
 #' @export
 get_references <- function(
@@ -22,7 +25,8 @@ get_references <- function(
       "Taxon",
       "Trait",
       "AbioticVariable"
-    )) {
+    ),
+    verbose = TRUE) {
   .data <- rlang::.data
   `%>%` <- magrittr::`%>%`
 
@@ -78,7 +82,13 @@ get_references <- function(
     )
   )
 
+  assertthat::assert_that(
+    is.logical(verbose),
+    msg = "'verbose' must be a class of `logical`"
+  )
+
   vec_refs <- NULL
+  vec_types_present <- NULL
 
   # helper function to get unique references for specific columns in a table
   get_uniq_refs <- function(data_source, sel_con, sel_column, sel_table) {
@@ -101,16 +111,9 @@ get_references <- function(
   }
 
   if (
-    "Dataset" %in% type
+    "Dataset" %in% type &&
+      "dataset_id" %in% colnames(data_source)
   ) {
-    assertthat::assert_that(
-      "dataset_id" %in% colnames(data_source),
-      msg = paste(
-        "The dataset does not contain `dataset_id` columns. Please make
-        sure to to use `get_datasets()` to obtain the 'data_source'"
-      )
-    )
-
     dataset_ref <-
       get_uniq_refs(
         data_source = data_source,
@@ -121,19 +124,15 @@ get_references <- function(
 
     vec_refs <-
       c(vec_refs, dataset_ref)
+
+    vec_types_present <-
+      c(vec_types_present, "Dataset")
   }
 
   if (
-    "DatasetSource" %in% type
+    "DatasetSource" %in% type &&
+      "data_source_id" %in% colnames(data_source)
   ) {
-    assertthat::assert_that(
-      "data_source_id" %in% colnames(data_source),
-      msg = paste(
-        "The dataset does not contain `data_source_id` columns. Please make
-        sure to to use `get_datasets()` to obtain the 'data_source'"
-      )
-    )
-
     data_source_ref <-
       get_uniq_refs(
         data_source = data_source,
@@ -144,19 +143,15 @@ get_references <- function(
 
     vec_refs <-
       c(vec_refs, data_source_ref)
+
+    vec_types_present <-
+      c(vec_types_present, "DatasetSource")
   }
 
   if (
-    "DatasetSourceType" %in% type
+    "DatasetSourceType" %in% type &&
+      "data_source_type_id" %in% colnames(data_source)
   ) {
-    assertthat::assert_that(
-      "data_source_type_id" %in% colnames(data_source),
-      msg = paste(
-        "The dataset does not contain `data_source_type_id` columns. Please make
-        sure to to use `get_datasets()` to obtain the 'data_source'"
-      )
-    )
-
     data_source_type_ref <-
       get_uniq_refs(
         data_source = data_source,
@@ -167,19 +162,15 @@ get_references <- function(
 
     vec_refs <-
       c(vec_refs, data_source_type_ref)
+
+    vec_types_present <-
+      c(vec_types_present, "DatasetSourceType")
   }
 
   if (
-    "SamplingMethod" %in% type
+    "SamplingMethod" %in% type &&
+      "sampling_method_id" %in% colnames(data_source)
   ) {
-    assertthat::assert_that(
-      "sampling_method_id" %in% colnames(data_source),
-      msg = paste(
-        "The dataset does not contain `sampling_method_id` columns. Please make
-        sure to to use `get_datasets()` to obtain the 'data_source'"
-      )
-    )
-
     sampling_method_ref <-
       get_uniq_refs(
         data_source = data_source,
@@ -190,19 +181,15 @@ get_references <- function(
 
     vec_refs <-
       c(vec_refs, sampling_method_ref)
+
+    vec_types_present <-
+      c(vec_types_present, "SamplingMethod")
   }
 
   if (
-    "Sample" %in% type
+    "Sample" %in% type &&
+      "sample_id" %in% colnames(data_source)
   ) {
-    assertthat::assert_that(
-      "sample_id" %in% colnames(data_source),
-      msg = paste(
-        "The dataset does not contain `sample_id` columns. Please make
-        sure to to use `get_samples()` to obtain the 'data_source'"
-      )
-    )
-
     sample_ref <-
       get_uniq_refs(
         data_source = data_source,
@@ -213,19 +200,15 @@ get_references <- function(
 
     vec_refs <-
       c(vec_refs, sample_ref)
+
+    vec_types_present <-
+      c(vec_types_present, "Sample")
   }
 
   if (
-    "Taxon" %in% type
+    "Taxon" %in% type &&
+      "taxon_id" %in% colnames(data_source)
   ) {
-    assertthat::assert_that(
-      "taxon_id" %in% colnames(data_source),
-      msg = paste(
-        "The dataset does not contain `taxon_id` columns. Please make
-        sure to to use `get_taxa()` to obtain the 'data_source'"
-      )
-    )
-
     taxon_ref <-
       get_uniq_refs(
         data_source = data_source,
@@ -236,19 +219,15 @@ get_references <- function(
 
     vec_refs <-
       c(vec_refs, taxon_ref)
+
+    vec_types_present <-
+      c(vec_types_present, "Taxon")
   }
 
   if (
-    "Trait" %in% type
+    "Trait" %in% type &&
+      "trait_id" %in% colnames(data_source)
   ) {
-    assertthat::assert_that(
-      "trait_id" %in% colnames(data_source),
-      msg = paste(
-        "The dataset does not contain `trait_id` columns. Please make
-        sure to to use `get_traits()` to obtain the 'data_source'"
-      )
-    )
-
     trait_ref <-
       get_uniq_refs(
         data_source = data_source,
@@ -259,19 +238,15 @@ get_references <- function(
 
     vec_refs <-
       c(vec_refs, trait_ref)
+
+    vec_types_present <-
+      c(vec_types_present, "Trait")
   }
 
   if (
-    "AbioticVariable" %in% type
+    "AbioticVariable" %in% type &&
+      "abiotic_variable_id" %in% colnames(data_source)
   ) {
-    assertthat::assert_that(
-      "abiotic_variable_id" %in% colnames(data_source),
-      msg = paste(
-        "The dataset does not contain `abiotic_variable_id` columns. Please make
-        sure to to use `get_abiotic_data()` to obtain the 'data_source'"
-      )
-    )
-
     abiotic_variable_ref <-
       get_uniq_refs(
         data_source = data_source,
@@ -282,6 +257,21 @@ get_references <- function(
 
     vec_refs <-
       c(vec_refs, abiotic_variable_ref)
+
+    vec_types_present <-
+      c(vec_types_present, "AbioticVariable")
+  }
+
+  if (
+    length(vec_refs) == 0
+  ) {
+    if (
+      isTRUE(verbose)
+    ) {
+      message("No references found for the selected data compilation.")
+    }
+
+    return(NULL)
   }
 
   # extract all references
@@ -292,6 +282,18 @@ get_references <- function(
     ) %>%
     dplyr::distinct() %>%
     dplyr::collect()
+
+  if (
+    isTRUE(verbose)
+  ) {
+    message(
+      paste(
+        "References for the following types have been extracted:",
+        paste(vec_types_present, collapse = ", ")
+      )
+    )
+  }
+
 
   return(res)
 }
