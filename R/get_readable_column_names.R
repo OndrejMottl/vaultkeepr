@@ -1,3 +1,5 @@
+# TODO add roxygen comments
+#' @keywords internal
 get_readable_column_names <- function(con, data) {
   assertthat::assert_that(
     inherits(data, "tbl"),
