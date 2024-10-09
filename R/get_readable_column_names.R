@@ -1,22 +1,15 @@
-get_readable_column_names <- function(
-    data_source = NULL,
-    path = NULL) {
+get_readable_column_names <- function(con, data) {
   assertthat::assert_that(
-    inherits(data_source, "data.frame"),
-    msg = "The 'data_source' must be a data.frame"
+    inherits(data, "tbl"),
+    msg = "data must be a class of `tbl`"
   )
 
-  # open vault to have access to all tables
-  con <- open_vault(path)
-
-  sel_con <- con$db_con
-
   assertthat::assert_that(
-    inherits(sel_con, "SQLiteConnection"),
+    inherits(con, "SQLiteConnection"),
     msg = "path does not lead to valid SQLite database"
   )
 
-  data_work <- data_source
+  data_work <- data
 
   # Add column names to data_source -----
   add_column_from_db <- function(data = NULL, sel_column_id = NA_character_,
@@ -34,7 +27,10 @@ get_readable_column_names <- function(
       ) {
         res <-
           data %>%
-          dplyr::relocate(sel_column_name, .after = sel_column_id) %>%
+          dplyr::relocate(
+            dplyr::all_of(sel_column_name),
+            .after = dplyr::all_of(sel_column_id)
+          ) %>%
           dplyr::select(-dplyr::all_of(sel_column_id))
       } else {
         if (
@@ -43,17 +39,20 @@ get_readable_column_names <- function(
           data_db <- sel_table
         } else {
           data_db <-
-            dplyr::tbl(sel_con, table_name)
+            dplyr::tbl(con, table_name)
         }
 
         res <-
           data %>%
           dplyr::left_join(
-            dplyr::collect(data_db),
+            data_db,
             by = sel_join_by,
             suffix = sel_suffix
           ) %>%
-          dplyr::relocate(sel_column_name, .after = sel_column_id) %>%
+          dplyr::relocate(
+            dplyr::all_of(sel_column_name),
+            .after = dplyr::all_of(sel_column_id)
+          ) %>%
           dplyr::select(-dplyr::all_of(sel_column_id))
       }
       return(res)
@@ -74,6 +73,7 @@ get_readable_column_names <- function(
       "sample_size_id",
       "taxon_id",
       "trait_id",
+      "trait_domain_id",
       "abiotic_variable_id"
     )
 
@@ -90,6 +90,7 @@ get_readable_column_names <- function(
         "sample_size",
         "taxon_name",
         "trait_name",
+        "trait_domain_name",
         "abiotic_variable_name"
       ),
       table_name = c(
@@ -102,6 +103,7 @@ get_readable_column_names <- function(
         "SampleSizeID",
         "Taxa",
         "Traits",
+        "TraitsDomain",
         "AbioticVariable"
       )
     )
@@ -141,8 +143,10 @@ get_readable_column_names <- function(
       data = data_work,
       sel_column_id = "sample_id_link",
       sel_column_name = "sample_name",
-      sel_table = dplyr::tbl(sel_con, "Samples") %>%
-        dplyr::select("sample_id", "sample_name"),
+      sel_table = dplyr::tbl(con, "Samples") %>%
+        dplyr::select(
+          dplyr::all_of(c("sample_id", "sample_name"))
+        ),
       sel_join_by = c("sample_id_link" = "sample_id"),
       sel_suffix = c("", "_gridpoint"),
       overwrite = TRUE
