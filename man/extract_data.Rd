@@ -4,10 +4,13 @@
 \alias{extract_data}
 \title{Extract data from a plan}
 \usage{
-extract_data(con)
+extract_data(con, return_raw_data = FALSE)
 }
 \arguments{
 \item{con}{A vault connection}
+
+\item{return_raw_data}{A logical indicating whether to return raw data or
+readable column names. Default is \code{FALSE}.}
 }
 \value{
 A data.frame
