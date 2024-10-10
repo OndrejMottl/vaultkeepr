@@ -9,7 +9,7 @@
 extract_data <- function(
     con,
     return_raw_data = FALSE,
-    ...) {
+    verbose = TRUE) {
   assertthat::assert_that(
     inherits(con, "vault_pipe"),
     msg = paste(
@@ -45,6 +45,11 @@ extract_data <- function(
     msg = "The 'return_raw_data' must be a logical"
   )
 
+  assertthat::assert_that(
+    is.logical(verbose),
+    msg = "The 'verbose' must be a logical"
+  )
+
   if (
     isTRUE(return_raw_data)
   ) {
@@ -65,7 +70,7 @@ extract_data <- function(
   data_packed <-
     pack_data(
       sel_data = data_readble,
-      ...
+      verbose = verbose
     )
 
   return(data_packed)
