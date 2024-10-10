@@ -9,7 +9,7 @@ testthat::test_that("Dataset", {
       )
     ) %>%
     get_datasets() %>%
-    extract_data() %>%
+    extract_data(return_raw_data = TRUE) %>%
     get_references(
       data_source = .,
       path = paste(
@@ -38,7 +38,7 @@ testthat::test_that("DatasetSource", {
       )
     ) %>%
     get_datasets() %>%
-    extract_data() %>%
+    extract_data(return_raw_data = TRUE) %>%
     get_references(
       data_source = .,
       path = paste(
@@ -67,7 +67,7 @@ testthat::test_that("DatasetSourceType", {
       )
     ) %>%
     get_datasets() %>%
-    extract_data() %>%
+    extract_data(return_raw_data = TRUE) %>%
     get_references(
       data_source = .,
       path = paste(
@@ -96,7 +96,7 @@ testthat::test_that("SamplingMethod", {
       )
     ) %>%
     get_datasets() %>%
-    extract_data() %>%
+    extract_data(return_raw_data = TRUE) %>%
     get_references(
       data_source = .,
       path = paste(
@@ -126,7 +126,7 @@ testthat::test_that("Sample", {
     ) %>%
     get_datasets() %>%
     get_samples() %>%
-    extract_data() %>%
+    extract_data(return_raw_data = TRUE) %>%
     get_references(
       data_source = .,
       path = paste(
@@ -157,7 +157,7 @@ testthat::test_that("Taxon", {
     get_datasets() %>%
     get_samples() %>%
     get_taxa() %>%
-    extract_data() %>%
+    extract_data(return_raw_data = TRUE) %>%
     get_references(
       data_source = .,
       path = paste(
@@ -188,7 +188,7 @@ testthat::test_that("Trait", {
     get_datasets() %>%
     get_samples() %>%
     get_traits() %>%
-    extract_data() %>%
+    extract_data(return_raw_data = TRUE) %>%
     get_references(
       data_source = .,
       path = paste(
@@ -219,7 +219,7 @@ testthat::test_that("AbioticVariable", {
     get_datasets() %>%
     get_samples() %>%
     get_abiotic_data(verbose = FALSE) %>%
-    extract_data() %>%
+    extract_data(return_raw_data = TRUE) %>%
     get_references(
       data_source = .,
       path = paste(
@@ -370,7 +370,7 @@ testthat::test_that("Dataset-alike", {
       )
     ) %>%
     get_datasets() %>%
-    extract_data() %>%
+    extract_data(return_raw_data = TRUE) %>%
     get_references(
       data_source = .,
       path = paste(
@@ -407,7 +407,7 @@ testthat::test_that("all types", {
     get_taxa() %>%
     get_traits(verbose = FALSE) %>%
     get_abiotic_data(verbose = FALSE) %>%
-    extract_data() %>%
+    extract_data(return_raw_data = TRUE) %>%
     get_references(
       data_source = .,
       path = paste(
@@ -482,7 +482,7 @@ testthat::test_that("error - path - empty", {
       )
     ) %>%
       get_datasets() %>%
-      extract_data() %>%
+      extract_data(return_raw_data = TRUE) %>%
       get_references(
         data_source = .,
         path = NULL,
@@ -501,7 +501,7 @@ testthat::test_that("error - path - wrong class", {
       )
     ) %>%
       get_datasets() %>%
-      extract_data() %>%
+      extract_data(return_raw_data = TRUE) %>%
       get_references(
         data_source = .,
         path = 1:10,
@@ -520,7 +520,7 @@ testthat::test_that("error - type - empty", {
       )
     ) %>%
       get_datasets() %>%
-      extract_data() %>%
+      extract_data(return_raw_data = TRUE) %>%
       get_references(
         data_source = .,
         path = paste(
@@ -543,7 +543,7 @@ testthat::test_that("error - type - wrong class", {
       )
     ) %>%
       get_datasets() %>%
-      extract_data() %>%
+      extract_data(return_raw_data = TRUE) %>%
       get_references(
         data_source = .,
         path = paste(
@@ -566,7 +566,7 @@ testthat::test_that("error - type - wrong type", {
       )
     ) %>%
       get_datasets() %>%
-      extract_data() %>%
+      extract_data(return_raw_data = TRUE) %>%
       get_references(
         data_source = .,
         path = paste(

@@ -583,6 +583,7 @@ CREATE TABLE 'References' (
       length.out = 85e3
     )
   ) %>%
+    dplyr::distinct(sample_id, taxon_id, .keep_all = TRUE) %>%
     dplyr::copy_to(
       con_db,
       df = .,
