@@ -2,12 +2,14 @@
 #' @description Extract data from a vault connection
 #' @param con A vault connection
 #' @param return_raw_data A logical indicating whether to return raw data or
-#' readable column names. Default is `FALSE`.
+#' without any processing. Default is `FALSE`.
+#' @param ... Additional argument passed to `pack_data()`
 #' @return A data.frame
 #' @export
 extract_data <- function(
     con,
-    return_raw_data = FALSE) {
+    return_raw_data = FALSE,
+    ...) {
   assertthat::assert_that(
     inherits(con, "vault_pipe"),
     msg = paste(
@@ -44,16 +46,27 @@ extract_data <- function(
   )
 
   if (
-    isFALSE(return_raw_data)
+    isTRUE(return_raw_data)
   ) {
-    sel_data <-
-      get_readable_column_names(
-        con = sel_con,
-        data = sel_data
-      )
+    res <-
+      sel_data %>%
+      dplyr::collect()
+
+    return(res)
   }
 
-  sel_data %>%
-    dplyr::collect() %>%
-    return()
+  data_readble <-
+    get_readable_column_names(
+      con = sel_con,
+      data = sel_data
+    ) %>%
+    dplyr::collect()
+
+  data_packed <-
+    pack_data(
+      sel_data = data_readble,
+      ...
+    )
+
+  return(data_packed)
 }
