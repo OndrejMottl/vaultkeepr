@@ -182,6 +182,7 @@ pack_data <- function(
       tidyr::nest(
         data_abiotic = dplyr::any_of(
           c(
+            "sample_name",
             "dataset_name_abiotic", "sample_name_abiotic",
             vec_sample_abiotic_cols
           )
