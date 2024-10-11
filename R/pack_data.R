@@ -69,7 +69,7 @@ pack_data <- function(
         "dataset_name",
         dplyr::any_of(vec_sample_community_cols)
       ) %>%
-      tidyr::drop_na(.data$value) %>%
+      tidyr::drop_na("value") %>%
       tidyr::nest(
         data_community = dplyr::all_of(vec_sample_community_cols)
       ) %>%
@@ -78,6 +78,11 @@ pack_data <- function(
           .progress = ifelse(verbose, "Packing community data", FALSE),
           .x = .data$data_community,
           .f = ~ .x %>%
+            dplyr::group_by(.data$sample_name, .data$taxon_name) %>%
+            dplyr::summarise(
+              .groups = "drop",
+              value = sum(.data$value)
+            ) %>%
             tidyr::pivot_wider(
               names_from = "taxon_name",
               values_from = "value",
@@ -116,7 +121,7 @@ pack_data <- function(
         "dataset_name",
         dplyr::any_of(vec_samples_trait_cols)
       ) %>%
-      tidyr::drop_na(.data$trait_value) %>%
+      tidyr::drop_na("trait_value") %>%
       tidyr::nest(
         data_traits = dplyr::any_of(vec_samples_trait_cols)
       ) %>%
@@ -148,7 +153,6 @@ pack_data <- function(
   # abiotic data -----
   vec_sample_abiotic_cols <-
     c(
-      "sample_name",
       "abiotic_variable_name", "abiotic_value",
       "abiotic_variable_unit", "measure_details",
       "sample_name_gridpoint"
@@ -157,15 +161,31 @@ pack_data <- function(
   if (
     all(vec_sample_abiotic_cols %in% colnames(sel_data))
   ) {
-    data_abiotic <-
+    data_abiotic_raw <-
       sel_data %>%
       dplyr::select(
         "dataset_name",
+        "sample_name",
         dplyr::any_of(vec_sample_abiotic_cols)
       ) %>%
-      tidyr::drop_na(.data$abiotic_value) %>%
+      tidyr::drop_na("abiotic_value") %>%
+      dplyr::relocate("sample_name_gridpoint")
+
+    data_abiotic <-
+      sel_data %>%
+      dplyr::distinct(.data$dataset_name, .data$sample_name) %>%
+      dplyr::inner_join(
+        data_abiotic_raw,
+        by = dplyr::join_by("sample_name" == "sample_name_gridpoint"),
+        suffix = c("", "_abiotic")
+      ) %>%
       tidyr::nest(
-        data_abiotic = dplyr::any_of(vec_sample_abiotic_cols)
+        data_abiotic = dplyr::any_of(
+          c(
+            "dataset_name_abiotic", "sample_name_abiotic",
+            vec_sample_abiotic_cols
+          )
+        )
       )
 
     data_packed <-
