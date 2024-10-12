@@ -1,9 +1,8 @@
-#' @title Get references for selected data compilation
+#' @title Get references for selected VegVault Plan
 #' @description This function extracts all references for selected
-#' data compilation, which have been extracted from VegVault.
-#' @param data_source A tibble containing the data compilation, which
-#' has been obtained using the `extract_data()` function.
-#' @param path A character string specifying the path to the VegVault file.
+#' VegVault extraction plan (i,e., this function should be used before
+#' extracting data from the plan).
+#' @param con A VegVault connection (a plan).
 #' @param type A character vector specifying the type of references to be
 #' extracted. The following types are available: `Dataset`, `DatasetSource`,
 #' `DatasetSourceType`, `SamplingMethod`, `Sample`, `Taxon`, `Trait`, and
@@ -11,7 +10,7 @@
 #' @return A tibble containing all references for the selected data compilation.
 #' @export
 get_references <- function(
-    data_source = NULL,
+    con = NULL,
     path = NULL,
     type = c(
       "Dataset",
@@ -26,11 +25,27 @@ get_references <- function(
   .data <- rlang::.data
   `%>%` <- magrittr::`%>%`
 
+  assertthat::assert_that(
+    inherits(con, "vault_pipe"),
+    msg = paste(
+      "`con` must be a class of `vault_pipe`",
+      "Use `open_vault()` to create a connection"
+    )
+  )
 
   assertthat::assert_that(
-    inherits(data_source, "tbl"),
-    msg = "data must be a class of `tbl`"
+    all(names(con) %in% c("data", "db_con")),
+    msg = paste(
+      "con must have `data` and `db_con`",
+      "Use `open_vault()` to create a connection"
+    )
   )
+
+  data_extracted_raw <-
+    extract_data(
+      con = con,
+      return_raw_data = TRUE
+    )
 
   assertthat::assert_that(
     inherits(type, "character"),
@@ -41,9 +56,6 @@ get_references <- function(
     length(type) > 0,
     msg = "'type' must have at least one element"
   )
-
-  # open vault to have acces to all tables
-  con <- open_vault(path)
 
   sel_con <- con$db_con
 
@@ -104,16 +116,16 @@ get_references <- function(
     "Dataset" %in% type
   ) {
     assertthat::assert_that(
-      "dataset_id" %in% colnames(data_source),
+      "dataset_id" %in% colnames(data_extracted_raw),
       msg = paste(
         "The dataset does not contain `dataset_id` columns. Please make
-        sure to to use `get_datasets()` to obtain the 'data_source'"
+        sure to to use `get_datasets()` to obtain the data"
       )
     )
 
     dataset_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = data_extracted_raw,
         sel_con = sel_con,
         sel_column = "dataset_id",
         sel_table = "DatasetReferences"
@@ -127,16 +139,16 @@ get_references <- function(
     "DatasetSource" %in% type
   ) {
     assertthat::assert_that(
-      "data_source_id" %in% colnames(data_source),
+      "data_source_id" %in% colnames(data_extracted_raw),
       msg = paste(
         "The dataset does not contain `data_source_id` columns. Please make
-        sure to to use `get_datasets()` to obtain the 'data_source'"
+        sure to to use `get_datasets()` to obtain the data"
       )
     )
 
     data_source_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = data_extracted_raw,
         sel_con = sel_con,
         sel_column = "data_source_id",
         sel_table = "DatasetSourcesReference"
@@ -150,16 +162,16 @@ get_references <- function(
     "DatasetSourceType" %in% type
   ) {
     assertthat::assert_that(
-      "data_source_type_id" %in% colnames(data_source),
+      "data_source_type_id" %in% colnames(data_extracted_raw),
       msg = paste(
         "The dataset does not contain `data_source_type_id` columns. Please make
-        sure to to use `get_datasets()` to obtain the 'data_source'"
+        sure to to use `get_datasets()` to obtain the data"
       )
     )
 
     data_source_type_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = data_extracted_raw,
         sel_con = sel_con,
         sel_column = "data_source_type_id",
         sel_table = "DatasetSourceTypeReference"
@@ -173,16 +185,16 @@ get_references <- function(
     "SamplingMethod" %in% type
   ) {
     assertthat::assert_that(
-      "sampling_method_id" %in% colnames(data_source),
+      "sampling_method_id" %in% colnames(data_extracted_raw),
       msg = paste(
         "The dataset does not contain `sampling_method_id` columns. Please make
-        sure to to use `get_datasets()` to obtain the 'data_source'"
+        sure to to use `get_datasets()` to obtain the data_extracted_raw"
       )
     )
 
     sampling_method_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = data_extracted_raw,
         sel_con = sel_con,
         sel_column = "sampling_method_id",
         sel_table = "SamplingMethodReference"
@@ -196,16 +208,16 @@ get_references <- function(
     "Sample" %in% type
   ) {
     assertthat::assert_that(
-      "sample_id" %in% colnames(data_source),
+      "sample_id" %in% colnames(data_extracted_raw),
       msg = paste(
         "The dataset does not contain `sample_id` columns. Please make
-        sure to to use `get_samples()` to obtain the 'data_source'"
+        sure to to use `get_samples()` to obtain the data"
       )
     )
 
     sample_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = data_extracted_raw,
         sel_con = sel_con,
         sel_column = "sample_id",
         sel_table = "SampleReference"
@@ -219,16 +231,16 @@ get_references <- function(
     "Taxon" %in% type
   ) {
     assertthat::assert_that(
-      "taxon_id" %in% colnames(data_source),
+      "taxon_id" %in% colnames(data_extracted_raw),
       msg = paste(
         "The dataset does not contain `taxon_id` columns. Please make
-        sure to to use `get_taxa()` to obtain the 'data_source'"
+        sure to to use `get_taxa()` to obtain the data"
       )
     )
 
     taxon_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = data_extracted_raw,
         sel_con = sel_con,
         sel_column = "taxon_id",
         sel_table = "TaxonReference"
@@ -242,16 +254,16 @@ get_references <- function(
     "Trait" %in% type
   ) {
     assertthat::assert_that(
-      "trait_id" %in% colnames(data_source),
+      "trait_id" %in% colnames(data_extracted_raw),
       msg = paste(
         "The dataset does not contain `trait_id` columns. Please make
-        sure to to use `get_traits()` to obtain the 'data_source'"
+        sure to to use `get_traits()` to obtain the data"
       )
     )
 
     trait_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = data_extracted_raw,
         sel_con = sel_con,
         sel_column = "trait_id",
         sel_table = "TraitsReference"
@@ -265,16 +277,16 @@ get_references <- function(
     "AbioticVariable" %in% type
   ) {
     assertthat::assert_that(
-      "abiotic_variable_id" %in% colnames(data_source),
+      "abiotic_variable_id" %in% colnames(data_extracted_raw),
       msg = paste(
         "The dataset does not contain `abiotic_variable_id` columns. Please make
-        sure to to use `get_abiotic_data()` to obtain the 'data_source'"
+        sure to to use `get_abiotic_data()` to obtain the data"
       )
     )
 
     abiotic_variable_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = data_extracted_raw,
         sel_con = sel_con,
         sel_column = "abiotic_variable_id",
         sel_table = "AbioticVariableReference"

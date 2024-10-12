@@ -2,20 +2,17 @@
 % Please edit documentation in R/get_references.R
 \name{get_references}
 \alias{get_references}
-\title{Get references for selected data compilation}
+\title{Get references for selected VegVault Plan}
 \usage{
 get_references(
-  data_source = NULL,
+  con = NULL,
   path = NULL,
   type = c("Dataset", "DatasetSource", "DatasetSourceType", "SamplingMethod", "Sample",
     "Taxon", "Trait", "AbioticVariable")
 )
 }
 \arguments{
-\item{data_source}{A tibble containing the data compilation, which
-has been obtained using the \code{extract_data()} function.}
-
-\item{path}{A character string specifying the path to the VegVault file.}
+\item{con}{A VegVault connection (a plan).}
 
 \item{type}{A character vector specifying the type of references to be
 extracted. The following types are available: \code{Dataset}, \code{DatasetSource},
@@ -27,5 +24,6 @@ A tibble containing all references for the selected data compilation.
 }
 \description{
 This function extracts all references for selected
-data compilation, which have been extracted from VegVault.
+VegVault extraction plan (i,e., this function should be used before
+extracting data from the plan).
 }
