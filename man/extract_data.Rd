@@ -4,7 +4,7 @@
 \alias{extract_data}
 \title{Extract data from a plan}
 \usage{
-extract_data(con, return_raw_data = FALSE, ...)
+extract_data(con, return_raw_data = FALSE, verbose = TRUE)
 }
 \arguments{
 \item{con}{A vault connection}
@@ -12,11 +12,21 @@ extract_data(con, return_raw_data = FALSE, ...)
 \item{return_raw_data}{A logical indicating whether to return raw data or
 without any processing. Default is \code{FALSE}.}
 
-\item{...}{Additional argument passed to \code{pack_data()}}
+\item{verbose}{A logical indicating whether output additional information.
+Default is \code{TRUE}.}
 }
 \value{
 A data.frame
 }
 \description{
-Extract data from a vault connection
+Extract data from a vault connection. The data is first
+processed with columns translated into more redable variants.
+The data is then packed into a single tibble with nested data.frames,
+containing information about:
+\itemize{
+\item \code{data_samples} for sample metadata
+\item \code{data_samples_community} for community (vegetation) data
+\item \code{data_traits} for trait data
+\item \code{data_abiotic} for abiotic data
+}
 }

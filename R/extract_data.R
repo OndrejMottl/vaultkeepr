@@ -1,9 +1,17 @@
 #' @title Extract data from a plan
-#' @description Extract data from a vault connection
+#' @description Extract data from a vault connection. The data is first
+#' processed with columns translated into more redable variants.
+#' The data is then packed into a single tibble with nested data.frames,
+#' containing information about:
+#' - `data_samples` for sample metadata
+#' - `data_samples_community` for community (vegetation) data
+#' - `data_traits` for trait data
+#' - `data_abiotic` for abiotic data
 #' @param con A vault connection
 #' @param return_raw_data A logical indicating whether to return raw data or
 #' without any processing. Default is `FALSE`.
-#' @param ... Additional argument passed to `pack_data()`
+#' @param verbose A logical indicating whether output additional information.
+#'  Default is `TRUE`.
 #' @return A data.frame
 #' @export
 extract_data <- function(

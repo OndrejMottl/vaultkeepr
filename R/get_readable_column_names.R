@@ -1,4 +1,12 @@
-# TODO add roxygen comments
+#' @title Get readable column names
+#' @description Get readable column names from the Vault database compilation.
+#' Raw data in the vegVault contains many ID columns (e.g., `sample_id`,
+#' `taxon_id`, `trait_id`, etc.). This function will automatically replace
+#' these columns with more readable names (e.g., `sample_name`, `taxon_name`,
+#' `trait_name`, etc.).
+#' @param con A connection to the VegVault database.
+#' @param data A tibble containing the raw data.
+#' @return A tibble with readable column names.
 #' @keywords internal
 get_readable_column_names <- function(con, data) {
   assertthat::assert_that(
