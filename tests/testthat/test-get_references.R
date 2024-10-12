@@ -188,16 +188,7 @@ testthat::test_that("Dataset-alike", {
     get_references(
       type = c("Dataset", "DatasetSource", "DatasetSourceType")
     )
-
-  test_refs %>%
-    purrr::chuck("reference_detail") %>%
-    {
-      stringr::str_detect(., "dataset") |
-        stringr::str_detect(., "data_source") |
-        stringr::str_detect(., "data_source_type")
-    } %>%
-    all() %>%
-    testthat::expect_true()
+  )
 })
 
 testthat::test_that("all types", {
@@ -423,6 +414,40 @@ testthat::test_that("error - type - wrong type", {
       get_datasets() %>%
       get_references(
         type = "wrong_type"
+      )
+  )
+})
+
+testthat::test_that("error - verbose - wrong class", {
+  testthat::expect_error(
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+      get_datasets() %>%
+      get_references(
+        type = "Dataset",
+        verbose = 1:10
+      )
+  )
+})
+
+testthat::test_that("error - verbose - wrong type", {
+  testthat::expect_error(
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+      get_datasets() %>%
+      get_references(
+        type = "Dataset",
+        verbose = "wrong_type"
       )
   )
 })

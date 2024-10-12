@@ -8,16 +8,21 @@ get_references(
   con = NULL,
   path = NULL,
   type = c("Dataset", "DatasetSource", "DatasetSourceType", "SamplingMethod", "Sample",
-    "Taxon", "Trait", "AbioticVariable")
+    "Taxon", "Trait", "AbioticVariable"),
+  verbose = TRUE
 )
 }
 \arguments{
 \item{con}{A VegVault connection (a plan).}
 
 \item{type}{A character vector specifying the type of references to be
-extracted. The following types are available: \code{Dataset}, \code{DatasetSource},
+extracted. The function will try to extract all possible reference types.
+The following types are available: \code{Dataset}, \code{DatasetSource},
 \code{DatasetSourceType}, \code{SamplingMethod}, \code{Sample}, \code{Taxon}, \code{Trait}, and
 \code{AbioticVariable}.}
+
+\item{verbose}{A logical indicating whether to print messages about the
+progress of the function. Default is \code{TRUE}.}
 }
 \value{
 A tibble containing all references for the selected data compilation.
