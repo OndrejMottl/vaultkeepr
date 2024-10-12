@@ -1,3 +1,9 @@
+# vaultkeepr 0.0.4
+
+* `extract_data()` - now returns human-readable column names (NAMES) by default (not IDs) and pack all data (samples) into several tibbles
+
+* `get_references()` - the input is switched directly to a plan (no need to path and/or extracting data to get references)
+
 # vaultkeepr 0.0.3
 
 * `get_reference_data()` - new function to get the references present in the data compilation extracted from the database
