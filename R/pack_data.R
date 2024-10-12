@@ -1,3 +1,18 @@
+#' @title Pack the data into nested tibbles
+#' @description Pack the data into nested tibbles for easier access and
+#' manipulation. Only specific columns are selected and packed into the
+#' following nested tibbles:
+#' - `data_samples` for sample metadata
+#' - `data_community` for community (vegetation) data
+#' - `data_traits` for trait data
+#' - `data_abiotic` for abiotic data
+#' When the `sel_data` does not contain the required columns, the function
+#' will skip the respective data type.
+#' @param sel_data A tibble with data
+#' @param verbose A logical indicating whether to output additional information.
+#' Default is `TRUE`.
+#' @return A tibble with nested data.frames
+#' @keywords internal
 pack_data <- function(
     sel_data = NULL,
     verbose = TRUE) {
@@ -20,7 +35,15 @@ pack_data <- function(
       "sampling_method_details"
     )
 
-  data_dataset <-
+  if (
+    !all(vec_dataset_cols %in% colnames(sel_data))
+  ) {
+    return(
+      tibble::tibble()
+    )
+  }
+
+  data_packed <-
     sel_data %>%
     dplyr::select(
       dplyr::all_of(vec_dataset_cols)
@@ -34,24 +57,28 @@ pack_data <- function(
       "sample_details", "sample_size", "description"
     )
 
-  data_samples_meta <-
-    sel_data %>%
-    dplyr::select(
-      "dataset_name",
-      dplyr::any_of(vec_sample_meta_cols)
-    ) %>%
-    dplyr::arrange(.data$age) %>%
-    dplyr::distinct() %>%
-    tidyr::nest(
-      data_samples = dplyr::any_of(vec_sample_meta_cols)
-    )
+  if (
+    all(vec_sample_meta_cols %in% colnames(sel_data))
+  ) {
+    data_samples_meta <-
+      sel_data %>%
+      dplyr::select(
+        "dataset_name",
+        dplyr::any_of(vec_sample_meta_cols)
+      ) %>%
+      dplyr::arrange(.data$age) %>%
+      dplyr::distinct() %>%
+      tidyr::nest(
+        data_samples = dplyr::any_of(vec_sample_meta_cols)
+      )
 
-  data_packed <-
-    dplyr::left_join(
-      data_dataset,
-      data_samples_meta,
-      by = "dataset_name"
-    )
+    data_packed <-
+      dplyr::left_join(
+        data_packed,
+        data_samples_meta,
+        by = "dataset_name"
+      )
+  }
 
   # community data -----
   vec_sample_community_cols <-
