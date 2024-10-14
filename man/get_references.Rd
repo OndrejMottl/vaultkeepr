@@ -6,7 +6,6 @@
 \usage{
 get_references(
   con = NULL,
-  path = NULL,
   type = c("Dataset", "DatasetSource", "DatasetSourceType", "SamplingMethod", "Sample",
     "Taxon", "Trait", "AbioticVariable"),
   verbose = TRUE

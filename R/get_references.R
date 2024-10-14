@@ -14,7 +14,6 @@
 #' @export
 get_references <- function(
     con = NULL,
-    path = NULL,
     type = c(
       "Dataset",
       "DatasetSource",
@@ -125,9 +124,8 @@ get_references <- function(
 
   if (
     "Dataset" %in% type &&
-      "dataset_id" %in% colnames(data_source)
+      "dataset_id" %in% colnames(sel_data)
   ) {
-
     dataset_ref <-
       get_uniq_refs(
         data_source = sel_data,
@@ -145,9 +143,8 @@ get_references <- function(
 
   if (
     "DatasetSource" %in% type &&
-      "data_source_id" %in% colnames(data_source)
+      "data_source_id" %in% colnames(sel_data)
   ) {
-
     data_source_ref <-
       get_uniq_refs(
         data_source = sel_data,
@@ -165,9 +162,8 @@ get_references <- function(
 
   if (
     "DatasetSourceType" %in% type &&
-      "data_source_type_id" %in% colnames(data_source)
+      "data_source_type_id" %in% colnames(sel_data)
   ) {
-
     data_source_type_ref <-
       get_uniq_refs(
         data_source = sel_data,
@@ -185,9 +181,8 @@ get_references <- function(
 
   if (
     "SamplingMethod" %in% type &&
-      "sampling_method_id" %in% colnames(data_source)
+      "sampling_method_id" %in% colnames(sel_data)
   ) {
-
     sampling_method_ref <-
       get_uniq_refs(
         data_source = sel_data,
@@ -205,9 +200,8 @@ get_references <- function(
 
   if (
     "Sample" %in% type &&
-      "sample_id" %in% colnames(data_source)
+      "sample_id" %in% colnames(sel_data)
   ) {
-
     sample_ref <-
       get_uniq_refs(
         data_source = sel_data,
@@ -225,9 +219,8 @@ get_references <- function(
 
   if (
     "Taxon" %in% type &&
-      "taxon_id" %in% colnames(data_source)
+      "taxon_id" %in% colnames(sel_data)
   ) {
-
     taxon_ref <-
       get_uniq_refs(
         data_source = sel_data,
@@ -245,9 +238,8 @@ get_references <- function(
 
   if (
     "Trait" %in% type &&
-      "trait_id" %in% colnames(data_source)
+      "trait_id" %in% colnames(sel_data)
   ) {
-    
     trait_ref <-
       get_uniq_refs(
         data_source = sel_data,
@@ -265,9 +257,8 @@ get_references <- function(
 
   if (
     "AbioticVariable" %in% type &&
-      "abiotic_variable_id" %in% colnames(data_source)
+      "abiotic_variable_id" %in% colnames(sel_data)
   ) {
-
     abiotic_variable_ref <-
       get_uniq_refs(
         data_source = sel_data,

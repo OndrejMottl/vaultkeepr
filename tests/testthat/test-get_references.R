@@ -10,7 +10,8 @@ testthat::test_that("Dataset", {
     ) %>%
     get_datasets() %>%
     get_references(
-      type = "Dataset"
+      type = "Dataset",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -31,7 +32,8 @@ testthat::test_that("DatasetSource", {
     ) %>%
     get_datasets() %>%
     get_references(
-      type = "DatasetSource"
+      type = "DatasetSource",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -52,7 +54,8 @@ testthat::test_that("DatasetSourceType", {
     ) %>%
     get_datasets() %>%
     get_references(
-      type = "DatasetSourceType"
+      type = "DatasetSourceType",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -73,7 +76,8 @@ testthat::test_that("SamplingMethod", {
     ) %>%
     get_datasets() %>%
     get_references(
-      type = "SamplingMethod"
+      type = "SamplingMethod",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -95,7 +99,8 @@ testthat::test_that("Sample", {
     get_datasets() %>%
     get_samples() %>%
     get_references(
-      type = "Sample"
+      type = "Sample",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -118,7 +123,8 @@ testthat::test_that("Taxon", {
     get_samples() %>%
     get_taxa() %>%
     get_references(
-      type = "Taxon"
+      type = "Taxon",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -141,7 +147,8 @@ testthat::test_that("Trait", {
     get_samples() %>%
     get_traits() %>%
     get_references(
-      type = "Trait"
+      type = "Trait",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -164,7 +171,8 @@ testthat::test_that("AbioticVariable", {
     get_samples() %>%
     get_abiotic_data(verbose = FALSE) %>%
     get_references(
-      type = "AbioticVariable"
+      type = "AbioticVariable",
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -186,9 +194,19 @@ testthat::test_that("Dataset-alike", {
     ) %>%
     get_datasets() %>%
     get_references(
-      type = c("Dataset", "DatasetSource", "DatasetSourceType")
+      type = c("Dataset", "DatasetSource", "DatasetSourceType"),
+      verbose = FALSE
     )
-  )
+
+  test_refs %>%
+    purrr::chuck("reference_detail") %>%
+    {
+      stringr::str_detect(., "dataset") |
+        stringr::str_detect(., "data_source") |
+        stringr::str_detect(., "data_source_type")
+    } %>%
+    all() %>%
+    testthat::expect_true()
 })
 
 testthat::test_that("all types", {
@@ -213,7 +231,8 @@ testthat::test_that("all types", {
         "Taxon",
         "Trait",
         "AbioticVariable"
-      )
+      ),
+      verbose = FALSE
     )
 
   test_refs %>%
@@ -246,7 +265,7 @@ testthat::test_that("error - con - wrong class", {
 })
 
 testthat::test_that("error - Dataset - empty", {
-  testthat::expect_error(
+  testthat::expect_null(
     open_vault(
       path = paste(
         tempdir(),
@@ -255,13 +274,14 @@ testthat::test_that("error - Dataset - empty", {
       )
     ) %>%
       get_references(
-        type = "Dataset"
+        type = "Dataset",
+        verbose = FALSE
       )
   )
 })
 
 testthat::test_that("error - DatasetSource - empty", {
-  testthat::expect_error(
+  testthat::expect_null(
     open_vault(
       path = paste(
         tempdir(),
@@ -270,13 +290,14 @@ testthat::test_that("error - DatasetSource - empty", {
       )
     ) %>%
       get_references(
-        type = "DatasetSource"
+        type = "DatasetSource",
+        verbose = FALSE
       )
   )
 })
 
 testthat::test_that("error - DatasetSourceType - empty", {
-  testthat::expect_error(
+  testthat::expect_null(
     open_vault(
       path = paste(
         tempdir(),
@@ -285,13 +306,14 @@ testthat::test_that("error - DatasetSourceType - empty", {
       )
     ) %>%
       get_references(
-        type = "DatasetSourceType"
+        type = "DatasetSourceType",
+        verbose = FALSE
       )
   )
 })
 
 testthat::test_that("error - SamplingMethod - empty", {
-  testthat::expect_error(
+  testthat::expect_null(
     open_vault(
       path = paste(
         tempdir(),
@@ -300,13 +322,14 @@ testthat::test_that("error - SamplingMethod - empty", {
       )
     ) %>%
       get_references(
-        type = "SamplingMethod"
+        type = "SamplingMethod",
+        verbose = FALSE
       )
   )
 })
 
 testthat::test_that("error - Sample - empty", {
-  testthat::expect_error(
+  testthat::expect_null(
     open_vault(
       path = paste(
         tempdir(),
@@ -316,13 +339,14 @@ testthat::test_that("error - Sample - empty", {
     ) %>%
       get_datasets() %>%
       get_references(
-        type = "Sample"
+        type = "Sample",
+        verbose = FALSE
       )
   )
 })
 
 testthat::test_that("error - Taxon - empty", {
-  testthat::expect_error(
+  testthat::expect_null(
     open_vault(
       path = paste(
         tempdir(),
@@ -333,13 +357,14 @@ testthat::test_that("error - Taxon - empty", {
       get_datasets() %>%
       get_samples() %>%
       get_references(
-        type = "Taxon"
+        type = "Taxon",
+        verbose = FALSE
       )
   )
 })
 
 testthat::test_that("error - Trait - empty", {
-  testthat::expect_error(
+  testthat::expect_null(
     open_vault(
       path = paste(
         tempdir(),
@@ -349,13 +374,14 @@ testthat::test_that("error - Trait - empty", {
     ) %>%
       get_datasets() %>%
       get_references(
-        type = "Trait"
+        type = "Trait",
+        verbose = FALSE
       )
   )
 })
 
 testthat::test_that("error - AbioticVariable - empty", {
-  testthat::expect_error(
+  testthat::expect_null(
     open_vault(
       path = paste(
         tempdir(),
@@ -365,7 +391,8 @@ testthat::test_that("error - AbioticVariable - empty", {
     ) %>%
       get_datasets() %>%
       get_references(
-        type = "AbioticVariable"
+        type = "AbioticVariable",
+        verbose = FALSE
       )
   )
 })
@@ -381,7 +408,8 @@ testthat::test_that("error - type - empty", {
     ) %>%
       get_datasets() %>%
       get_references(
-        type = NULL
+        type = NULL,
+        verbose = FALSE
       )
   )
 })
@@ -397,7 +425,8 @@ testthat::test_that("error - type - wrong class", {
     ) %>%
       get_datasets() %>%
       get_references(
-        type = 1:10
+        type = 1:10,
+        verbose = FALSE
       )
   )
 })
@@ -413,7 +442,8 @@ testthat::test_that("error - type - wrong type", {
     ) %>%
       get_datasets() %>%
       get_references(
-        type = "wrong_type"
+        type = "wrong_type",
+        verbose = FALSE
       )
   )
 })
