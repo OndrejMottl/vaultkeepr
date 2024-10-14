@@ -1,9 +1,8 @@
-#' @title Get references for selected data compilation
+#' @title Get references for selected VegVault Plan
 #' @description This function extracts all references for selected
-#' data compilation, which have been extracted from VegVault.
-#' @param data_source A tibble containing the data compilation, which
-#' has been obtained using the `extract_data()` function.
-#' @param path A character string specifying the path to the VegVault file.
+#' VegVault extraction plan (i,e., this function should be used before
+#' extracting data from the plan).
+#' @param con A VegVault connection (a plan).
 #' @param type A character vector specifying the type of references to be
 #' extracted. The function will try to extract all possible reference types.
 #' The following types are available: `Dataset`, `DatasetSource`,
@@ -14,8 +13,7 @@
 #' @return A tibble containing all references for the selected data compilation.
 #' @export
 get_references <- function(
-    data_source = NULL,
-    path = NULL,
+    con = NULL,
     type = c(
       "Dataset",
       "DatasetSource",
@@ -30,9 +28,26 @@ get_references <- function(
   .data <- rlang::.data
   `%>%` <- magrittr::`%>%`
 
+  assertthat::assert_that(
+    inherits(con, "vault_pipe"),
+    msg = paste(
+      "`con` must be a class of `vault_pipe`",
+      "Use `open_vault()` to create a connection"
+    )
+  )
 
   assertthat::assert_that(
-    inherits(data_source, "tbl"),
+    all(names(con) %in% c("data", "db_con")),
+    msg = paste(
+      "con must have `data` and `db_con`",
+      "Use `open_vault()` to create a connection"
+    )
+  )
+
+  sel_data <- con$data
+
+  assertthat::assert_that(
+    inherits(sel_data, "tbl"),
     msg = "data must be a class of `tbl`"
   )
 
@@ -45,9 +60,6 @@ get_references <- function(
     length(type) > 0,
     msg = "'type' must have at least one element"
   )
-
-  # open vault to have acces to all tables
-  con <- open_vault(path)
 
   sel_con <- con$db_con
 
@@ -112,11 +124,11 @@ get_references <- function(
 
   if (
     "Dataset" %in% type &&
-      "dataset_id" %in% colnames(data_source)
+      "dataset_id" %in% colnames(sel_data)
   ) {
     dataset_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = sel_data,
         sel_con = sel_con,
         sel_column = "dataset_id",
         sel_table = "DatasetReferences"
@@ -131,11 +143,11 @@ get_references <- function(
 
   if (
     "DatasetSource" %in% type &&
-      "data_source_id" %in% colnames(data_source)
+      "data_source_id" %in% colnames(sel_data)
   ) {
     data_source_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = sel_data,
         sel_con = sel_con,
         sel_column = "data_source_id",
         sel_table = "DatasetSourcesReference"
@@ -150,11 +162,11 @@ get_references <- function(
 
   if (
     "DatasetSourceType" %in% type &&
-      "data_source_type_id" %in% colnames(data_source)
+      "data_source_type_id" %in% colnames(sel_data)
   ) {
     data_source_type_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = sel_data,
         sel_con = sel_con,
         sel_column = "data_source_type_id",
         sel_table = "DatasetSourceTypeReference"
@@ -169,11 +181,11 @@ get_references <- function(
 
   if (
     "SamplingMethod" %in% type &&
-      "sampling_method_id" %in% colnames(data_source)
+      "sampling_method_id" %in% colnames(sel_data)
   ) {
     sampling_method_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = sel_data,
         sel_con = sel_con,
         sel_column = "sampling_method_id",
         sel_table = "SamplingMethodReference"
@@ -188,11 +200,11 @@ get_references <- function(
 
   if (
     "Sample" %in% type &&
-      "sample_id" %in% colnames(data_source)
+      "sample_id" %in% colnames(sel_data)
   ) {
     sample_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = sel_data,
         sel_con = sel_con,
         sel_column = "sample_id",
         sel_table = "SampleReference"
@@ -207,11 +219,11 @@ get_references <- function(
 
   if (
     "Taxon" %in% type &&
-      "taxon_id" %in% colnames(data_source)
+      "taxon_id" %in% colnames(sel_data)
   ) {
     taxon_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = sel_data,
         sel_con = sel_con,
         sel_column = "taxon_id",
         sel_table = "TaxonReference"
@@ -226,11 +238,11 @@ get_references <- function(
 
   if (
     "Trait" %in% type &&
-      "trait_id" %in% colnames(data_source)
+      "trait_id" %in% colnames(sel_data)
   ) {
     trait_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = sel_data,
         sel_con = sel_con,
         sel_column = "trait_id",
         sel_table = "TraitsReference"
@@ -245,11 +257,11 @@ get_references <- function(
 
   if (
     "AbioticVariable" %in% type &&
-      "abiotic_variable_id" %in% colnames(data_source)
+      "abiotic_variable_id" %in% colnames(sel_data)
   ) {
     abiotic_variable_ref <-
       get_uniq_refs(
-        data_source = data_source,
+        data_source = sel_data,
         sel_con = sel_con,
         sel_column = "abiotic_variable_id",
         sel_table = "AbioticVariableReference"

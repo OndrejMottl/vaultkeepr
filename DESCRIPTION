@@ -1,6 +1,6 @@
 Package: vaultkeepr
 Title: Providing the Interface to Access the VegVault Database
-Version: 0.0.3
+Version: 0.0.4
 Authors@R: 
     person("Ondrej", "Mottl", , "ondrej.mottl@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9796-5081"))
@@ -26,7 +26,8 @@ Suggests:
     testthat (>= 3.0.0),
     tidyr
 Config/testthat/edition: 3
-Config/testthat/start-first: open_vault, get_datasets, extract_data,
+Config/testthat/start-first: open_vault, get_datasets, 
+    get_readable_column_names, pack_data, extract_data,
     get_common_dataset_type, select_dataset_by_type,
     select_dataset_by_geo, get_samples, select_samples_by_age,
     classify_taxa, get_taxa, select_taxa_by_name, select_taxa_by_id,
