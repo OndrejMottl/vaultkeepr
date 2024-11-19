@@ -15,7 +15,7 @@ testthat::test_that("Dataset", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("dataset") %>%
     all() %>%
     testthat::expect_true()
@@ -37,7 +37,7 @@ testthat::test_that("DatasetSource", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("data_source") %>%
     all() %>%
     testthat::expect_true()
@@ -59,7 +59,7 @@ testthat::test_that("DatasetSourceType", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("data_source_type") %>%
     all() %>%
     testthat::expect_true()
@@ -81,7 +81,7 @@ testthat::test_that("SamplingMethod", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("sampling_method") %>%
     all() %>%
     testthat::expect_true()
@@ -104,7 +104,7 @@ testthat::test_that("Sample", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("sample") %>%
     all() %>%
     testthat::expect_true()
@@ -128,7 +128,7 @@ testthat::test_that("Taxon", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("taxon") %>%
     all() %>%
     testthat::expect_true()
@@ -152,7 +152,7 @@ testthat::test_that("Trait", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("trait") %>%
     all() %>%
     testthat::expect_true()
@@ -176,7 +176,7 @@ testthat::test_that("AbioticVariable", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("abiotic_variable") %>%
     all() %>%
     testthat::expect_true()
@@ -199,7 +199,7 @@ testthat::test_that("Dataset-alike", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     {
       stringr::str_detect(., "dataset") |
         stringr::str_detect(., "data_source") |
@@ -236,7 +236,7 @@ testthat::test_that("all types", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     {
       stringr::str_detect(., "dataset") |
         stringr::str_detect(., "data_source") |

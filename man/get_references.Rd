@@ -8,6 +8,7 @@ get_references(
   con = NULL,
   type = c("Dataset", "DatasetSource", "DatasetSourceType", "SamplingMethod", "Sample",
     "Taxon", "Trait", "AbioticVariable"),
+  get_source = TRUE,
   verbose = TRUE
 )
 }
@@ -19,6 +20,9 @@ extracted. The function will try to extract all possible reference types.
 The following types are available: \code{Dataset}, \code{DatasetSource},
 \code{DatasetSourceType}, \code{SamplingMethod}, \code{Sample}, \code{Taxon}, \code{Trait}, and
 \code{AbioticVariable}.}
+
+\item{get_source}{A logical indicating whether to extract the source of each
+references}
 
 \item{verbose}{A logical indicating whether to print messages about the
 progress of the function. Default is \code{TRUE}.}
