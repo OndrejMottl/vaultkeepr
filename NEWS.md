@@ -1,3 +1,9 @@
+# vaultkeepr 0.0.5
+
+* `get_references()` - It now (optionally) outputs the source of the referecnes (i.e., the table where the references are stored)
+
+* `extract_data()` - perform a check via `get_references()` and output reminder message to the user to cite `mandatory` references
+
 # vaultkeepr 0.0.4
 
 * `extract_data()` - now returns human-readable column names (NAMES) by default (not IDs) and pack all data (samples) into several tibbles
