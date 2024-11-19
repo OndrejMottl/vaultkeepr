@@ -11,7 +11,7 @@ extracting data from the plan)."><meta property="og:image" content="https://hope
 
     <a class="navbar-brand me-2" href="../index.html">vaultkeepr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,6 +49,7 @@ extracting data from the plan).</p>
 <span>  con <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Dataset"</span>, <span class="st">"DatasetSource"</span>, <span class="st">"DatasetSourceType"</span>, <span class="st">"SamplingMethod"</span>, <span class="st">"Sample"</span>,</span>
 <span>    <span class="st">"Taxon"</span>, <span class="st">"Trait"</span>, <span class="st">"AbioticVariable"</span><span class="op">)</span>,</span>
+<span>  get_source <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -67,6 +68,11 @@ extracted. The function will try to extract all possible reference types.
 The following types are available: <code>Dataset</code>, <code>DatasetSource</code>,
 <code>DatasetSourceType</code>, <code>SamplingMethod</code>, <code>Sample</code>, <code>Taxon</code>, <code>Trait</code>, and
 <code>AbioticVariable</code>.</p></dd>
+
+
+<dt id="arg-get-source">get_source<a class="anchor" aria-label="anchor" href="#arg-get-source"></a></dt>
+<dd><p>A logical indicating whether to extract the source of each
+references</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
