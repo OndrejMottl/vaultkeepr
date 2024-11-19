@@ -4,13 +4,21 @@
 \alias{extract_data}
 \title{Extract data from a plan}
 \usage{
-extract_data(con, return_raw_data = FALSE, verbose = TRUE)
+extract_data(
+  con,
+  return_raw_data = FALSE,
+  check_mandatory_references = TRUE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{con}{A vault connection}
 
 \item{return_raw_data}{A logical indicating whether to return raw data or
 without any processing. Default is \code{FALSE}.}
+
+\item{check_mandatory_references}{A logical indicating whether to check for
+presentce of mandatory reference. Default is \code{TRUE}.}
 
 \item{verbose}{A logical indicating whether output additional information.
 Default is \code{TRUE}.}

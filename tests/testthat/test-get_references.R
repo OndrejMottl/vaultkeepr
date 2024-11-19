@@ -1,3 +1,69 @@
+testthat::test_that("correct null output", {
+  test_refs <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    get_references(
+      type = "Dataset",
+      verbose = FALSE
+    )
+
+  testthat::expect_null(test_refs)
+})
+
+testthat::test_that("correct output structure", {
+  test_refs <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    get_datasets() %>%
+    get_references(
+      type = "Dataset",
+      verbose = FALSE
+    )
+
+  inherits(test_refs, "tbl_df") %>%
+    testthat::expect_true()
+
+  testthat::expect_equal(
+    names(test_refs),
+    c("reference", "reference_source", "mandatory")
+  )
+})
+
+testthat::test_that("correct output structure - no source", {
+  test_refs <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    get_datasets() %>%
+    get_references(
+      type = "Dataset",
+      verbose = FALSE,
+      get_source = FALSE
+    )
+
+  inherits(test_refs, "tbl_df") %>%
+    testthat::expect_true()
+
+  testthat::expect_equal(
+    names(test_refs),
+    c("reference", "mandatory")
+  )
+})
+
 # single reference types
 testthat::test_that("Dataset", {
   test_refs <-
@@ -15,11 +81,13 @@ testthat::test_that("Dataset", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("dataset") %>%
     all() %>%
     testthat::expect_true()
 })
+
+
 
 testthat::test_that("DatasetSource", {
   test_refs <-
@@ -37,7 +105,7 @@ testthat::test_that("DatasetSource", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("data_source") %>%
     all() %>%
     testthat::expect_true()
@@ -59,7 +127,7 @@ testthat::test_that("DatasetSourceType", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("data_source_type") %>%
     all() %>%
     testthat::expect_true()
@@ -81,7 +149,7 @@ testthat::test_that("SamplingMethod", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("sampling_method") %>%
     all() %>%
     testthat::expect_true()
@@ -104,7 +172,7 @@ testthat::test_that("Sample", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("sample") %>%
     all() %>%
     testthat::expect_true()
@@ -128,7 +196,7 @@ testthat::test_that("Taxon", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("taxon") %>%
     all() %>%
     testthat::expect_true()
@@ -152,7 +220,7 @@ testthat::test_that("Trait", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("trait") %>%
     all() %>%
     testthat::expect_true()
@@ -176,7 +244,7 @@ testthat::test_that("AbioticVariable", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     stringr::str_detect("abiotic_variable") %>%
     all() %>%
     testthat::expect_true()
@@ -199,7 +267,7 @@ testthat::test_that("Dataset-alike", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     {
       stringr::str_detect(., "dataset") |
         stringr::str_detect(., "data_source") |
@@ -236,7 +304,7 @@ testthat::test_that("all types", {
     )
 
   test_refs %>%
-    purrr::chuck("reference_detail") %>%
+    purrr::chuck("reference") %>%
     {
       stringr::str_detect(., "dataset") |
         stringr::str_detect(., "data_source") |
@@ -443,6 +511,24 @@ testthat::test_that("error - type - wrong type", {
       get_datasets() %>%
       get_references(
         type = "wrong_type",
+        verbose = FALSE
+      )
+  )
+})
+
+testthat::test_that("error - get_source - wrong class", {
+  testthat::expect_error(
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+      get_datasets() %>%
+      get_references(
+        type = "Dataset",
+        get_source = 1:10,
         verbose = FALSE
       )
   )

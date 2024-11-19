@@ -1,6 +1,6 @@
 Package: vaultkeepr
 Title: Providing the Interface to Access the VegVault Database
-Version: 0.0.4
+Version: 0.0.5
 Authors@R: 
     person("Ondrej", "Mottl", , "ondrej.mottl@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9796-5081"))

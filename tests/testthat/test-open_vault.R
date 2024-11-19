@@ -82,6 +82,7 @@ testthat::test_that("return corrent tables", {
       "AbioticDataReference",
       "AbioticVariable",
       "AbioticVariableReference",
+      "Authors",
       "DatasetReferences",
       "DatasetSample",
       "DatasetSourceTypeID",
@@ -106,7 +107,8 @@ testthat::test_that("return corrent tables", {
       "TraitsReference",
       "TraitsValue",
       "sqlite_stat1",
-      "sqlite_stat4"
+      "sqlite_stat4",
+      "version_control"
     )
   )
 
