@@ -10,6 +10,8 @@
 #' @param con A vault connection
 #' @param return_raw_data A logical indicating whether to return raw data or
 #' without any processing. Default is `FALSE`.
+#' @param check_mandatory_references A logical indicating whether to check for
+#' presentce of mandatory reference. Default is `TRUE`.
 #' @param verbose A logical indicating whether output additional information.
 #'  Default is `TRUE`.
 #' @return A data.frame
@@ -17,6 +19,7 @@
 extract_data <- function(
     con,
     return_raw_data = FALSE,
+    check_mandatory_references = TRUE,
     verbose = TRUE) {
   assertthat::assert_that(
     inherits(con, "vault_pipe"),
@@ -54,9 +57,50 @@ extract_data <- function(
   )
 
   assertthat::assert_that(
+    is.logical(check_mandatory_references),
+    msg = "The 'check_mandatory_references' must be a logical"
+  )
+
+  assertthat::assert_that(
     is.logical(verbose),
     msg = "The 'verbose' must be a logical"
   )
+
+  nrow_mandatory_references <- 0
+
+  if (
+    isTRUE(check_mandatory_references)
+  ) {
+    data_mandatory_references <-
+      get_references(
+        con = con,
+        get_source = FALSE,
+        verbose = verbose
+      )
+
+    if (
+      is.null(data_mandatory_references) %>%
+        isFALSE() %>%
+        isTRUE()
+    ) {
+      nrow_mandatory_references <-
+        data_mandatory_references %>%
+        dplyr::filter(
+          .data$mandatory == TRUE
+        ) %>%
+        nrow()
+    }
+  }
+
+  if (
+    nrow_mandatory_references > 0 &&
+      isTRUE(verbose)
+  ) {
+    message(
+      "!!! The data contains mandatory references !!!",
+      "Please make sure to run `get_references()` before extracting data"
+    )
+  }
 
   if (
     isTRUE(return_raw_data)

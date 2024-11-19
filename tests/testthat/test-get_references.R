@@ -1,3 +1,69 @@
+testthat::test_that("correct null output", {
+  test_refs <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    get_references(
+      type = "Dataset",
+      verbose = FALSE
+    )
+
+  testthat::expect_null(test_refs)
+})
+
+testthat::test_that("correct output structure", {
+  test_refs <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    get_datasets() %>%
+    get_references(
+      type = "Dataset",
+      verbose = FALSE
+    )
+
+  inherits(test_refs, "tbl_df") %>%
+    testthat::expect_true()
+
+  testthat::expect_equal(
+    names(test_refs),
+    c("reference", "reference_source", "mandatory")
+  )
+})
+
+testthat::test_that("correct output structure - no source", {
+  test_refs <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    get_datasets() %>%
+    get_references(
+      type = "Dataset",
+      verbose = FALSE,
+      get_source = FALSE
+    )
+
+  inherits(test_refs, "tbl_df") %>%
+    testthat::expect_true()
+
+  testthat::expect_equal(
+    names(test_refs),
+    c("reference", "mandatory")
+  )
+})
+
 # single reference types
 testthat::test_that("Dataset", {
   test_refs <-
@@ -20,6 +86,8 @@ testthat::test_that("Dataset", {
     all() %>%
     testthat::expect_true()
 })
+
+
 
 testthat::test_that("DatasetSource", {
   test_refs <-
@@ -443,6 +511,24 @@ testthat::test_that("error - type - wrong type", {
       get_datasets() %>%
       get_references(
         type = "wrong_type",
+        verbose = FALSE
+      )
+  )
+})
+
+testthat::test_that("error - get_source - wrong class", {
+  testthat::expect_error(
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+      get_datasets() %>%
+      get_references(
+        type = "Dataset",
+        get_source = 1:10,
         verbose = FALSE
       )
   )

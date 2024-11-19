@@ -7,7 +7,7 @@ testthat::test_that("return correct class", {
         sep = "/"
       )
     ) %>%
-    extract_data()
+    extract_data(verbose = FALSE)
 
   testthat::expect_s3_class(test_datasets, "data.frame")
 })
@@ -21,7 +21,7 @@ testthat::test_that("return empty data.frame", {
         sep = "/"
       )
     ) %>%
-    extract_data()
+    extract_data(verbose = FALSE)
 
   testthat::expect_equal(nrow(test_datasets), 0)
 })
@@ -36,7 +36,7 @@ testthat::test_that("return full data.frame", {
       )
     ) %>%
     get_datasets() %>%
-    extract_data()
+    extract_data(verbose = FALSE)
 
   con_db <-
     DBI::dbConnect(
@@ -66,7 +66,10 @@ testthat::test_that("return correct class", {
         sep = "/"
       )
     ) %>%
-    extract_data(return_raw_data = TRUE)
+    extract_data(
+      return_raw_data = TRUE,
+      verbose = FALSE
+    )
 
   testthat::expect_s3_class(test_datasets, "data.frame")
 })
@@ -80,7 +83,10 @@ testthat::test_that("return empty data.frame", {
         sep = "/"
       )
     ) %>%
-    extract_data(return_raw_data = TRUE)
+    extract_data(
+      return_raw_data = TRUE,
+      verbose = FALSE
+    )
 
   testthat::expect_equal(nrow(test_datasets), 0)
 })
@@ -95,7 +101,10 @@ testthat::test_that("return full data.frame", {
       )
     ) %>%
     get_datasets() %>%
-    extract_data(return_raw_data = TRUE)
+    extract_data(
+      return_raw_data = TRUE,
+      verbose = FALSE
+    )
 
   con_db <-
     DBI::dbConnect(
@@ -119,33 +128,24 @@ testthat::test_that("return full data.frame", {
 # errors -----
 testthat::test_that("error wihtout `open_vault()`", {
   testthat::expect_error(
-    extract_data()
+    extract_data(verbose = FALSE)
   )
 })
 
 testthat::test_that("error with bad `con` class", {
   testthat::expect_error(
-    extract_data(con = 123)
+    extract_data(
+      con = 123,
+      verbose = FALSE
+    )
   )
 })
 
 testthat::test_that("error with bad `con`", {
   testthat::expect_error(
-    extract_data(con = "bad")
-  )
-})
-
-testthat::test_that("error with bad `return_raw_data`", {
-  testthat::expect_error(
     extract_data(
-      con = open_vault(
-        path = paste(
-          tempdir(),
-          "example.sqlite",
-          sep = "/"
-        )
-      ),
-      return_raw_data = "bad"
+      con = "bad",
+      verbose = FALSE
     )
   )
 })
@@ -160,7 +160,86 @@ testthat::test_that("error with bad `return_raw_data`", {
           sep = "/"
         )
       ),
-      return_raw_data = 123
+      return_raw_data = "bad",
+      verbose = FALSE
+    )
+  )
+})
+
+testthat::test_that("error with bad `return_raw_data`", {
+  testthat::expect_error(
+    extract_data(
+      con = open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ),
+      return_raw_data = 123,
+      verbose = FALSE
+    )
+  )
+})
+
+testthat::test_that("error with bad `check_mandatory_references`", {
+  testthat::expect_error(
+    extract_data(
+      con = open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ),
+      check_mandatory_references = "bad",
+      verbose = FALSE
+    )
+  )
+})
+
+testthat::test_that("error with bad `check_mandatory_references`", {
+  testthat::expect_error(
+    extract_data(
+      con = open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ),
+      check_mandatory_references = 123,
+      verbose = FALSE
+    )
+  )
+})
+
+testthat::test_that("error with bad `verbose`", {
+  testthat::expect_error(
+    extract_data(
+      con = open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ),
+      verbose = "bad"
+    )
+  )
+})
+
+testthat::test_that("error with bad `verbose`", {
+  testthat::expect_error(
+    extract_data(
+      con = open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ),
+      verbose = 123
     )
   )
 })
