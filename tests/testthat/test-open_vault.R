@@ -24,7 +24,8 @@ testthat::test_that("return correct class-high", {
         tempdir(),
         "example.sqlite",
         sep = "/"
-      )
+      ),
+      vebose = FALSE
     )
 
   testthat::expect_s3_class(con_db, "vault_pipe")
@@ -40,7 +41,8 @@ testthat::test_that("return correct class-low-connection", {
         tempdir(),
         "example.sqlite",
         sep = "/"
-      )
+      ),
+      vebose = FALSE
     )
 
   testthat::expect_s4_class(con_db$db_con, "SQLiteConnection")
@@ -55,7 +57,8 @@ testthat::test_that("return correct class-low-data", {
         tempdir(),
         "example.sqlite",
         sep = "/"
-      )
+      ),
+      vebose = FALSE
     )
 
   testthat::expect_s3_class(con_db$data, "tbl_df")
@@ -72,7 +75,8 @@ testthat::test_that("return corrent tables", {
         tempdir(),
         "example.sqlite",
         sep = "/"
-      )
+      ),
+      vebose = FALSE
     )
 
   testthat::expect_equal(
@@ -113,4 +117,51 @@ testthat::test_that("return corrent tables", {
   )
 
   DBI::dbDisconnect(con_db$db_con)
+})
+
+
+# Error handling -----
+
+testthat::test_that("error handling", {
+  testthat::expect_error(
+    open_vault(
+      path = "not_a_file.sqlite",
+      vebose = FALSE
+    )
+  )
+})
+
+testthat::test_that("error handling", {
+  testthat::expect_error(
+    open_vault(
+      path = 1,
+      vebose = FALSE
+    )
+  )
+})
+
+testthat::test_that("error handling", {
+  testthat::expect_error(
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      ),
+      vebose = 1
+    )
+  )
+})
+
+testthat::test_that("error handling", {
+  testthat::expect_error(
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      ),
+      vebose = "true"
+    )
+  )
 })
