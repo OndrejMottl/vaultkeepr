@@ -54,7 +54,7 @@ get_readable_column_names <- function(con, data) {
 
         res <-
           data %>%
-          dplyr::left_join(
+          dplyr::full_join(
             data_db,
             by = sel_join_by,
             suffix = sel_suffix
