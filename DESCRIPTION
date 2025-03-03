@@ -11,6 +11,7 @@ License: MIT + file LICENSE
 URL: https://github.com/OndrejMottl/vaultkeepr
 Imports: 
     assertthat,
+    cli,
     DBI,
     lifecycle,
     magrittr,
