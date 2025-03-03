@@ -1,3 +1,15 @@
+# vaultkeepr 0.0.6
+
+* `get_readable_column_names()` - specify the link type for each table to improve the performance
+
+* `classify_taxa()` - change the link type to "inner" to increase the performance.
+
+## tests
+
+* update tests for `extract_data()`
+
+* update the "helper database" (for testing) -  make sure we do reference gridpoints in the `dataset_source_type` table
+
 # vaultkeepr 0.0.5
 
 * `get_references()` - It now (optionally) outputs the source of the referecnes (i.e., the table where the references are stored)
