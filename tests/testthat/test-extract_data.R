@@ -54,6 +54,11 @@ testthat::test_that("return full data.frame", {
 
   testthat::expect_equal(nrow(test_datasets), nrow(actual_datasets))
 
+  testthat::expect_equal(
+    test_datasets$dataset_name %>% unique() %>% length(),
+    actual_datasets$dataset_name %>% unique() %>% length()
+  )
+
   DBI::dbDisconnect(con_db)
 })
 
