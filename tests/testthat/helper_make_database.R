@@ -441,7 +441,8 @@ CREATE UNIQUE INDEX idx_references_reference_id ON "References"(reference_id);
     dataset_source_type = c(
       "alpha",
       "beta",
-      "gamma"
+      "gamma",
+      "gridpoints"
     )
   ) %>%
     dplyr::copy_to(

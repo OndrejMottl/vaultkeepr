@@ -281,6 +281,7 @@ get_abiotic_data <- function(
         vec_gridpoints_sample_id_subset
       )
     ) %>%
+    # join the gridpoints data and add reference to the closest vegetation point
     dplyr::left_join(
       data_link_sub,
       by = c("sample_id" = "sample_ref_id"),

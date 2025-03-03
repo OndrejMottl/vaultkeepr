@@ -21,8 +21,35 @@ get_readable_column_names <- function(con, data) {
 
   data_work <- data
 
+  if (
+    c(
+      "dataset_id",
+      "dataset_type_id",
+      "dataset_name",
+      "dataset_type"
+    ) %in%
+      colnames(data) %>%
+      all() %>%
+      isTRUE()
+  ) {
+    data_work <-
+      data %>%
+      dplyr::select(
+        -c(
+          "dataset_id",
+          "dataset_type_id"
+        )
+      ) %>%
+      dplyr::relocate(
+        "dataset_name",
+        "dataset_type"
+      )
+  }
+
   # Add column names to data_source -----
-  add_column_from_db <- function(data = NULL, sel_column_id = NA_character_,
+  add_column_from_db <- function(data_to_rename = NULL,
+                                 sel_column_id = NA_character_,
+                                 join_type = "left_join",
                                  sel_join_by = sel_column_id,
                                  sel_suffix = c("", ""),
                                  sel_column_name = NA_character_,
@@ -30,53 +57,71 @@ get_readable_column_names <- function(con, data) {
                                  sel_table = NULL,
                                  overwrite = FALSE) {
     if (
-      sel_column_id %in% colnames(data)
+      isFALSE(sel_column_id %in% colnames(data_to_rename))
     ) {
-      if (
-        sel_column_name %in% colnames(data) && overwrite == FALSE
-      ) {
-        res <-
-          data %>%
-          dplyr::relocate(
-            dplyr::all_of(sel_column_name),
-            .after = dplyr::all_of(sel_column_id)
-          ) %>%
-          dplyr::select(-dplyr::all_of(sel_column_id))
-      } else {
-        if (
-          isFALSE(is.null(sel_table))
-        ) {
-          data_db <- sel_table
-        } else {
-          data_db <-
-            dplyr::tbl(con, table_name)
-        }
+      return(data_to_rename)
+    }
 
-        res <-
-          data %>%
-          dplyr::full_join(
-            data_db,
-            by = sel_join_by,
-            suffix = sel_suffix
-          ) %>%
-          dplyr::relocate(
-            dplyr::all_of(sel_column_name),
-            .after = dplyr::all_of(sel_column_id)
-          ) %>%
-          dplyr::select(-dplyr::all_of(sel_column_id))
-      }
+    if (
+      sel_column_name %in% colnames(data_to_rename) && isFALSE(overwrite)
+    ) {
+      res <-
+        data_to_rename %>%
+        dplyr::relocate(
+          dplyr::all_of(sel_column_name),
+          .after = dplyr::all_of(sel_column_id)
+        ) %>%
+        dplyr::select(-dplyr::all_of(sel_column_id))
+
+      # pipe to return does not work, need to assign to res first
       return(res)
     }
-    return(data)
+
+    data_db <- sel_table
+    if (
+      isTRUE(is.null(sel_table))
+    ) {
+      data_db <-
+        dplyr::tbl(con, table_name)
+    }
+
+    if (
+      join_type == "left_join"
+    ) {
+      data_joined <-
+        data_to_rename %>%
+        dplyr::left_join(
+          data_db,
+          by = sel_join_by,
+          suffix = sel_suffix
+        )
+    } else {
+      data_joined <-
+        data_to_rename %>%
+        dplyr::inner_join(
+          data_db,
+          by = sel_join_by,
+          suffix = sel_suffix
+        )
+    }
+
+    res <-
+      data_joined %>%
+      dplyr::relocate(
+        dplyr::all_of(sel_column_name),
+        .after = dplyr::all_of(sel_column_id)
+      ) %>%
+      dplyr::select(-dplyr::all_of(sel_column_id))
+
+    # pipe to return does not work, need to assign to res first
+    return(res)
   }
 
   # create a reference table for all column names, which will be called to apply
   # the add_column_from_db function
   vec_column_id <-
     c(
-      "dataset_id",
       "data_source_id",
-      "dataset_type_id",
       "data_source_type_id",
       "sampling_method_id",
       "sample_id",
@@ -91,9 +136,7 @@ get_readable_column_names <- function(con, data) {
     tibble::tibble(
       sel_column_id = vec_column_id,
       sel_column_name = c(
-        "dataset_name",
         "data_source_desc",
-        "dataset_type",
         "dataset_source_type",
         "sampling_method_details",
         "sample_name",
@@ -104,9 +147,7 @@ get_readable_column_names <- function(con, data) {
         "abiotic_variable_name"
       ),
       table_name = c(
-        "Datasets",
         "DatasetSourcesID",
-        "DatasetTypeID",
         "DatasetSourceTypeID",
         "SamplingMethodID",
         "Samples",
@@ -115,42 +156,63 @@ get_readable_column_names <- function(con, data) {
         "Traits",
         "TraitsDomain",
         "AbioticVariable"
+      ),
+      join_type = c(
+        "left_join",
+        "inner_join",
+        "left_join",
+        "inner_join",
+        "left_join",
+        "left_join",
+        "left_join",
+        "left_join",
+        "left_join"
       )
     )
 
   # For loop is used as reduce function was too difficult to implement
   for (i in seq_along(vec_column_id)) {
+    # print(i)
+
     data_ref_sub <-
       data_table_ref %>%
       dplyr::filter(.data$sel_column_id == vec_column_id[i])
 
     data_work <-
       add_column_from_db(
-        data = data_work,
+        data_to_rename = data_work,
         sel_column_id = vec_column_id[i],
         sel_column_name = data_ref_sub %>%
           purrr::chuck("sel_column_name", 1),
         table_name = data_ref_sub %>%
-          purrr::chuck("table_name", 1)
+          purrr::chuck("table_name", 1),
+        join_type = data_ref_sub %>%
+          purrr::chuck("join_type", 1)
       )
+
+    # data_work %>%
+    #  dplyr::collect() %>%
+    #  nrow() %>%
+    #  print()
   }
 
   # add more complex columns manually -----
 
   data_work <-
     add_column_from_db(
-      data = data_work,
+      data_to_rename = data_work,
       sel_column_id = "taxon_id_trait",
       sel_column_name = "taxon_name",
       table_name = "Taxa",
       sel_join_by = c("taxon_id_trait" = "taxon_id"),
       sel_suffix = c("", "_trait"),
-      overwrite = TRUE
+      overwrite = TRUE,
+      join_type = "left_join"
     )
 
   data_work <-
     add_column_from_db(
-      data = data_work,
+      data_to_rename = data_work,
       sel_column_id = "sample_id_link",
       sel_column_name = "sample_name",
       sel_table = dplyr::tbl(con, "Samples") %>%
@@ -159,6 +221,7 @@ get_readable_column_names <- function(con, data) {
         ),
       sel_join_by = c("sample_id_link" = "sample_id"),
       sel_suffix = c("", "_gridpoint"),
+      join_type = "left_join",
       overwrite = TRUE
     )
 
