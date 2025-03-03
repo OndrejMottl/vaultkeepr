@@ -83,7 +83,7 @@ classify_taxa <- function(data_source = NULL, sel_con = NULL, to = c("original",
 
   data_res <-
     data_source %>%
-    dplyr::left_join(
+    dplyr::inner_join(
       data_class_sub,
       by = "taxon_id"
     ) %>%
