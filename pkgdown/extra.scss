@@ -1,0 +1,314 @@
+// ============================================================
+// vaultkeepr pkgdown theme
+// Inspired by the VegVault website with green/blue roles swapped.
+//
+// VegVault:    bg=amber(#e6b482)  navbar=blue(#52758f)  links=olive(#5f634f)
+// vaultkeepr: bg=sage(#eef4f1)   navbar=olive(#5f634f) links=blue(#52758f)
+// ============================================================
+
+// ----- Colour palette (mirrors VegVault colors.json) --------
+$color-black: #242531;
+$color-white: #ffffff;
+$color-grey: #999999;
+
+// VegVault uses #e6b482 (warm amber) as the body background.
+// vaultkeepr swaps green/blue roles but keeps the warm amber background
+// so the two sites read as "same family".
+// The background is set directly on body (not via bslib 'bg') because
+// bslib cascades the colour into Bootstrap-derived values (cards, borders…)
+// and non-neutral colours look wrong there.
+$color-bg: #e6b482; // warm amber — body background (same as VegVault)
+$color-navbar: #5f634f; // olive green  — navbar (was links in VegVault)
+$color-primary: #52758f; // slate blue   — links  (was navbar in VegVault)
+$color-beige-warm: #e6b482; // warm amber
+$color-beige-dark: #ae8a7b; // warm tan
+$color-brown: #8a554e; // earth brown
+
+$color-code-bg: lighten(#e6b482, 15%); // slightly lighter amber for code
+
+// ----- Spacing (mirrors VegVault) ---------------------------
+$margin-small: 5px;
+$margin-block: 10px;
+$margin-large: 20px;
+
+// ============================================================
+// Typography
+// ============================================================
+body {
+  font-family: "Inter", "Arial", sans-serif !important;
+  background-color: $color-bg; // explicit — same pattern as VegVault
+  color: $color-black;
+}
+
+// Links — explicit colour so it doesn't rely on bslib primary cascade
+a {
+  color: $color-primary;
+  text-decoration: underline;
+
+  &:hover {
+    color: $color-navbar;
+    text-decoration: none;
+  }
+}
+
+h1,
+h2,
+h3,
+.navbar-brand {
+  font-family: "Press Start 2P", "Courier New", monospace !important;
+}
+
+// pkgdown page titles
+.page-header h1,
+h1.title {
+  font-family: "Press Start 2P", "Courier New", monospace !important;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+// Keep sub-headings readable by limiting pixel-font to h1/h2
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Inter", "Arial", sans-serif !important;
+  color: $color-navbar;
+  font-weight: 600;
+}
+
+h1 {
+  color: $color-black;
+  font-size: 1.6rem; // pixel font is wide; keep smaller than VegVault
+  line-height: 1.4;
+  margin-top: $margin-large;
+}
+
+h2 {
+  color: $color-primary;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  margin-top: $margin-large;
+}
+
+// ============================================================
+// Navbar  (olive green — swapped from VegVault's slate blue)
+// ============================================================
+.navbar {
+  background-color: $color-navbar !important;
+  border-bottom: 2px solid $color-black;
+}
+
+.navbar .navbar-brand {
+  color: $color-white !important;
+
+  &:hover {
+    color: $color-beige-warm !important;
+    text-decoration: none;
+  }
+}
+
+.navbar .nav-link {
+  color: $color-white !important;
+
+  &:hover,
+  &:focus {
+    color: $color-beige-warm !important;
+    background-color: darken($color-navbar, 8%) !important;
+    text-decoration: none;
+  }
+
+  &.active {
+    color: $color-beige-warm !important;
+  }
+}
+
+.navbar .dropdown-menu {
+  background-color: $color-navbar;
+  border: 1px solid $color-black;
+
+  .dropdown-item {
+    color: $color-white;
+    font-family: "Inter", "Arial", sans-serif !important;
+
+    &:hover,
+    &:focus {
+      background-color: darken($color-navbar, 10%);
+      color: $color-beige-warm;
+    }
+  }
+}
+
+// Search widget
+.navbar .form-control {
+  background-color: lighten($color-navbar, 10%);
+  color: $color-white;
+  border-color: $color-white;
+
+  &::placeholder {
+    color: rgba($color-white, 0.7);
+  }
+}
+
+// ============================================================
+// Sidebar
+// ============================================================
+.sidebar-navigation,
+.col-md-3 .list-unstyled {
+
+  a.nav-link.active,
+  a.active {
+    background-color: $color-navbar;
+    color: $color-white !important;
+    border-radius: 4px;
+  }
+
+  a.nav-link:hover {
+    color: $color-navbar;
+    background-color: lighten($color-bg, 3%);
+  }
+}
+
+// ============================================================
+// Code blocks
+// ============================================================
+pre,
+code {
+  background-color: $color-code-bg !important;
+  color: $color-black;
+  border-radius: 5px;
+}
+
+pre {
+  padding: $margin-small $margin-block;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+pre code {
+  background-color: transparent !important;
+}
+
+// ============================================================
+// Buttons
+// ============================================================
+.btn-primary {
+  background-color: $color-primary !important;
+  border-color: $color-primary !important;
+  color: $color-white !important;
+
+  &:hover,
+  &:focus {
+    background-color: $color-navbar !important;
+    border-color: $color-navbar !important;
+    color: $color-white !important;
+  }
+}
+
+// ============================================================
+// Blockquotes
+// ============================================================
+blockquote {
+  background-color: lighten($color-bg, 2%);
+  border-left: 4px solid $color-primary;
+  padding: $margin-block;
+  margin: $margin-block 0;
+  font-style: italic;
+
+  p {
+    margin-bottom: 0;
+  }
+}
+
+// ============================================================
+// Tables
+// ============================================================
+table {
+  border-collapse: collapse;
+  border: 2px solid $color-black;
+  width: 100%;
+  max-width: 100%;
+  margin: $margin-block auto;
+}
+
+table th,
+table td {
+  padding: $margin-small $margin-block;
+  border: 1px solid $color-black;
+  text-align: left;
+  vertical-align: top;
+}
+
+table thead th {
+  background-color: $color-navbar;
+  color: $color-white;
+  font-weight: bold;
+  text-align: center;
+}
+
+// All body cells use the amber background — never show Bootstrap's white
+table tbody td {
+  background-color: $color-bg;
+}
+
+table tbody tr:nth-child(even) td {
+  background-color: darken($color-bg, 6%);
+}
+
+table tbody tr:hover td {
+  background-color: rgba($color-primary, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+table tbody tr:last-child td {
+  border-bottom: 2px solid $color-black;
+}
+
+// ============================================================
+// Footer
+// ============================================================
+.footer,
+footer {
+  background-color: $color-navbar !important;
+  color: $color-white !important;
+  border-top: 2px solid $color-black;
+  padding: $margin-block;
+
+  a {
+    color: $color-beige-warm !important;
+    text-decoration: underline;
+
+    &:hover {
+      color: $color-white !important;
+      text-decoration: none;
+    }
+  }
+}
+
+// ============================================================
+// Figures
+// ============================================================
+figure {
+  text-align: center;
+  margin: $margin-large 0;
+}
+
+figcaption,
+.figure-caption {
+  font-size: 0.9rem;
+  color: $color-grey;
+  margin-top: $margin-small;
+  font-style: italic;
+}
+
+// ============================================================
+// Reference index cards
+// ============================================================
+// Reference pages use plain td cells — keep borderless but still amber
+.function-reference .ref-index td {
+  border: none;
+  background-color: transparent;
+}
+
+.ref-index h2 {
+  font-size: 0.9rem !important; // pixel font h2 — keep smaller
+}

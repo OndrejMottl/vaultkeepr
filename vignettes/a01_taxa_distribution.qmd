@@ -11,10 +11,7 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+source("config_quarto.R")
 ```
 
 ## Introduction
@@ -235,10 +232,7 @@ ggplot2::ggplot(
 ) +
   ggplot2::geom_bar(position = "dodge") +
   ggplot2::scale_fill_manual(
-    values = c(
-      "vegetation_plot"      = "#5B8DB8",
-      "fossil_pollen_archive" = "#B85B5B"
-    ),
+    values = palette_dataset_type,
     name = "Dataset type"
   ) +
   ggplot2::labs(
@@ -247,7 +241,6 @@ ggplot2::ggplot(
     y       = "Number of samples with presence",
     caption = "Based on the vaultkeepr example database"
   ) +
-  ggplot2::theme_minimal() +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1))
 ```
 

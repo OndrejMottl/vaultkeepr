@@ -11,10 +11,7 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+source("config_quarto.R")
 ```
 
 ## Introduction
@@ -298,8 +295,8 @@ ggplot2::ggplot(
   mapping = ggplot2::aes(x = age_bin, y = cwm)
 ) +
   ggplot2::geom_boxplot(
-    fill   = "#B5CFB7",
-    colour = "#4A7C59",
+    fill   = col_blue_light,
+    colour = col_green_dark,
     width  = 0.5
   ) +
   ggplot2::labs(
@@ -307,8 +304,7 @@ ggplot2::ggplot(
     x       = "Age bin",
     y       = "Community-weighted mean plant height",
     caption = "Based on the vaultkeepr example database"
-  ) +
-  ggplot2::theme_minimal()
+  )
 ```
 
 ---

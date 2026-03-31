@@ -11,10 +11,7 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+source("config_quarto.R")
 ```
 
 ## Introduction
@@ -257,14 +254,14 @@ ggplot2::ggplot(
   mapping = ggplot2::aes(x = abiotic_value, y = n_taxa)
 ) +
   ggplot2::geom_point(
-    colour = "#5B8DB8",
+    colour = col_blue_light,
     alpha  = 0.7,
     size   = 2
   ) +
   ggplot2::geom_smooth(
     method  = "lm",
     formula = y ~ x,
-    colour  = "#B85B5B",
+    colour  = col_brown_dark,
     se      = FALSE
   ) +
   ggplot2::labs(
@@ -272,8 +269,7 @@ ggplot2::ggplot(
     x       = "Mean annual air temperature (bio1, \u00b0C)",
     y       = "Number of taxa per vegetation plot",
     caption = "Based on the vaultkeepr example database (CHELSA bio1)"
-  ) +
-  ggplot2::theme_minimal()
+  )
 ```
 
 ---
