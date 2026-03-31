@@ -1,0 +1,346 @@
+﻿---
+title: "Retrieving data citations with get_references()"
+description: >
+  Learn how to retrieve all bibliographic references associated with a
+  vaultkeepr data pipeline, identify which citations are mandatory under
+  the source data licence, and filter references by data type — ensuring
+  proper attribution before publication or analysis.
+vignette: >
+  %\VignetteIndexEntry{Retrieving data citations with get_references()}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+Open-access databases such as [VegVault](https://ondrejmottl.github.io/VegVault/) aggregate data from many primary sources — vegetation surveys, pollen archives, trait databases, and climate reanalyses — each of which carries its own licence and citation requirements. Before using any extraction for analysis or publication, it is important to know which sources contributed to the data and, critically, which citations are **mandatory** under those licences.
+
+`get_references()` retrieves all bibliographic references linked to the current state of a vaultkeepr pipeline. It takes the `plan` object — built step by step just like in any other article — and queries the database for every reference linked to the data the plan would return. You call it *before* executing the plan with `extract_data()`, so you can audit citations before committing to data collection.
+
+VegVault stores references at eight distinct levels:
+
+| Reference level | What it describes |
+|-----------------|------------------|
+| `Dataset` | The individual dataset record |
+| `DatasetSource` | The sub-database within the primary source |
+| `DatasetSourceType` | The primary source workflow (e.g. BIEN, sPlotOpen, Neotoma-FOSSILPOL) |
+| `SamplingMethod` | The vegetation survey or sediment-coring protocol |
+| `Sample` | An individual vegetation plot or stratigraphic level |
+| `Taxon` | The taxonomic authority for each reported taxon |
+| `Trait` | The source of a functional trait measurement |
+| `AbioticVariable` | The climate or soil dataset (e.g. CHELSA, WoSIS) |
+
+These levels map directly to the tables described in the [VegVault Database Structure](https://ondrejmottl.github.io/VegVault/website/database_structure.html). VegVault is released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); for the full citation requirements, see [Guidelines for Data Reuse and Citation](https://ondrejmottl.github.io/VegVault/website/database_access.html#guidelines-for-data-reuse-and-citation).
+
+The `mandatory` field flags references that **must** be cited when the corresponding data are used. `extract_data()` checks for mandatory references automatically and issues a reminder if any are present.
+
+We use a small **example database** (built automatically below) that mirrors the naming conventions of a real VegVault file. You can swap the path for your own VegVault download to run the same code on real data.
+
+::: {.callout-tip}
+## Working with real data
+Download the full VegVault database from the [Database Access](https://ondrejmottl.github.io/VegVault/website/database_access.html) page. Cite VegVault itself using the [data paper](https://doi.org/10.1038/s41597-025-06176-1).
+:::
+
+```{r build-db, message = FALSE}
+# Build (or reuse) the example database and return its file path
+path_to_db <- source("helper_make_example_db.R")$value
+```
+
+---
+
+## Building the plan
+
+To demonstrate all possible reference levels we build a plan that combines modern vegetation plots, their associated taxa, and co-located abiotic climate data. This brings `dataset_id`, `data_source_id`, `data_source_type_id`, `sampling_method_id`, `sample_id`, `taxon_id`, and `abiotic_variable_id` into scope — covering seven of the eight reference levels. The eighth level (`Trait`) is illustrated separately below.
+
+### Step 1 — Open the vault
+
+`open_vault()` creates a connection to the VegVault SQLite file and returns a `vault_pipe` object. This object is the **plan** — it carries both the live database connection and the accumulating lazy query. No data is loaded into memory at this stage.
+
+```{r open}
+library(vaultkeepr)
+
+plan <-
+  open_vault(path = path_to_db)
+```
+
+### Step 2 — Add dataset metadata
+
+`get_datasets()` extends the plan with the `Datasets` table — the central organising unit in VegVault. Calling it first makes the dataset-level columns (`dataset_id`, `data_source_id`, `data_source_type_id`, `sampling_method_id`) available for reference extraction.
+
+```{r get-datasets}
+plan <-
+  plan |>
+  get_datasets()
+```
+
+### Step 3 — Filter to vegetation plots and gridpoints
+
+We keep `vegetation_plot` datasets (the occurrence records) and `gridpoints` datasets (needed by `get_abiotic_data()` to supply climate values).
+
+```{r filter-type}
+plan <-
+  plan |>
+  select_dataset_by_type(
+    sel_dataset_type = c("vegetation_plot", "gridpoints")
+  )
+```
+
+### Step 4 — Restrict to a small geographic area
+
+We focus on a Central-European bounding box (longitude 14–16 °E, latitude 44–46 °N) to keep the plan compact for demonstration.
+
+```{r filter-geo}
+plan <-
+  plan |>
+  select_dataset_by_geo(
+    long_lim = c(14, 16),
+    lat_lim  = c(44, 46)
+  )
+```
+
+### Step 5 — Add sample metadata
+
+`get_samples()` extends the plan with sample-level information and adds `sample_id`, enabling `Sample`-level reference extraction.
+
+```{r get-samples}
+plan <-
+  plan |>
+  get_samples()
+```
+
+### Step 6 — Add taxa
+
+`get_taxa()` extends the plan with taxon names and abundances and adds `taxon_id`, enabling `Taxon`-level reference extraction.
+
+```{r get-taxa}
+plan <-
+  plan |>
+  get_taxa()
+```
+
+### Step 7 — Attach abiotic data
+
+`get_abiotic_data()` extends the plan by linking each vegetation sample to the spatially and temporally nearest gridpoint and adds `abiotic_variable_id`, enabling `AbioticVariable`-level reference extraction.
+
+```{r get-abiotic, message = FALSE}
+plan <-
+  plan |>
+  get_abiotic_data()
+```
+
+At this point `plan` holds a lazy query that covers seven reference-bearing columns. No data has been collected yet — the plan has not been executed.
+
+---
+
+## Extracting all references
+
+`get_references()` by default attempts to extract references from all eight levels. Any level whose key column is absent from the current plan is silently skipped. With the default `get_source = TRUE` the result includes a `reference_source` column that identifies which level each reference came from.
+
+```{r all-refs}
+data_refs <-
+  get_references(
+    con = plan,
+    verbose = TRUE
+  )
+
+dplyr::glimpse(data_refs)
+```
+
+The result is a tibble with three columns:
+
+| Column | Content |
+|--------|---------|
+| `reference` | Full bibliographic detail as stored in the `References` table |
+| `reference_source` | The reference level (e.g. `"Dataset"`, `"Taxon"`) |
+| `mandatory` | `TRUE` if this reference must be cited; `FALSE` otherwise |
+
+A quick count by level shows how many distinct references were found at each one:
+
+```{r refs-by-level}
+data_refs |>
+  dplyr::count(reference_source, name = "n_references")
+```
+
+---
+
+## Identifying mandatory references
+
+References flagged `mandatory = TRUE` must be cited whenever the corresponding data are used. In VegVault, mandatory references are typically attached to **Dataset Source-Types** (covering the data processing workflows such as Neotoma-FOSSILPOL) and **Abiotic Variables** (covering the CHELSA and WoSIS licences).
+
+```{r mandatory-refs}
+data_mandatory <-
+  data_refs |>
+  dplyr::filter(mandatory == TRUE)
+
+data_mandatory
+```
+
+A summary of how many mandatory references belong to each level:
+
+```{r mandatory-summary}
+data_mandatory |>
+  dplyr::count(reference_source, name = "n_mandatory")
+```
+
+---
+
+## Filtering by reference level
+
+Use the `type` argument to request only a subset of the eight levels. This is useful when you need a citation list scoped to a specific data layer — for instance, when reviewing which taxon-level authorities were used.
+
+### Dataset-level references only
+
+```{r dataset-refs}
+data_dataset_refs <-
+  get_references(
+    con = plan,
+    type = "Dataset",
+    verbose = FALSE
+  )
+
+data_dataset_refs
+```
+
+### Multiple levels at once
+
+Supply a character vector to `type` to combine several levels:
+
+```{r taxon-sample-refs}
+data_bio_refs <-
+  get_references(
+    con = plan,
+    type = c("Taxon", "Sample"),
+    verbose = FALSE
+  )
+
+data_bio_refs |>
+  dplyr::count(reference_source)
+```
+
+### When a level is absent from the plan
+
+If a requested level has no corresponding key column in the current plan, it is silently skipped. In this example, `trait_id` is absent because `get_traits()` was not called, so `data_refs` contains no rows where `reference_source == "Trait"`:
+
+```{r absent-level}
+data_refs |>
+  dplyr::filter(reference_source == "Trait")
+```
+
+To include trait references, add `get_traits()` to the plan before calling `get_references()` — see the [functional traits article](a03_functional_traits.html) for an example.
+
+---
+
+## Returning citations without source information
+
+Setting `get_source = FALSE` suppresses the `reference_source` column and de-duplicates across levels, producing a minimal list of distinct (`reference`, `mandatory`) pairs. This compact format is ready to use directly as an input to a reference manager or bibliography.
+
+```{r no-source-refs}
+data_cite_list <-
+  get_references(
+    con = plan,
+    get_source = FALSE,
+    verbose = FALSE
+  )
+
+data_cite_list
+```
+
+The row count is often smaller than with `get_source = TRUE` because the same publication may be linked to multiple levels (e.g. a paper can serve as both a `Dataset` reference and a `DatasetSource` reference).
+
+---
+
+## Integration with `extract_data()`
+
+`extract_data()` calls `get_references()` internally and issues an informational message if any mandatory references are detected. This serves as an automatic reminder to check citations before using the data.
+
+```{r extract-data-warning}
+data_veg <-
+  plan |>
+  extract_data(
+    return_raw_data = TRUE,
+    verbose = TRUE
+  )
+```
+
+The message is informational only — extraction always proceeds regardless, but it signals that `get_references()` should be run before publication.
+
+To silence the check entirely, set `check_mandatory_references = FALSE`:
+
+```{r extract-data-no-warn}
+data_veg_quiet <-
+  plan |>
+  extract_data(
+    return_raw_data = TRUE,
+    check_mandatory_references = FALSE,
+    verbose = FALSE
+  )
+```
+
+---
+
+## Full pipeline with references
+
+Build the plan, inspect all references, then execute:
+
+```{r full-pipeline, eval = FALSE}
+library(vaultkeepr)
+
+path_to_db <- source("helper_make_example_db.R")$value
+
+plan <-
+  open_vault(path = path_to_db) |>
+  get_datasets() |>
+  select_dataset_by_type(
+    sel_dataset_type = c("vegetation_plot", "gridpoints")
+  ) |>
+  select_dataset_by_geo(
+    long_lim = c(14, 16),
+    lat_lim  = c(44, 46)
+  ) |>
+  get_samples() |>
+  get_taxa() |>
+  get_abiotic_data()
+
+# All references with source-level information
+data_refs <-
+  get_references(
+    con = plan,
+    verbose = TRUE
+  )
+
+# Mandatory citations only
+data_mandatory <-
+  data_refs |>
+  dplyr::filter(mandatory == TRUE)
+
+# Minimal citation list for bibliography (reference + mandatory flag only)
+data_cite_list <-
+  get_references(
+    con = plan,
+    get_source = FALSE,
+    verbose = FALSE
+  )
+
+# Extract the data (will remind about mandatory references)
+data_veg <-
+  plan |>
+  extract_data(return_raw_data = TRUE)
+```
+
+---
+
+## Next steps
+
+- Swap `path_to_db` for a real VegVault database to retrieve actual publication-ready citations
+- Add `get_traits()` to the plan to also capture `"Trait"` references from [TRY](https://www.try-db.org/) and [BIEN](https://bien.nceas.ucsb.edu/bien/)
+- Use `get_references(type = "AbioticVariable")` to produce a dedicated citation list for climate and soil data sources
+- Filter `data_mandatory` to audit licence compliance for each data source type before sharing derived datasets
+- See the [vegetation climate article](a02_vegetation_climate.html) and [functional traits article](a03_functional_traits.html) for more examples of pipelines whose references you can inspect
+- Cite VegVault itself using the [data paper](https://doi.org/10.1038/s41597-025-06176-1) (doi:10.1038/s41597-025-06176-1)

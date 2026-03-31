@@ -1,0 +1,262 @@
+﻿---
+title: "Exploring taxa distribution across space and time"
+description: >
+  Learn how to query vaultkeepr to study the spatial and temporal
+  distribution of a plant genus across a region using both modern
+  vegetation plot data and fossil pollen archives.
+vignette: >
+  %\VignetteIndexEntry{Exploring taxa distribution across space and time}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+One of the most common tasks in palaeoecology is to reconstruct *where* and *when* a plant taxon was present. [VegVault](https://ondrejmottl.github.io/VegVault/) stores both modern vegetation plot data and fossil pollen archives in a single database, making it possible to reconstruct taxon distributions across time within a single workflow.
+
+The core idea of vaultkeepr is to **build a plan first, then execute it**. Each function call — `get_datasets()`, `select_dataset_by_type()`, `get_samples()`, and so on — adds a step to a lazy SQL query stored in the `plan` object without touching the database. When the plan is fully specified, a single call to `extract_data()` executes the complete query and returns a tibble ready for analysis.
+
+In this article we study the spatio-temporal distribution of the genus *Betula* (birch) across Western North America (WNA) from the present back to 8,000 calibrated years BP, combining modern `vegetation_plot` records (sourced from [BIEN](https://bien.nceas.ucsb.edu/bien/) and [sPlotOpen](https://idiv-biodiversity.de/en/splot/splotopen.html)) with `fossil_pollen_archive` records (sourced from [Neotoma-FOSSILPOL](https://hope-uib-bio.github.io/FOSSILPOL-website/)). Fossil pollen records extend the temporal window far beyond any modern survey, while modern vegetation plots provide the spatial detail and species-level precision needed to calibrate or validate palaeoecological reconstructions.
+
+We use a small **example database** (built automatically below) that mirrors the structure and naming conventions of a real VegVault file. You can swap the path for your own VegVault download to run the same code on real data.
+
+::: {.callout-tip}
+## Working with real data
+Download the full VegVault database from the [Database Access](https://ondrejmottl.github.io/VegVault/website/database_access.html) page to run this code on real global vegetation data. See the [Database Content](https://ondrejmottl.github.io/VegVault/website/database_content.html) page for an overview of coverage and statistics.
+:::
+
+```{r build-db, message = FALSE}
+# Build (or reuse) the example database and return its file path
+path_to_db <- source("helper_make_example_db.R")$value
+```
+
+---
+
+## Step 1 — Open the vault
+
+`open_vault()` creates a connection to the VegVault SQLite file and returns a `vault_pipe` object. This object is the **plan** — it carries both the live database connection and the accumulating lazy query through every subsequent step. No data is loaded into memory here; we are simply opening the vault and initialising the plan.
+
+```{r open}
+library(vaultkeepr)
+
+plan <-
+  open_vault(path = path_to_db)
+```
+
+---
+
+## Step 2 — Add dataset metadata
+
+`get_datasets()` extends the plan with the `Datasets` table — the central organising unit in VegVault. Each dataset has a unique ID, geographic coordinates (`coord_long`, `coord_lat`), a dataset type (e.g. `vegetation_plot`), a source type (e.g. `BIEN`, `sPlotOpen`, `Neotoma-FOSSILPOL`), and a sampling method. At this point every dataset in the database is in scope — subsequent steps narrow the selection.
+
+```{r get-datasets}
+plan <-
+  plan |>
+  get_datasets()
+```
+
+---
+
+## Step 3 — Filter by dataset type
+
+VegVault contains four dataset types:
+
+- `vegetation_plot` — contemporary vegetation surveys (BIEN, sPlotOpen)
+- `fossil_pollen_archive` — sediment-core pollen records (Neotoma-FOSSILPOL)
+- `traits` — functional trait measurements (TRY)
+- `gridpoints` — artificially created datasets holding abiotic (climate/soil) data, spatially linked to the other three types
+
+For a full technical description of each dataset type, see the [Datasets](https://ondrejmottl.github.io/VegVault/website/database_structure.html#datasets) section of the VegVault Database Structure.
+
+`select_dataset_by_type()` adds a type filter to the plan. Here we keep only the two types that carry occurrence information.
+
+```{r filter-type}
+plan <-
+  plan |>
+  select_dataset_by_type(
+    sel_dataset_type = c(
+      "vegetation_plot",
+      "fossil_pollen_archive"
+    )
+  )
+```
+
+---
+
+## Step 4 — Filter by geography
+
+We extend the plan with a geographic filter: a bounding box in the Pacific Northwest (longitude −116 to −114 °W, latitude 44 to 46 °N), an area that captures both BIEN vegetation plots and Neotoma-FOSSILPOL pollen cores. The filter is pushed into the SQL engine — no data is transferred yet.
+
+```{r filter-geo}
+plan <-
+  plan |>
+  select_dataset_by_geo(
+    long_lim = c(-116, -114),
+    lat_lim  = c(44, 46)
+  )
+```
+
+---
+
+## Step 5 — Add sample information
+
+`get_samples()` extends the plan with sample-level metadata (age, sample size, sample name). In VegVault, *samples* are the primary unit of data — each sample belongs to exactly one dataset and carries a temporal label. Contemporary samples have `age = 0`; fossil pollen samples have `age` expressed in calibrated years before present (cal yr BP), where present = 1950 AD.
+
+```{r get-samples}
+plan <-
+  plan |>
+  get_samples()
+```
+
+---
+
+## Step 6 — Filter by age
+
+We add an age filter to the plan, keeping samples from the present (age = 0) back to 8,000 cal yr BP — the entire Holocene. This window brackets the period after the last major ice-sheet retreat, during which modern plant communities became established.
+
+```{r filter-age}
+plan <-
+  plan |>
+  select_samples_by_age(age_lim = c(0, 8000))
+```
+
+---
+
+## Step 7 — Add taxa and harmonise to genus level
+
+`get_taxa()` extends the plan with taxonomic occurrence data, including abundance values (`value`). Raw taxon names in VegVault come directly from primary sources and may differ between databases (e.g. *Betula pendula* in a vegetation plot vs. *Betula* in a pollen record). The `classify_to = "genus"` argument uses the pre-computed `TaxonClassification` table — built with the [{taxospace}](https://github.com/OndrejMottl/taxospace) package using the [GBIF Taxonomy Backbone](https://www.gbif.org/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c) — to roll all identifications up to genus level, making vegetation plot records and fossil pollen records directly comparable.
+
+::: {.callout-warning}
+`classify_to` triggers a computationally expensive join against the `TaxonClassification` table. On a large query this can be very slow. In addition, the taxonomic harmonisation is produced by an automated process: misclassifications can occur, especially for ambiguous names or taxa not covered by the GBIF backbone. Always verify results for taxa that are critical to your analysis.
+:::
+
+```{r get-taxa}
+plan <-
+  plan |>
+  get_taxa(classify_to = "genus")
+```
+
+---
+
+## Step 8 — Filter to a single genus
+
+`select_taxa_by_name()` adds a taxon filter to the plan, retaining only rows matching the supplied name. We focus on *Betula* (birch), a genus with a well-documented Holocene range shift across the Northern Hemisphere that is captured in both modern vegetation surveys and fossil pollen records.
+
+```{r filter-taxa}
+plan <-
+  plan |>
+  select_taxa_by_name(sel_taxa = "Betula")
+```
+
+---
+
+## Step 9 — Execute the plan
+
+The plan is now fully specified. `extract_data()` executes the complete lazy query, fetches the results from the database into R memory, and returns a nested tibble — one row per dataset — with samples, community, and any additional data packed as list-columns. See [Exploring extract_data()](a04_extract_data.html) for a detailed walkthrough of both output modes. The `verbose = FALSE` argument suppresses progress messages.
+
+```{r extract}
+data_wna_genus <-
+  plan |>
+  extract_data(verbose = FALSE)
+
+dplyr::glimpse(data_wna_genus)
+```
+
+---
+
+## Full pipeline
+
+All the steps above — building the plan and executing it — can be written as a single expression:
+
+```{r full-pipeline, eval = FALSE}
+data_wna_genus <-
+  open_vault(path = path_to_db) |>
+  get_datasets() |>
+  select_dataset_by_type(
+    sel_dataset_type = c(
+      "vegetation_plot",
+      "fossil_pollen_archive"
+    )
+  ) |>
+  select_dataset_by_geo(
+    long_lim = c(-116, -114),
+    lat_lim  = c(44, 46)
+  ) |>
+  get_samples() |>
+  select_samples_by_age(age_lim = c(0, 8000)) |>
+  get_taxa(classify_to = "genus") |>
+  select_taxa_by_name(sel_taxa = "Betula") |>
+  extract_data()
+```
+
+---
+
+## Visualising the data
+
+We bin the samples into 2,000-year intervals and count unique presences per bin and dataset type.
+
+```{r plot, fig.width = 7, fig.height = 4, out.width = "100%", message = FALSE, fig.alt = "Map and time series of genus occurrences across western North America faceted by 2 000-year age bins and dataset type."}
+data_plot <-
+  data_wna_genus |>
+  dplyr::mutate(
+    data_occ = purrr::map2(
+      .x = data_samples,
+      .y = data_community,
+      .f = ~ dplyr::left_join(.x, .y, by = "sample_name")
+    )
+  ) |>
+  dplyr::select(
+    dataset_name, dataset_type, coord_long, coord_lat, data_occ
+  ) |>
+  tidyr::unnest(cols = data_occ) |>
+  dplyr::filter(.data$Betula > 0) |>
+  dplyr::distinct(
+    dataset_name, dataset_type, age, coord_long, coord_lat
+  ) |>
+  dplyr::mutate(
+    age_bin = paste0(
+      floor(age / 2000) * 2,
+      "\u20132",
+      floor(age / 2000) * 2 + 2,
+      " ka"
+    )
+  )
+
+ggplot2::ggplot(
+  data = data_plot,
+  mapping = ggplot2::aes(x = age_bin, fill = dataset_type)
+) +
+  ggplot2::geom_bar(position = "dodge") +
+  ggplot2::scale_fill_manual(
+    values = c(
+      "vegetation_plot"      = "#5B8DB8",
+      "fossil_pollen_archive" = "#B85B5B"
+    ),
+    name = "Dataset type"
+  ) +
+  ggplot2::labs(
+    title   = "Genus occurrence counts by age bin",
+    x       = "Age bin",
+    y       = "Number of samples with presence",
+    caption = "Based on the vaultkeepr example database"
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1))
+```
+
+---
+
+## Next steps
+
+- Filter to multiple genera with `select_taxa_by_name(sel_taxa = c(...))`
+- Retrieve the underlying references with `get_references()`
+- Combine with climate data — see the [vegetation and climate article](a02_vegetation_climate.html)
+- A comparable real-data example — tracking *Picea* across North America — is shown in the [VegVault Usage Examples](https://ondrejmottl.github.io/VegVault/website/database_examples.html#example-1-spatiotemporal-patterns-of-the-picea-genus-across-north-america-since-the-lgm)
+- When publishing results, cite VegVault using the [data paper](https://doi.org/10.1038/s41597-025-06176-1) and use `get_references()` for primary source citations
