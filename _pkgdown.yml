@@ -14,9 +14,19 @@ template:
       card: summary_large_image
 navbar:
   structure:
-    right: [search, twitter, github]
+    right: [search, github]
   component:
       twitter:
         icon: fa-twitter
         href: http://twitter.com/OndrejMottl
         aria-label: Twitter
+
+articles:
+- title: "Usage Examples"
+  navbar: "Usage Examples"
+  contents:
+  - a01_taxa_distribution
+  - a02_vegetation_climate
+  - a03_functional_traits
+  - a04_extract_data
+  - a05_references
