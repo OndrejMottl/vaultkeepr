@@ -294,7 +294,7 @@ ggplot2::ggplot(
   data = data_for_plot,
   mapping = ggplot2::aes(x = age_bin, y = cwm)
 ) +
-  ggplot2::geom_boxplot(
+  ggplot2::geom_violin(
     fill   = col_blue_light,
     colour = col_green_dark,
     width  = 0.5
