@@ -222,44 +222,77 @@ blockquote {
 // ============================================================
 // Tables
 // ============================================================
-table {
-  border-collapse: collapse;
-  border: 2px solid $color-black;
-  width: 100%;
-  max-width: 100%;
-  margin: $margin-block auto;
+// Bootstrap 5's .table rule sets:
+//   --bs-table-bg: var(--bs-body-bg)
+// and in the cell rule:
+//   .table > :not(caption) > * > * { background-color: var(--bs-table-bg) }
+//   specificity: (0,1,1)
+// We must match or exceed that specificity to override cell backgrounds.
+//
+// Strategy:
+//   - Set --bs-body-bg and --bs-table-bg so Bootstrap's own var() chain
+//     resolves to amber.
+//   - Use .table-prefixed selectors (specificity ≥ 0,1,1) so our
+//     background rules win when we need to override (e.g. headers, stripes).
+
+body {
+  --bs-body-bg: #{$color-bg};
 }
 
-table th,
-table td {
+// Match Bootstrap's exact selector to be unambiguous about the amber base.
+.table > :not(caption) > * > * {
+  --bs-table-bg: #{$color-bg};
+  background-color: $color-bg;
+}
+
+.table {
+  --bs-table-bg: #{$color-bg};
+  --bs-table-striped-bg: #{darken($color-bg, 6%)};
+  --bs-table-hover-bg: #{rgba($color-primary, 0.15)};
+  --bs-table-border-color: #{$color-black};
+  --bs-table-color: #{$color-black};
+  --bs-table-striped-color: #{$color-black};
+  --bs-table-hover-color: #{$color-black};
+}
+
+table,
+.table {
+  border: 2px solid $color-black;
+  width: 100%;
+  margin: $margin-block 0;
+}
+
+// Header: specificity (0,1,2) > Bootstrap (0,1,1)
+.table thead th {
+  background-color: $color-navbar !important;
+  color: $color-white;
+  font-weight: bold;
+  text-align: center;
+  border: 1px solid $color-black;
+}
+
+// Body cells: specificity (0,1,1) — same as Bootstrap, but later in
+// source so our value wins.
+.table td,
+.table th {
   padding: $margin-small $margin-block;
   border: 1px solid $color-black;
   text-align: left;
   vertical-align: top;
-}
-
-table thead th {
-  background-color: $color-navbar;
-  color: $color-white;
-  font-weight: bold;
-  text-align: center;
-}
-
-// All body cells use the amber background — never show Bootstrap's white
-table tbody td {
   background-color: $color-bg;
 }
 
-table tbody tr:nth-child(even) td {
+// Striped rows: specificity (0,1,4) > Bootstrap (0,1,1) → wins cleanly.
+.table tbody tr:nth-child(even) td {
   background-color: darken($color-bg, 6%);
 }
 
-table tbody tr:hover td {
-  background-color: rgba($color-primary, 0.1);
+.table tbody tr:hover td {
+  background-color: rgba($color-primary, 0.15);
   transition: background-color 0.3s ease;
 }
 
-table tbody tr:last-child td {
+.table tbody tr:last-child td {
   border-bottom: 2px solid $color-black;
 }
 
@@ -311,4 +344,19 @@ figcaption,
 
 .ref-index h2 {
   font-size: 0.9rem !important; // pixel font h2 — keep smaller
+}
+
+// ============================================================
+// Article / content area
+// ============================================================
+// pkgdown wraps article prose in these containers; Bootstrap defaults
+// them to white. Make them inherit the amber body background so
+// transparent table cells (and any other element) never show white.
+.content,
+.article,
+.page-body,
+main,
+.container-fluid,
+.row > [class*="col-"] {
+  background-color: transparent !important;
 }
