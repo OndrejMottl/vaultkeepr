@@ -560,7 +560,9 @@ if (!file.exists(path_db)) {
       append = TRUE
     )
 
-  # SampleTaxa: ~85k abundance records for vegetation + pollen samples
+  # SampleTaxa: abundance records for vegetation + pollen samples
+  # Tree taxa (31-45: Betula, Alnus, Corylus) increase in abundance with age;
+  # grass/herb taxa (1-30) decrease, creating a visible CWM shift over time.
   vec_vegetation_sample_ids <-
     dplyr::tbl(con_db, "Datasets") %>%
     dplyr::filter(dataset_type_id %in% 1:2) %>%
@@ -572,15 +574,28 @@ if (!file.exists(path_db)) {
     dplyr::collect() %>%
     dplyr::pull(sample_id)
 
-  tibble::tibble(
-    sample_id = rep_len(
-      rep(vec_vegetation_sample_ids, 7),
-      length.out = 85e3
-    ),
-    taxon_id = rep_len(rep(seq_len(45), each = 9), length.out = 85e3),
-    value = rep_len(c(1, 10, 100), length.out = 85e3)
-  ) %>%
-    dplyr::distinct(sample_id, taxon_id, .keep_all = TRUE) %>%
+  data_veg_sample_ages <-
+    dplyr::tbl(con_db, "Samples") %>%
+    dplyr::filter(sample_id %in% vec_vegetation_sample_ids) %>%
+    dplyr::select(sample_id, age) %>%
+    dplyr::collect()
+
+  .set_seed()
+  data_veg_sample_ages %>%
+    tidyr::expand_grid(taxon_id = seq_len(45L)) %>%
+    dplyr::mutate(
+      age_norm = age / 8000,
+      base_abund = dplyr::if_else(
+        taxon_id >= 31L,
+        50 * age_norm + 5,
+        50 * (1 - age_norm) + 5
+      ),
+      value = round(
+        base_abund * stats::runif(dplyr::n(), 0.6, 1.4),
+        digits = 1L
+      )
+    ) %>%
+    dplyr::select(sample_id, taxon_id, value) %>%
     dplyr::copy_to(con_db, df = ., name = "SampleTaxa", append = TRUE)
 
   # 6. Abiotic data ------------------------------------------------------------
@@ -591,7 +606,7 @@ if (!file.exists(path_db)) {
       "kg m-2 year-1",
       "Unitless"
     ),
-    measure_details       = c(
+    measure_details = c(
       "mean annual air temperature",
       "annual precipitation amount",
       "SoilGrids-soil class"
@@ -749,7 +764,7 @@ if (!file.exists(path_db)) {
 
   tibble::tibble(
     trait_domain_id = rep(1:3, each = 3),
-    trait_name      = c(
+    trait_name = c(
       # Stem specific density (domain 1)
       "stem wood density",
       "Stem specific density (SSD, stem dry mass per stem fresh volume)",
@@ -776,11 +791,51 @@ if (!file.exists(path_db)) {
     dplyr::distinct(sample_id, dataset_id) %>%
     dplyr::collect()
 
-  tidyr::expand_grid(trait_id = seq_len(9), data_trait_dataset_sample) %>%
-    dplyr::mutate(
-      taxon_id    = rep_len(seq_len(45), length.out = nrow(.)),
-      trait_value = rep_len(c(0, 5, 100), length.out = nrow(.))
+  # Per-species plant height values (metres) for the "Plant heigh" domain:
+  # grasses 0.3-1.2 m, composites/tall-herbs 0.3-3.5 m,
+  # trees/shrubs 3-30 m — ensures a clear CWM contrast between age bins.
+  vec_plant_heights <- c(
+    # Poa spp. (1-5)
+    0.3, 0.4, 0.5, 0.6, 0.7,
+    # Festuca spp. (6-10)
+    0.4, 0.5, 0.6, 0.7, 0.8,
+    # Bromus spp. (11-15)
+    0.5, 0.7, 0.8, 1.0, 1.2,
+    # Artemisia spp. (16-20)
+    0.5, 0.7, 1.0, 1.3, 1.5,
+    # Senecio spp. (21-25)
+    0.3, 0.5, 0.7, 1.0, 1.2,
+    # Helianthus spp. (26-30)
+    1.0, 1.5, 2.0, 2.5, 3.5,
+    # Betula spp. (31-35)
+    8.0, 12.0, 18.0, 22.0, 25.0,
+    # Alnus spp. (36-40)
+    10.0, 15.0, 20.0, 25.0, 30.0,
+    # Corylus spp. (41-45)
+    3.0, 4.0, 5.0, 6.0, 8.0
+  )
+
+  dplyr::bind_rows(
+    # Non-height traits (ids 1-6): simple non-zero values
+    tidyr::expand_grid(
+      trait_id = seq_len(6L),
+      data_trait_dataset_sample
     ) %>%
+      dplyr::mutate(
+        taxon_id    = rep_len(seq_len(45L), length.out = nrow(.)),
+        trait_value = rep_len(c(0.2, 0.5, 0.8), length.out = nrow(.))
+      ),
+    # Plant height traits (ids 7-9): realistic per-species heights
+    tidyr::expand_grid(
+      trait_id = 7L:9L,
+      data_trait_dataset_sample
+    ) %>%
+      dplyr::mutate(
+        taxon_id = rep_len(seq_len(45L), length.out = nrow(.)),
+        trait_value = vec_plant_heights[taxon_id] *
+          rep_len(c(0.95, 1.0, 1.05), length.out = nrow(.))
+      )
+  ) %>%
     dplyr::copy_to(con_db, df = ., name = "TraitsValue", append = TRUE)
 
   .add_references(
