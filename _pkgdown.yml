@@ -5,6 +5,23 @@ home:
 url: https://hope-uib-bio.github.io/vaultkeepr/
 template:
   bootstrap: 5
+  bslib:
+    # Only neutral Bootstrap variables that are safe to set globally.
+    # Body background + link colours are set in extra.scss directly
+    # (like VegVault does), because bslib 'bg' cascades into dozens of
+    # Bootstrap-derived values and non-neutral colours look wrong there.
+    # bslib requires bg when fg is specified; use white so Bootstrap
+    # internals stay neutral — we override the actual body bg in SCSS.
+    bg: "#ffffff"
+    fg: "#242531"
+    primary: "#52758f"
+    secondary: "#5f634f"
+    border-radius: "0.375rem"
+  includes:
+    in_header: |
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
   opengraph:
     image:
       src: man/figures/vaultkeeper_logo.png
@@ -14,9 +31,19 @@ template:
       card: summary_large_image
 navbar:
   structure:
-    right: [search, twitter, github]
+    right: [search, github]
   component:
       twitter:
         icon: fa-twitter
         href: http://twitter.com/OndrejMottl
         aria-label: Twitter
+
+articles:
+- title: "Usage Examples"
+  navbar: "Usage Examples"
+  contents:
+  - a01_taxa_distribution
+  - a02_vegetation_climate
+  - a03_functional_traits
+  - a04_extract_data
+  - a05_references

@@ -22,9 +22,14 @@ Suggests:
     dbplyr,
     dplyr,
     geosphere,
+    ggplot2,
+    knitr,
+    rmarkdown,
+    scales,
     stringr,
     testthat (>= 3.0.0),
     tidyr
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/testthat/start-first: open_vault, get_datasets, 
     get_readable_column_names, pack_data, extract_data,

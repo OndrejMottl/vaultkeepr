@@ -1,0 +1,241 @@
+﻿---
+title: "Exploring extract_data(): from ready-to-use output to raw data"
+description: >
+  A focused walkthrough of the extract_data() function. Starts with the
+  default nested output (return_raw_data = FALSE) — the recommended starting
+  point for most users — then introduces the raw flat output
+  (return_raw_data = TRUE) for advanced workflows that require speed or direct
+  access to the database structure.
+vignette: >
+  %\VignetteIndexEntry{Exploring extract_data(): from ready-to-use output to raw data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+Every vaultkeepr pipeline follows the same two-phase pattern: **build the plan, then execute it**. Each function call — `get_datasets()`, `select_dataset_by_type()`, `get_samples()`, `get_taxa()`, etc. — adds a step to a lazy SQL query stored in the `plan` object without pulling any data into R. `extract_data()` is the execution step: it runs the complete plan against the database and returns a tibble ready for analysis.
+
+`extract_data()` offers two output modes controlled by the `return_raw_data` argument:
+
+- **`return_raw_data = FALSE`** (default) — the result is passed through `get_readable_column_names()` (which translates internal database column names to descriptive equivalents) and `pack_data()` (which nests sample, community, trait, and abiotic data into dedicated list-columns, one row per dataset). This is the recommended output for most users.
+- **`return_raw_data = TRUE`** — the raw SQL result is returned immediately, skipping all post-processing. It is faster and preserves every column exactly as it comes from the database, but requires familiarity with the [VegVault database schema](https://ondrejmottl.github.io/VegVault/website/database_structure.html).
+
+We use a small **example database** (built automatically below) that mirrors a real VegVault file. You can swap the path for your own VegVault download to run the same code on real data.
+
+::: {.callout-tip}
+## Working with real data
+Download the full VegVault database from the [Database Access](https://ondrejmottl.github.io/VegVault/website/database_access.html) page. For an overview of the extraction workflow, see [VegVault Usage Examples](https://ondrejmottl.github.io/VegVault/website/database_examples.html#data-extraction-workflow).
+:::
+
+```{r build-db, message = FALSE}
+# Build (or reuse) the example database and return its file path
+path_to_db <- source("helper_make_example_db.R")$value
+```
+
+---
+
+## Building the plan
+
+We start with a minimal plan that retrieves vegetation plot datasets from a small geographic area together with their taxa. This gives us both sample metadata and community (taxon abundance) data — enough to illustrate both output modes clearly.
+
+```{r build-pipeline}
+library(vaultkeepr)
+
+plan <-
+  open_vault(path = path_to_db) |>
+  get_datasets() |>
+  select_dataset_by_type(sel_dataset_type = "vegetation_plot") |>
+  select_dataset_by_geo(
+    long_lim = c(-116, -114),
+    lat_lim  = c(44, 46)
+  ) |>
+  get_samples() |>
+  get_taxa()
+```
+
+At this point `plan` holds the complete lazy query; no data has been collected yet.
+
+---
+
+## Default output — Nested (packed) tibble (`return_raw_data = FALSE`)
+
+With the default mode, `extract_data()` executes the plan and then passes the SQL result through two additional steps before returning it:
+
+1. `get_readable_column_names()` — translates internal database column names to descriptive equivalents.
+2. `pack_data()` — nests sample, community, trait, and abiotic data into dedicated list-columns, one row per dataset.
+
+```{r extract-packed}
+data_nested <-
+  plan |>
+  extract_data(
+    return_raw_data = FALSE,
+    verbose = FALSE
+  )
+
+dplyr::glimpse(data_nested)
+```
+
+### Structure of the nested tibble
+
+Each row represents one **dataset**. The top-level metadata columns (`dataset_name`, `dataset_type`, `coord_long`, `coord_lat`, etc.) describe the dataset. Detailed data are packed into nested `data.frame` columns:
+
+| Nested column | Content | Present when |
+|---------------|---------|--------------|
+| `data_samples` | Sample metadata: `sample_name`, `age`, `sample_size`, `description` | `get_samples()` was called |
+| `data_community` | Community matrix: samples × taxa (wide format, taxa as columns, abundance as values) | `get_taxa()` was called |
+| `data_traits` | Trait table: samples × taxa × trait values | `get_traits()` was called |
+| `data_abiotic` | Abiotic table: samples linked to gridpoint variables | `get_abiotic_data()` was called |
+
+### Working with the nested columns
+
+Use `tidyr::unnest()` to expand a nested column back into a flat tibble, or use `purrr::map()` to operate on each dataset's data independently.
+
+```{r unnest-samples}
+# Expand sample metadata for every dataset
+data_nested |>
+  tidyr::unnest(cols = data_samples)
+```
+
+```{r unnest-community}
+# Expand the community matrix for every dataset
+data_nested |>
+  tidyr::unnest(cols = data_community)
+```
+
+```{r map-richness}
+# Compute per-dataset taxon richness using purrr::map()
+data_nested |>
+  dplyr::mutate(
+    n_taxa = purrr::map_int(
+      .x = data_community,
+      .f = ~ {
+        # Number of taxon columns = all columns except sample_name
+        ncol(.x) - 1L
+      }
+    )
+  ) |>
+  dplyr::select(dataset_name, dataset_type, n_taxa)
+```
+
+### When to use the nested output
+
+- **Recommended for most users** — the data arrives clean and clearly organised, with no schema knowledge required.
+- **Iterate over datasets** with `purrr::map()`, applying the same analysis to every dataset independently.
+- **Keep data organised** by dataset — useful when datasets differ in the number of samples they contain.
+- **Export** each dataset's community matrix or trait table as a separate object or file.
+
+---
+
+## Advanced — Raw flat tibble (`return_raw_data = TRUE`)
+
+Setting `return_raw_data = TRUE` executes the plan and returns the SQL result immediately, skipping the column-renaming and packing steps. This makes it noticeably faster on large queries.
+
+> **Note:** This mode requires familiarity with the [VegVault database schema](https://ondrejmottl.github.io/VegVault/website/database_structure.html). Column names match the internal database fields, and mixed data types (e.g. taxon rows interspersed with abiotic rows) must be separated manually before analysis.
+
+```{r extract-raw}
+data_flat <-
+  plan |>
+  extract_data(
+    return_raw_data = TRUE,
+    verbose = FALSE
+  )
+
+dplyr::glimpse(data_flat)
+```
+
+### What the columns mean
+
+Every row is one **sample × taxon** combination.  Key columns include:
+
+| Column | Content |
+|--------|---------|
+| `dataset_id` | Unique dataset identifier |
+| `dataset_type` | Type of dataset (e.g. `vegetation_plot`) |
+| `coord_long` / `coord_lat` | Geographic coordinates of the dataset |
+| `sample_id` | Unique sample identifier |
+| `age` | Age of the sample (cal yr BP; 0 = modern) |
+| `taxon_id` | Unique taxon identifier |
+| `taxon_name` | Original taxon name from the source |
+| `value` | Taxon abundance in the sample |
+
+### When to use the raw output
+
+- **Large queries** where the packing step is a bottleneck.
+- Workflows that need to **join directly** on database IDs with external tables before any reshaping.
+- **Debugging** or exploring the raw query result to understand what the database returned.
+- Users who are **already familiar** with the VegVault schema and prefer to do their own tidying with dplyr and tidyr.
+
+```{r raw-example}
+# Count the number of samples per dataset
+data_flat |>
+  dplyr::distinct(dataset_id, sample_id) |>
+  dplyr::count(dataset_id, name = "n_samples")
+```
+
+---
+
+## Comparing the two outputs
+
+Both objects represent the same plan executed in different output modes. We can verify this by checking that the number of datasets matches.
+
+```{r compare}
+# Nested: one row per dataset
+nrow(data_nested)
+
+# Flat: one row per sample × taxon combination
+nrow(data_flat)
+
+# The nested tibble covers the same datasets as the flat one
+dplyr::n_distinct(data_flat$dataset_id) == nrow(data_nested)
+```
+
+---
+
+## Full pipeline
+
+Both modes in a single script — build the plan once, execute it twice with different output modes:
+
+```{r full-pipeline, eval = FALSE}
+# --- Default: nested (packed) output ---
+data_nested <-
+  open_vault(path = path_to_db) |>
+  get_datasets() |>
+  select_dataset_by_type(sel_dataset_type = "vegetation_plot") |>
+  select_dataset_by_geo(
+    long_lim = c(-116, -114),
+    lat_lim  = c(44, 46)
+  ) |>
+  get_samples() |>
+  get_taxa() |>
+  extract_data(return_raw_data = FALSE)
+
+# --- Advanced: raw flat output ---
+data_flat <-
+  open_vault(path = path_to_db) |>
+  get_datasets() |>
+  select_dataset_by_type(sel_dataset_type = "vegetation_plot") |>
+  select_dataset_by_geo(
+    long_lim = c(-116, -114),
+    lat_lim  = c(44, 46)
+  ) |>
+  get_samples() |>
+  get_taxa() |>
+  extract_data(return_raw_data = TRUE)
+```
+
+---
+
+## Next steps
+
+- Retrieve data citations with `get_references()` before publishing results
+- Combine taxa with climate data — see the [vegetation and climate article](a02_vegetation_climate.html)
+- Work with trait data — see the [functional traits article](a03_functional_traits.html)
+- When publishing, cite VegVault using the [data paper](https://doi.org/10.1038/s41597-025-06176-1)
