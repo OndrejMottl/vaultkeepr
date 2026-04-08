@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>a02_vegetation_climate • vaultkeepr</title>
+<title>Combining vegetation data with climate variables • vaultkeepr</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="a02_vegetation_climate_files/libs/quarto-html/popper.min.js"></script><script src="a02_vegetation_climate_files/libs/quarto-html/tippy.umd.min.js"></script><link href="a02_vegetation_climate_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="a02_vegetation_climate_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="a02_vegetation_climate">
+<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Combining vegetation data with climate variables">
 <meta property="og:image" content="https://hope-uib-bio.github.io/vaultkeepr/reference/figures/vaultkeeper_logo.png">
 <meta property="og:image:alt" content="VegVault logo">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">vaultkeepr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -240,16 +240,16 @@
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">data_eu_sdm</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 28</span></span>
 <span><span class="co">#&gt; Columns: 10</span></span>
-<span><span class="co">#&gt; $ dataset_name            &lt;chr&gt; "dataset_82", "dataset_83", "dataset_84", "dat…</span></span>
-<span><span class="co">#&gt; $ data_source_desc        &lt;chr&gt; "EVA (European Vegetation Archive)", "EVA (Eur…</span></span>
-<span><span class="co">#&gt; $ dataset_type            &lt;chr&gt; "vegetation_plot", "vegetation_plot", "vegetat…</span></span>
-<span><span class="co">#&gt; $ dataset_source_type     &lt;chr&gt; "BIEN", "BIEN", "BIEN", "sPlotOpen", "sPlotOpe…</span></span>
-<span><span class="co">#&gt; $ coord_long              &lt;dbl&gt; 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15…</span></span>
-<span><span class="co">#&gt; $ coord_lat               &lt;dbl&gt; 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45…</span></span>
-<span><span class="co">#&gt; $ sampling_method_details &lt;chr&gt; "Standardised vegetation plot survey (1–1000 m…</span></span>
-<span><span class="co">#&gt; $ data_samples            &lt;list&gt; [&lt;tbl_df[2 x 5]&gt;], [&lt;tbl_df[2 x 5]&gt;], [&lt;tbl_d…</span></span>
-<span><span class="co">#&gt; $ data_community          &lt;list&gt; [&lt;tbl_df[2 x 46]&gt;], [&lt;tbl_df[2 x 46]&gt;], [&lt;tbl…</span></span>
-<span><span class="co">#&gt; $ data_abiotic            &lt;list&gt; [&lt;tbl_df[2 x 7]&gt;], [&lt;tbl_df[2 x 7]&gt;], [&lt;tbl_d…</span></span></code></pre></div>
+<span><span class="co">#&gt; $ dataset_name            &lt;chr&gt; "dataset_506", "dataset_82", "dataset_83", "da…</span></span>
+<span><span class="co">#&gt; $ data_source_desc        &lt;chr&gt; NA, "EVA (European Vegetation Archive)", "EVA …</span></span>
+<span><span class="co">#&gt; $ dataset_type            &lt;chr&gt; "gridpoints", "vegetation_plot", "vegetation_p…</span></span>
+<span><span class="co">#&gt; $ dataset_source_type     &lt;chr&gt; "gridpoints", "BIEN", "BIEN", "BIEN", "sPlotOp…</span></span>
+<span><span class="co">#&gt; $ coord_long              &lt;dbl&gt; 15.00257, 15.00000, 15.00000, 15.00000, 15.000…</span></span>
+<span><span class="co">#&gt; $ coord_lat               &lt;dbl&gt; 44.98108, 45.00000, 45.00000, 45.00000, 45.000…</span></span>
+<span><span class="co">#&gt; $ sampling_method_details &lt;chr&gt; NA, "Standardised vegetation plot survey (1–10…</span></span>
+<span><span class="co">#&gt; $ data_samples            &lt;list&gt; [&lt;tbl_df[1 x 5]&gt;], [&lt;tbl_df[2 x 5]&gt;], [&lt;tbl_d…</span></span>
+<span><span class="co">#&gt; $ data_community          &lt;list&gt; &lt;NULL&gt;, [&lt;tbl_df[2 x 46]&gt;], [&lt;tbl_df[2 x 46]&gt;…</span></span>
+<span><span class="co">#&gt; $ data_abiotic            &lt;list&gt; &lt;NULL&gt;, [&lt;tbl_df[2 x 7]&gt;], [&lt;tbl_df[2 x 7]&gt;],…</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="full-pipeline">Full pipeline<a class="anchor" aria-label="anchor" href="#full-pipeline"></a>
 </h2>

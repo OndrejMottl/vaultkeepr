@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Reconstructing functional diversity through time"
 description: >
   Explore how vaultkeepr links fossil pollen archives to functional trait

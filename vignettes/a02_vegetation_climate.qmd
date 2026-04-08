@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Combining vegetation data with climate variables"
 description: >
   Learn how to link modern vegetation plot data with abiotic climate
