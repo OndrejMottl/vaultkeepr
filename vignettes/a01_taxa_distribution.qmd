@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Exploring taxa distribution across space and time"
 description: >
   Learn how to query vaultkeepr to study the spatial and temporal
@@ -142,7 +142,23 @@ plan <-
 
 ---
 
-## Step 8 — Filter to a single genus
+## Step 8 — Discover available taxon names
+
+Before committing to a taxon filter, `get_taxon_names()` lets you browse the distinct taxon names present in the current query plan without executing a full `extract_data()` call. This is useful when you are unsure of the exact spelling, the harmonised genus name, or simply which taxa are represented in the filtered data.
+
+`get_taxon_names()` does **not** modify the plan — it queries the database and returns a small tibble, leaving `plan` ready for the next step.
+
+```{r taxon-names}
+taxon_names <-
+  plan |>
+  get_taxon_names()
+
+taxon_names
+```
+
+---
+
+## Step 9 — Filter to a single genus
 
 `select_taxa_by_name()` adds a taxon filter to the plan, retaining only rows matching the supplied name. We focus on *Betula* (birch), a genus with a well-documented Holocene range shift across the Northern Hemisphere that is captured in both modern vegetation surveys and fossil pollen records.
 
@@ -154,7 +170,7 @@ plan <-
 
 ---
 
-## Step 9 — Execute the plan
+## Step 10 — Execute the plan
 
 The plan is now fully specified. `extract_data()` executes the complete lazy query, fetches the results from the database into R memory, and returns a nested tibble — one row per dataset — with samples, community, and any additional data packed as list-columns. See [Exploring extract_data()](a04_extract_data.html) for a detailed walkthrough of both output modes. The `verbose = FALSE` argument suppresses progress messages.
 

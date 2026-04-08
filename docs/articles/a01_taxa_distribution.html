@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>a01_taxa_distribution • vaultkeepr</title>
+<title>Exploring taxa distribution across space and time • vaultkeepr</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="a01_taxa_distribution_files/libs/quarto-html/popper.min.js"></script><script src="a01_taxa_distribution_files/libs/quarto-html/tippy.umd.min.js"></script><link href="a01_taxa_distribution_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="a01_taxa_distribution_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="a01_taxa_distribution">
+<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Exploring taxa distribution across space and time">
 <meta property="og:image" content="https://hope-uib-bio.github.io/vaultkeepr/reference/figures/vaultkeeper_logo.png">
 <meta property="og:image:alt" content="VegVault logo">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">vaultkeepr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -193,20 +193,44 @@
 <span>  <span class="va">plan</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/get_taxa.html">get_taxa</a></span><span class="op">(</span>classify_to <span class="op">=</span> <span class="st">"genus"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<hr></section><section class="level2"><h2 id="step-8-filter-to-a-single-genus">Step 8 — Filter to a single genus<a class="anchor" aria-label="anchor" href="#step-8-filter-to-a-single-genus"></a>
+<hr></section><section class="level2"><h2 id="step-8-discover-available-taxon-names">Step 8 — Discover available taxon names<a class="anchor" aria-label="anchor" href="#step-8-discover-available-taxon-names"></a>
+</h2>
+<p>Before committing to a taxon filter, <code><a href="../reference/get_taxon_names.html">get_taxon_names()</a></code> lets you browse the distinct taxon names present in the current query plan without executing a full <code><a href="../reference/extract_data.html">extract_data()</a></code> call. This is useful when you are unsure of the exact spelling, the harmonised genus name, or simply which taxa are represented in the filtered data.</p>
+<p><code><a href="../reference/get_taxon_names.html">get_taxon_names()</a></code> does <strong>not</strong> modify the plan — it queries the database and returns a small tibble, leaving <code>plan</code> ready for the next step.</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">taxon_names</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">plan</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/get_taxon_names.html">get_taxon_names</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">taxon_names</span></span>
+<span><span class="co">#&gt; # A tibble: 9 × 1</span></span>
+<span><span class="co">#&gt;   taxon_name</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;     </span></span>
+<span><span class="co">#&gt; 1 Alnus     </span></span>
+<span><span class="co">#&gt; 2 Artemisia </span></span>
+<span><span class="co">#&gt; 3 Betula    </span></span>
+<span><span class="co">#&gt; 4 Bromus    </span></span>
+<span><span class="co">#&gt; 5 Corylus   </span></span>
+<span><span class="co">#&gt; 6 Festuca   </span></span>
+<span><span class="co">#&gt; 7 Helianthus</span></span>
+<span><span class="co">#&gt; 8 Poa       </span></span>
+<span><span class="co">#&gt; 9 Senecio</span></span></code></pre></div>
+</div>
+<hr></section><section class="level2"><h2 id="step-9-filter-to-a-single-genus">Step 9 — Filter to a single genus<a class="anchor" aria-label="anchor" href="#step-9-filter-to-a-single-genus"></a>
 </h2>
 <p><code><a href="../reference/select_taxa_by_name.html">select_taxa_by_name()</a></code> adds a taxon filter to the plan, retaining only rows matching the supplied name. We focus on <em>Betula</em> (birch), a genus with a well-documented Holocene range shift across the Northern Hemisphere that is captured in both modern vegetation surveys and fossil pollen records.</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">plan</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/select_taxa_by_name.html">select_taxa_by_name</a></span><span class="op">(</span>sel_taxa <span class="op">=</span> <span class="st">"Betula"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<hr></section><section class="level2"><h2 id="step-9-execute-the-plan">Step 9 — Execute the plan<a class="anchor" aria-label="anchor" href="#step-9-execute-the-plan"></a>
+<hr></section><section class="level2"><h2 id="step-10-execute-the-plan">Step 10 — Execute the plan<a class="anchor" aria-label="anchor" href="#step-10-execute-the-plan"></a>
 </h2>
 <p>The plan is now fully specified. <code><a href="../reference/extract_data.html">extract_data()</a></code> executes the complete lazy query, fetches the results from the database into R memory, and returns a nested tibble — one row per dataset — with samples, community, and any additional data packed as list-columns. See <a href="a04_extract_data.html">Exploring extract_data()</a> for a detailed walkthrough of both output modes. The <code>verbose = FALSE</code> argument suppresses progress messages.</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_wna_genus</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">plan</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/extract_data.html">extract_data</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -228,7 +252,7 @@
 </h2>
 <p>All the steps above — building the plan and executing it — can be written as a single expression:</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_wna_genus</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/open_vault.html">open_vault</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">path_to_db</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/get_datasets.html">get_datasets</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -252,7 +276,7 @@
 </h2>
 <p>We bin the samples into 2,000-year intervals and count unique presences per bin and dataset type.</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_plot</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">data_wna_genus</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
