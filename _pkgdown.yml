@@ -11,7 +11,7 @@ template:
     # (like VegVault does), because bslib 'bg' cascades into dozens of
     # Bootstrap-derived values and non-neutral colours look wrong there.
     # bslib requires bg when fg is specified; use white so Bootstrap
-    # internals stay neutral — we override the actual body bg in SCSS.
+    # internals stay neutral - we override the actual body bg in SCSS.
     bg: "#ffffff"
     fg: "#242531"
     primary: "#52758f"
@@ -33,17 +33,17 @@ navbar:
   structure:
     right: [search, github]
   component:
-      twitter:
-        icon: fa-twitter
-        href: http://twitter.com/OndrejMottl
-        aria-label: Twitter
+    twitter:
+      icon: fa-twitter
+      href: http://twitter.com/OndrejMottl
+      aria-label: Twitter
 
 articles:
-- title: "Usage Examples"
-  navbar: "Usage Examples"
-  contents:
-  - a01_taxa_distribution
-  - a02_vegetation_climate
-  - a03_functional_traits
-  - a04_extract_data
-  - a05_references
+  - title: "Usage Examples"
+    navbar: "Usage Examples"
+    contents:
+      - a01_taxa_distribution
+      - a02_vegetation_climate
+      - a03_functional_traits
+      - a04_extract_data
+      - a05_references
