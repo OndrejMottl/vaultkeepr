@@ -1,0 +1,451 @@
+---
+title: "Understanding paleoecological uncertainty"
+description: >
+  An introduction to the two main sources of uncertainty in paleoecological
+  data stored in VegVault — age uncertainty from age-depth modelling and
+  (in a future section) taxonomic uncertainty — and how to access them with
+  vaultkeepr.
+vignette: >
+  %\VignetteIndexEntry{Understanding paleoecological uncertainty}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+source("config_quarto.R")
+```
+
+## Introduction
+
+Paleoecological records such as fossil pollen archives are inherently
+uncertain in two distinct ways.
+
+**Age uncertainty** arises because the age of a sediment layer is not
+measured directly — it is estimated by an age-depth model (e.g.
+[Bchron](https://cran.r-project.org/package=Bchron),
+[OxCal](https://c14.arch.ox.ac.uk/oxcal.html)) that fits a curve
+through a small number of radiocarbon dates and extrapolates between
+them.  Running the model many times using a Bayesian or Monte Carlo
+framework produces a distribution of plausible ages for every sample
+depth — stored in VegVault as *iterations*.
+
+**Taxonomic uncertainty** arises because pollen grains are often
+identifiable only to genus or family level, because multiple species
+can share the same morphotype, or because the reference collection used
+for identification may differ between labs.  A future release of
+vaultkeepr will expose this through a dedicated function; a placeholder
+section at the end of this article describes the concept.
+
+This article focuses on **age uncertainty**.  We build a plan for
+fossil pollen archives from Western North America, then use
+`get_age_uncertainty()` as a companion call to retrieve the age iterations
+for every sample in scope.
+
+We use a small **example database** (built automatically below) that
+mirrors the structure and naming conventions of a real VegVault file.
+Swap the path for your own VegVault download to run on real data.
+
+::: {.callout-tip}
+## Working with real data
+Download the full VegVault database from the
+[Database Access](https://ondrejmottl.github.io/VegVault/website/database_access.html)
+page.  For an overview of available data see the
+[Database Content](https://ondrejmottl.github.io/VegVault/website/database_content.html)
+page.
+:::
+
+```{r build-db, message = FALSE}
+# Build (or reuse) the example database and return its file path
+path_to_db <- source("helper_make_example_db.R")$value
+```
+
+---
+
+## Step 1 — Open the vault
+
+`open_vault()` creates a connection to the VegVault SQLite file and returns a
+`vault_pipe` object.  This object is the **plan** — it carries both the live
+database connection and the accumulating lazy query through every subsequent
+step.  No data is loaded into memory here.
+
+```{r open}
+library(vaultkeepr)
+
+plan <-
+  open_vault(path = path_to_db)
+```
+
+---
+
+## Step 2 — Add dataset metadata
+
+`get_datasets()` extends the plan with the `Datasets` table — the central
+organising unit in VegVault.  At this point every dataset in the database is
+in scope; subsequent steps narrow the selection.
+
+```{r get-datasets}
+plan <-
+  plan |>
+  get_datasets()
+```
+
+---
+
+## Step 3 — Filter to fossil pollen archives
+
+Age-depth modelling is only applied to sediment core records.  We therefore
+keep only `fossil_pollen_archive` datasets — the dataset type in VegVault that
+corresponds to pollen cores processed by the
+[Neotoma-FOSSILPOL](https://hope-uib-bio.github.io/FOSSILPOL-website/) workflow.
+
+```{r filter-type}
+plan <-
+  plan |>
+  select_dataset_by_type(
+    sel_dataset_type = "fossil_pollen_archive"
+  )
+```
+
+---
+
+## Step 4 — Filter by geography
+
+We restrict to a bounding box in the Pacific Northwest (longitude −116 to
+−114 °W, latitude 44 to 46 °N), an area with several well-dated pollen cores.
+
+```{r filter-geo}
+plan <-
+  plan |>
+  select_dataset_by_geo(
+    long_lim = c(-116, -114),
+    lat_lim  = c(44, 46)
+  )
+```
+
+---
+
+## Step 5 — Add sample information
+
+`get_samples()` extends the plan with sample-level metadata (`age`,
+`sample_name`, `sample_size`).  For fossil pollen archives, `age` is the
+**nominal** consensus age from the age-depth model (in cal yr BP, where present
+= 1950 AD).  The uncertainty around this nominal age is what we retrieve in the
+next section.
+
+```{r get-samples}
+plan <-
+  plan |>
+  get_samples()
+```
+
+---
+
+## Step 6 — Filter by age
+
+We keep samples from the present (age = 0) back to 8,000 cal yr BP — the
+Holocene window.
+
+```{r filter-age}
+plan <-
+  plan |>
+  select_samples_by_age(age_lim = c(0, 8000))
+```
+
+---
+
+## Age uncertainty
+
+### What is stored in VegVault
+
+For each sample in a fossil pollen archive, the age-depth model is run
+multiple times.  Each run produces a slightly different age estimate for the
+same sediment depth — reflecting the combined uncertainty from the radiocarbon
+dates themselves, the accumulation rate model, and any tie-points used.  These
+per-sample, per-iteration age estimates are stored in the `SampleUncertainty`
+table with three columns:
+
+| Column | Content |
+|--------|---------|
+| `sample_id` | Links back to the sample in `Samples` |
+| `iteration` | Iteration number (1, 2, 3, …) |
+| `age_uncertainty` | Age estimate for this iteration (cal yr BP) |
+
+### Retrieving age uncertainties
+
+::: {.callout-note}
+`get_age_uncertainty()` is **not** a pipeline-building step.  It does not
+return a `vault_pipe` and cannot be chained with `|>` like `get_datasets()` or
+`get_samples()`.  Instead, it is a **companion call** on the same `plan` object
+once `get_samples()` is already in the chain.  It queries the database
+immediately and returns a tibble.
+
+By default (`return_raw_data = FALSE`) the result is a **wide tibble** — one
+row per sample, with `sample_name` as the identifier and one column per
+age-model iteration (`iteration_1`, `iteration_2`, …).  Set
+`return_raw_data = TRUE` to get the long-format tibble with columns
+`sample_id`, `iteration`, and `age_uncertainty` — needed for join-based
+analysis.
+:::
+
+```{r get-age-uncertainty}
+data_age_unc <-
+  get_age_uncertainty(con = plan)
+
+dplyr::glimpse(data_age_unc)
+```
+
+By default the result is a **wide tibble** with one row per sample.
+`sample_name` identifies the sample; columns `iteration_1` through
+`iteration_5` hold the age estimate (cal yr BP) from each run of the
+age-depth model.
+
+### Visualising age uncertainty
+
+To plot the uncertainty we need the **nominal** (consensus) age for each
+sample.  We derive it as the median across all age-model iterations — a
+robust consensus estimate equivalent to the published consensus age from the
+age-depth model.  The code below first pivots `data_age_unc` to long format
+before computing per-sample summaries.
+
+```{r plot-age-unc, fig.width = 7, fig.height = 4, out.width = "100%", message = FALSE, fig.alt = "Scatter plot showing the 95% age-uncertainty interval width against the nominal sample age for fossil pollen archive samples from Western North America. Uncertainty grows with age."}
+#| code-fold: true
+# Pivot wide age uncertainty to long for per-sample analysis;
+# data_age_unc_long is reused in the richness section below
+data_age_unc_long <-
+  data_age_unc |>
+  tidyr::pivot_longer(
+    cols = dplyr::starts_with("iteration_"),
+    names_to = "iteration",
+    values_to = "age_uncertainty"
+  )
+
+# Nominal age per sample: median across all age-model iterations
+data_nominal_ages <-
+  data_age_unc_long |>
+  dplyr::group_by(.data$sample_name) |>
+  dplyr::summarise(
+    age = as.integer(round(stats::median(.data$age_uncertainty))),
+    .groups = "drop"
+  )
+
+# Per-sample 95 % credible interval of the age-depth model
+data_age_summary <-
+  data_age_unc_long |>
+  dplyr::group_by(.data$sample_name) |>
+  dplyr::summarise(
+    lwr_95 = stats::quantile(
+      .data$age_uncertainty,
+      probs = 0.025,
+      na.rm = TRUE
+    ),
+    upr_95 = stats::quantile(
+      .data$age_uncertainty,
+      probs = 0.975,
+      na.rm = TRUE
+    ),
+    .groups = "drop"
+  ) |>
+  dplyr::left_join(data_nominal_ages, by = "sample_name")
+
+ggplot2::ggplot(
+  data = data_age_summary,
+  mapping = ggplot2::aes(
+    x    = age,
+    ymin = lwr_95,
+    ymax = upr_95
+  )
+) +
+  ggplot2::geom_segment(
+    mapping = ggplot2::aes(
+      x = 0,
+      xend = 8e3,
+      y = 0,
+      yend = 8e3
+    ),
+    colour = col_black,
+    alpha = 0.5
+  ) +
+  ggplot2::geom_errorbar(
+    colour = col_blue_light,
+    width  = 100,
+    alpha  = 0.7
+  ) +
+  ggplot2::geom_point(
+    mapping = ggplot2::aes(y = age),
+    colour  = col_green_dark,
+    size    = 2.5
+  ) +
+  ggplot2::scale_x_reverse() +
+  ggplot2::scale_y_reverse() +
+  ggplot2::labs(
+    title   = "Age-model uncertainty by nominal sample age",
+    x       = "Nominal age (cal yr BP)",
+    y       = "Age-model range (cal yr BP)",
+    caption = paste0(
+      "Error bars = 95 % credible interval across iterations. ",
+      "Dots = nominal (consensus) age.\n",
+      "Based on the vaultkeepr example database; all values are synthetic."
+    )
+  )
+```
+
+The plot shows that older samples accumulate wider uncertainty intervals — a
+direct consequence of the SD term in the age-depth model scaling with age.
+This pattern is typical of real Holocene pollen records, where older depths
+have fewer or less precise radiocarbon constraints.
+
+### Richness across age iterations
+
+To show how age uncertainty propagates into an ecological metric, we compute
+**genus richness per sample** under each age-model iteration.  A sample's
+observed taxa never change — only the *age* assigned to it does.  Each
+iteration's line places every sample at its iteration-specific age (connected
+in age order), making visible how samples can shift left or right along the
+time axis and altering the apparent shape of the richness curve.
+
+::: {.callout-note}
+Genus richness is fixed per sample — the observed taxa do not change across
+iterations.  Only the *age* assigned to the sample changes.  `data_age_unc_long`
+provides per-iteration ages keyed by `sample_name`; `data_sample_taxa` (from
+the packed `extract_data()` output) provides the taxa, also keyed by
+`sample_name`.  Both objects use `sample_name` as the join key, so the default
+outputs from `get_age_uncertainty()` and `extract_data()` are sufficient.
+:::
+
+```{r extend-plan-taxa}
+plan_taxa <-
+  plan |>
+  get_taxa(classify_to = "genus")
+```
+
+```{r extract-taxa, message = FALSE}
+data_taxa_packed <-
+  plan_taxa |>
+  extract_data(verbose = FALSE)
+```
+
+```{r plot-richness-iter, fig.width = 7, fig.height = 4, out.width = "100%", message = FALSE, fig.alt = "Spaghetti plot of genus richness per sample, one thin line per age-model iteration. Each point on a line is one sample placed at its iteration-specific age. Lines widen for older samples where age uncertainty is larger."}
+#| code-fold: true
+# Unnest the packed community data and re-pivot to long to recover
+# unique sample x genus combinations keyed by sample_name
+data_sample_taxa <-
+  data_taxa_packed |>
+  dplyr::select("data_community") |>
+  tidyr::unnest("data_community") |>
+  tidyr::pivot_longer(
+    cols = -"sample_name",
+    names_to = "taxon_name",
+    values_to = "n"
+  ) |>
+  dplyr::filter(!is.na(.data$n), .data$n > 0) |>
+  dplyr::distinct(.data$sample_name, .data$taxon_name)
+
+# Per-sample richness (fixed across iterations: a sample's taxa never change)
+data_richness_per_sample <-
+  data_sample_taxa |>
+  dplyr::group_by(.data$sample_name) |>
+  dplyr::summarise(
+    n_taxa = dplyr::n_distinct(.data$taxon_name),
+    .groups = "drop"
+  )
+
+# Attach per-iteration ages: each sample gets one row per iteration
+data_richness_iter <-
+  data_richness_per_sample |>
+  dplyr::inner_join(data_age_unc_long, by = "sample_name") |>
+  dplyr::arrange(.data$iteration, .data$age_uncertainty)
+
+# Consensus line: each sample placed at its median age across iterations
+data_richness_median <-
+  data_richness_iter |>
+  dplyr::group_by(.data$sample_name, .data$n_taxa) |>
+  dplyr::summarise(
+    age_uncertainty = stats::median(.data$age_uncertainty),
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(.data$age_uncertainty)
+
+ggplot2::ggplot(
+  data = data_richness_iter,
+  mapping = ggplot2::aes(
+    x = age_uncertainty,
+    y = n_taxa,
+    group = as.factor(.data$iteration)
+  )
+) +
+  ggplot2::geom_line(
+    colour = col_blue_light,
+    alpha = 0.4,
+    linewidth = 0.5
+  ) +
+  ggplot2::geom_line(
+    data = data_richness_median,
+    mapping = ggplot2::aes(group = NULL),
+    colour = col_green_dark,
+    linewidth = 1.2
+  ) +
+  ggplot2::scale_x_reverse() +
+  ggplot2::labs(
+    title = "Genus richness per sample across age-model iterations",
+    x = "Age (cal yr BP)",
+    y = "Genus richness (per sample)",
+    caption = paste0(
+      "Thin lines = individual age-model iterations (each sample at its ",
+      "iteration-specific age, connected in age order).\n",
+      "Thick line = median-age consensus. ",
+      "Based on the vaultkeepr example database; all values are synthetic."
+    )
+  )
+```
+
+Each thin line is one age-model iteration; each point on a line is one
+sample placed at the age assigned to it by that iteration.  The thick line
+places each sample at its median age across all iterations as a consensus
+reference.  Because age uncertainty shifts individual samples left or right,
+the bundle of lines widens for older samples where radiocarbon constraints
+are sparser and the age-depth model variance is larger.
+
+---
+
+## Full pipeline
+
+Build the plan and retrieve the age uncertainty in a single script:
+
+```{r full-pipeline, eval = FALSE}
+plan <-
+  open_vault(path = path_to_db) |>
+  get_datasets() |>
+  select_dataset_by_type(
+    sel_dataset_type = "fossil_pollen_archive"
+  ) |>
+  select_dataset_by_geo(
+    long_lim = c(-116, -114),
+    lat_lim  = c(44, 46)
+  ) |>
+  get_samples() |>
+  select_samples_by_age(age_lim = c(0, 8000))
+
+# Age uncertainty — default wide output (sample_name + one col per iteration)
+data_age_unc <-
+  get_age_uncertainty(con = plan)
+
+# Extend with taxa for the richness-per-iteration analysis
+# default packed output; unnested inside the analysis chunk below
+data_taxa_packed <-
+  plan |>
+  get_taxa(classify_to = "genus") |>
+  extract_data(verbose = FALSE)
+```
+
+---
+
+## Next steps
+
+- Add taxa data and explore taxon distributions — see the
+  [taxa distribution article](a01_taxa_distribution.html)
+- Combine with abiotic climate variables — see the
+  [vegetation and climate article](a02_vegetation_climate.html)
+- Retrieve all data citations before publishing — see the
+  [references article](a05_references.html)
+- When publishing, cite VegVault using the
+  [data paper](https://doi.org/10.1038/s41597-025-06176-1)

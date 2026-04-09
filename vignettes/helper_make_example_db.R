@@ -561,28 +561,56 @@ if (!file.exists(path_db)) {
     )
 
   # SampleTaxa: abundance records for vegetation + pollen samples
-  # Tree taxa (31-45: Betula, Alnus, Corylus) increase in abundance with age;
-  # grass/herb taxa (1-30) decrease, creating a visible CWM shift over time.
-  vec_vegetation_sample_ids <-
+  # Vegetation plots (type 1): all 9 genera always present.
+  # Fossil pollen archives (type 2): staggered Holocene succession —
+  # tree genera (Betula, Alnus, Corylus) appear progressively in older
+  # strata; herb/grass genera (Poa–Helianthus) drop out — producing a
+  # hump-shaped richness curve typical of Holocene pollen records.
+  data_veg_sample_ages <-
     dplyr::tbl(con_db, "Datasets") %>%
     dplyr::filter(dataset_type_id %in% 1:2) %>%
     dplyr::inner_join(
       dplyr::tbl(con_db, "DatasetSample"),
       by = "dataset_id"
     ) %>%
-    dplyr::distinct(sample_id) %>%
-    dplyr::collect() %>%
-    dplyr::pull(sample_id)
-
-  data_veg_sample_ages <-
-    dplyr::tbl(con_db, "Samples") %>%
-    dplyr::filter(sample_id %in% vec_vegetation_sample_ids) %>%
-    dplyr::select(sample_id, age) %>%
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Samples"),
+      by = "sample_id"
+    ) %>%
+    dplyr::distinct(
+      .data$sample_id, .data$age, .data$dataset_type_id
+    ) %>%
     dplyr::collect()
 
   .set_seed()
   data_veg_sample_ages %>%
     tidyr::expand_grid(taxon_id = seq_len(45L)) %>%
+    dplyr::filter(
+      # Vegetation plots (type 1): all genera present (contemporary record)
+      .data$dataset_type_id == 1L |
+        # Fossil pollen archives (type 2): temporal genus succession
+        # Herb/grass genera absent in strata older than their threshold:
+        (
+          !(.data$taxon_id <= 5L & .data$age > 6000L) & # Poa
+            !(.data$taxon_id >= 6L & .data$taxon_id <= 10L &
+              .data$age > 5500L) & # Festuca
+            !(.data$taxon_id >= 11L & .data$taxon_id <= 15L &
+              .data$age > 5000L) & # Bromus
+            !(.data$taxon_id >= 16L & .data$taxon_id <= 20L &
+              .data$age > 4500L) & # Artemisia
+            !(.data$taxon_id >= 21L & .data$taxon_id <= 25L &
+              .data$age > 4000L) & # Senecio
+            !(.data$taxon_id >= 26L & .data$taxon_id <= 30L &
+              .data$age > 3500L) & # Helianthus
+            # Tree genera absent in strata younger than their threshold:
+            !(.data$taxon_id >= 31L & .data$taxon_id <= 35L &
+              .data$age < 1000L) & # Betula
+            !(.data$taxon_id >= 36L & .data$taxon_id <= 40L &
+              .data$age < 2000L) & # Alnus
+            !(.data$taxon_id >= 41L & .data$taxon_id <= 45L &
+              .data$age < 3000L) # Corylus
+        )
+    ) %>%
     dplyr::mutate(
       age_norm = age / 8000,
       base_abund = dplyr::if_else(
@@ -844,6 +872,43 @@ if (!file.exists(path_db)) {
     "trait_id", "trait",
     n_refs = 5
   )
+
+  # 8. Sample uncertainty ------------------------------------------------------
+  # 25 age-model iterations per temporal sample; SD baseline raised to 100
+  # so that at 500 yr BP (SD=125) ~32 % of samples cross a 250-year bin
+  # boundary, producing visible spread in the spaghetti richness plot.
+  .set_seed()
+
+  data_temporal_samples <-
+    dplyr::tbl(con_db, "Samples") %>%
+    dplyr::filter(age > 0) %>%
+    dplyr::select("sample_id", "age") %>%
+    dplyr::collect()
+
+  tidyr::expand_grid(
+    data_temporal_samples,
+    iteration = seq_len(25L)
+  ) %>%
+    dplyr::mutate(
+      age = as.integer(
+        pmax(
+          0L,
+          age + round(
+            stats::rnorm(
+              dplyr::n(),
+              mean = 0,
+              sd   = age * 0.05 + 100
+            )
+          )
+        )
+      )
+    ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "SampleUncertainty",
+      append = TRUE
+    )
 
   DBI::dbDisconnect(con_db)
 }

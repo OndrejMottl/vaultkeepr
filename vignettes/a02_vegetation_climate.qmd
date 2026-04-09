@@ -213,6 +213,7 @@ data_eu_sdm <-
 `data_eu_sdm` holds one row per dataset. Vegetation plot datasets carry taxon abundances in `data_community` (wide format: one column per taxon) and the linked climate values in `data_abiotic`. We unnest both to compute per-sample species richness and pair each sample with its mean annual air temperature.
 
 ```{r plot, fig.width = 6, fig.height = 5, out.width = "100%", message = FALSE, fig.alt = "Scatter plot of mean annual temperature versus taxa richness for vegetation plots and climate model data across Europe."}
+#| code-fold: true
 # Species richness per sample from the nested community data
 data_richness <-
   data_eu_sdm |>

@@ -50,6 +50,7 @@
     <li><a class="dropdown-item" href="../articles/a03_functional_traits.html">Reconstructing functional diversity through time</a></li>
     <li><a class="dropdown-item" href="../articles/a04_extract_data.html">Exploring extract_data(): from ready-to-use output to raw data</a></li>
     <li><a class="dropdown-item" href="../articles/a05_references.html">Retrieving data citations with get_references()</a></li>
+    <li><a class="dropdown-item" href="../articles/a06_palaeo_uncertainty.html">Understanding paleoecological uncertainty</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -236,7 +237,7 @@
 <span>  <span class="fu"><a href="../reference/extract_data.html">extract_data</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">data_wna_genus</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Rows: 54</span></span>
+<span><span class="co">#&gt; Rows: 52</span></span>
 <span><span class="co">#&gt; Columns: 9</span></span>
 <span><span class="co">#&gt; $ dataset_name            &lt;chr&gt; "dataset_1", "dataset_2", "dataset_3", "datase…</span></span>
 <span><span class="co">#&gt; $ data_source_desc        &lt;chr&gt; "EVA (European Vegetation Archive)", "EVA (Eur…</span></span>
@@ -276,7 +277,7 @@
 </h2>
 <p>We bin the samples into 2,000-year intervals and count unique presences per bin and dataset type.</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_plot</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">data_wna_genus</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
@@ -319,7 +320,7 @@
 <span>    caption <span class="op">=</span> <span class="st">"Based on the vaultkeepr example database"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">30</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="cell-output-display">
+</details><div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure><p><img src="a01_taxa_distribution_files/figure-html/plot-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%" alt="Map and time series of genus occurrences across western North America faceted by 2 000-year age bins and dataset type."></p>
 </figure>
@@ -334,6 +335,8 @@
 <li>Retrieve the underlying references with <code><a href="../reference/get_references.html">get_references()</a></code>
 </li>
 <li>Combine with climate data — see the <a href="a02_vegetation_climate.html">vegetation and climate article</a>
+</li>
+<li>Explore age uncertainty for the fossil samples — see the <a href="a06_palaeo_uncertainty.html">paleoecological uncertainty article</a>
 </li>
 <li>A comparable real-data example — tracking <em>Picea</em> across North America — is shown in the <a href="https://ondrejmottl.github.io/VegVault/website/database_examples.html#example-1-spatiotemporal-patterns-of-the-picea-genus-across-north-america-since-the-lgm" class="external-link">VegVault Usage Examples</a>
 </li>

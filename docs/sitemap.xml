@@ -5,6 +5,7 @@
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/articles/a03_functional_traits.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/articles/a04_extract_data.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/articles/a05_references.html</loc></url>
+<url><loc>https://hope-uib-bio.github.io/vaultkeepr/articles/a06_palaeo_uncertainty.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/articles/index.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/authors.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/index.html</loc></url>
@@ -14,6 +15,7 @@
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/classify_taxa.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/extract_data.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_abiotic_data.html</loc></url>
+<url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_age_uncertainty.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_common_dataset_type.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_datasets.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_readable_column_names.html</loc></url>

@@ -3,6 +3,7 @@
 export("%>%")
 export(extract_data)
 export(get_abiotic_data)
+export(get_age_uncertainty)
 export(get_datasets)
 export(get_references)
 export(get_samples)

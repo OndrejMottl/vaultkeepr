@@ -221,6 +221,7 @@ data_sa_traits <-
 `data_sa_traits` holds one row per dataset. Fossil pollen datasets carry pollen abundances in `data_community` (wide format: one column per genus) and sample ages in `data_samples`. Trait datasets carry trait observations in `data_traits` (wide format: one row per trait × sample, one column per genus). We unnest these to compute a **community-weighted mean (CWM)** plant height for every fossil pollen sample by (1) extracting the mean trait value per genus from `data_traits`, and (2) computing the abundance-weighted mean over all genera present in each fossil sample.
 
 ```{r plot, fig.width = 6, fig.height = 5, out.width = "100%", message = FALSE, fig.alt = "Violin plot showing the distribution of community-weighted mean plant height across 2 000-year time bins in South America."}
+#| code-fold: true
 # Mean trait value per genus from the nested trait datasets
 data_genus_trait <-
   data_sa_traits |>
