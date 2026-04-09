@@ -177,7 +177,14 @@ table with three columns:
 return a `vault_pipe` and cannot be chained with `|>` like `get_datasets()` or
 `get_samples()`.  Instead, it is a **companion call** on the same `plan` object
 once `get_samples()` is already in the chain.  It queries the database
-immediately and returns a plain flat tibble — one row per sample × iteration.
+immediately and returns a tibble.
+
+By default (`return_raw_data = FALSE`) the result is a **wide tibble** — one
+row per sample, with `sample_name` as the identifier and one column per
+age-model iteration (`iteration_1`, `iteration_2`, …).  Set
+`return_raw_data = TRUE` to get the long-format tibble with columns
+`sample_id`, `iteration`, and `age_uncertainty` — needed for join-based
+analysis.
 :::
 
 ```{r get-age-uncertainty}
@@ -187,23 +194,35 @@ data_age_unc <-
 dplyr::glimpse(data_age_unc)
 ```
 
-The result contains one row for every combination of sample (in scope of
-`plan`) and age-model iteration.  With five iterations per sample this tibble
-is five times longer than the number of samples in the plan.
+By default the result is a **wide tibble** with one row per sample.
+`sample_name` identifies the sample; columns `iteration_1` through
+`iteration_5` hold the age estimate (cal yr BP) from each run of the
+age-depth model.
 
 ### Visualising age uncertainty
 
 To plot the uncertainty we need the **nominal** (consensus) age for each
-sample.  We derive it as the median across all age-model iterations stored
-in `data_age_unc` — the median is a robust consensus estimate equivalent to
-the published consensus age from the age-depth model.
+sample.  We derive it as the median across all age-model iterations — a
+robust consensus estimate equivalent to the published consensus age from the
+age-depth model.  The code below first pivots `data_age_unc` to long format
+before computing per-sample summaries.
 
 ```{r plot-age-unc, fig.width = 7, fig.height = 4, out.width = "100%", message = FALSE, fig.alt = "Scatter plot showing the 95% age-uncertainty interval width against the nominal sample age for fossil pollen archive samples from Western North America. Uncertainty grows with age."}
 #| code-fold: true
+# Pivot wide age uncertainty to long for per-sample analysis;
+# data_age_unc_long is reused in the richness section below
+data_age_unc_long <-
+  data_age_unc |>
+  tidyr::pivot_longer(
+    cols = dplyr::starts_with("iteration_"),
+    names_to = "iteration",
+    values_to = "age_uncertainty"
+  )
+
 # Nominal age per sample: median across all age-model iterations
 data_nominal_ages <-
-  data_age_unc |>
-  dplyr::group_by(.data$sample_id) |>
+  data_age_unc_long |>
+  dplyr::group_by(.data$sample_name) |>
   dplyr::summarise(
     age = as.integer(round(stats::median(.data$age_uncertainty))),
     .groups = "drop"
@@ -211,8 +230,8 @@ data_nominal_ages <-
 
 # Per-sample 95 % credible interval of the age-depth model
 data_age_summary <-
-  data_age_unc |>
-  dplyr::group_by(.data$sample_id) |>
+  data_age_unc_long |>
+  dplyr::group_by(.data$sample_name) |>
   dplyr::summarise(
     lwr_95 = stats::quantile(
       .data$age_uncertainty,
@@ -226,7 +245,7 @@ data_age_summary <-
     ),
     .groups = "drop"
   ) |>
-  dplyr::left_join(data_nominal_ages, by = "sample_id")
+  dplyr::left_join(data_nominal_ages, by = "sample_name")
 
 ggplot2::ggplot(
   data = data_age_summary,
@@ -262,7 +281,11 @@ ggplot2::ggplot(
     title   = "Age-model uncertainty by nominal sample age",
     x       = "Nominal age (cal yr BP)",
     y       = "Age-model range (cal yr BP)",
-    caption = "Error bars = 95 % credible interval across iterations.\nDots = nominal (consensus) age."
+    caption = paste0(
+      "Error bars = 95 % credible interval across iterations. ",
+      "Dots = nominal (consensus) age.\n",
+      "Based on the vaultkeepr example database; all values are synthetic."
+    )
   )
 ```
 
@@ -274,17 +297,19 @@ have fewer or less precise radiocarbon constraints.
 ### Richness across age iterations
 
 To show how age uncertainty propagates into an ecological metric, we compute
-**genus richness** per 500-year age bin *under each age-model iteration*.
-Each iteration assigns slightly different ages to the same samples, shifting
-them between bins and changing the richness per bin accordingly.
+**genus richness per sample** under each age-model iteration.  A sample's
+observed taxa never change — only the *age* assigned to it does.  Each
+iteration's line places every sample at its iteration-specific age (connected
+in age order), making visible how samples can shift left or right along the
+time axis and altering the apparent shape of the richness curve.
 
 ::: {.callout-note}
-This analysis requires **`return_raw_data = TRUE`** in `extract_data()`.
-The default packed output translates `sample_id` to `sample_name` and drops
-the raw ID, but `data_age_unc` is keyed by `sample_id`.  Retaining `sample_id`
-in the raw output is the only way to join taxa presence to per-iteration age
-estimates at the individual-sample level.  This is an advanced workflow;
-everywhere else in these articles the default packed output is used.
+Genus richness is fixed per sample — the observed taxa do not change across
+iterations.  Only the *age* assigned to the sample changes.  `data_age_unc_long`
+provides per-iteration ages keyed by `sample_name`; `data_sample_taxa` (from
+the packed `extract_data()` output) provides the taxa, also keyed by
+`sample_name`.  Both objects use `sample_name` as the join key, so the default
+outputs from `get_age_uncertainty()` and `extract_data()` are sufficient.
 :::
 
 ```{r extend-plan-taxa}
@@ -294,55 +319,56 @@ plan_taxa <-
 ```
 
 ```{r extract-taxa, message = FALSE}
-# Raw output needed to preserve sample_id for the join with data_age_unc
-data_taxa_raw <-
+data_taxa_packed <-
   plan_taxa |>
-  extract_data(
-    return_raw_data = TRUE,
-    verbose = FALSE
-  )
+  extract_data(verbose = FALSE)
 ```
 
-```{r plot-richness-iter, fig.width = 7, fig.height = 4, out.width = "100%", message = FALSE, fig.alt = "Spaghetti plot of genus richness per 500-year age bin, one thin line per age-model iteration, with a thick mean line overlaid. Lines diverge, showing how age uncertainty shifts samples between bins."}
+```{r plot-richness-iter, fig.width = 7, fig.height = 4, out.width = "100%", message = FALSE, fig.alt = "Spaghetti plot of genus richness per sample, one thin line per age-model iteration. Each point on a line is one sample placed at its iteration-specific age. Lines widen for older samples where age uncertainty is larger."}
 #| code-fold: true
-# Unique sample x genus combinations
-# taxon_id is already genus-level after classify_to = "genus"
+# Unnest the packed community data and re-pivot to long to recover
+# unique sample x genus combinations keyed by sample_name
 data_sample_taxa <-
-  data_taxa_raw |>
-  dplyr::filter(!is.na(.data$taxon_id)) |>
-  dplyr::distinct(.data$sample_id, .data$taxon_id)
+  data_taxa_packed |>
+  dplyr::select("data_community") |>
+  tidyr::unnest("data_community") |>
+  tidyr::pivot_longer(
+    cols = -"sample_name",
+    names_to = "taxon_name",
+    values_to = "n"
+  ) |>
+  dplyr::filter(!is.na(.data$n), .data$n > 0) |>
+  dplyr::distinct(.data$sample_name, .data$taxon_name)
 
-# For each iteration, assign every sample to a 500-year age bin
-# and count distinct genera in that bin
-data_richness_iter <-
+# Per-sample richness (fixed across iterations: a sample's taxa never change)
+data_richness_per_sample <-
   data_sample_taxa |>
-  dplyr::inner_join(
-    data_age_unc,
-    by = "sample_id",
-    relationship = "many-to-many"
-  ) |>
-  dplyr::mutate(
-    age_bin = round(.data$age_uncertainty / 500) * 500L
-  ) |>
-  dplyr::group_by(.data$iteration, .data$age_bin) |>
+  dplyr::group_by(.data$sample_name) |>
   dplyr::summarise(
-    n_taxa = dplyr::n_distinct(.data$taxon_id),
+    n_taxa = dplyr::n_distinct(.data$taxon_name),
     .groups = "drop"
   )
 
-# Mean richness across iterations per bin
-data_richness_mean <-
+# Attach per-iteration ages: each sample gets one row per iteration
+data_richness_iter <-
+  data_richness_per_sample |>
+  dplyr::inner_join(data_age_unc_long, by = "sample_name") |>
+  dplyr::arrange(.data$iteration, .data$age_uncertainty)
+
+# Consensus line: each sample placed at its median age across iterations
+data_richness_median <-
   data_richness_iter |>
-  dplyr::group_by(.data$age_bin) |>
+  dplyr::group_by(.data$sample_name, .data$n_taxa) |>
   dplyr::summarise(
-    mean_n_taxa = mean(.data$n_taxa),
+    age_uncertainty = stats::median(.data$age_uncertainty),
     .groups = "drop"
-  )
+  ) |>
+  dplyr::arrange(.data$age_uncertainty)
 
 ggplot2::ggplot(
   data = data_richness_iter,
   mapping = ggplot2::aes(
-    x = age_bin,
+    x = age_uncertainty,
     y = n_taxa,
     group = as.factor(.data$iteration)
   )
@@ -353,33 +379,31 @@ ggplot2::ggplot(
     linewidth = 0.5
   ) +
   ggplot2::geom_line(
-    data = data_richness_mean,
-    mapping = ggplot2::aes(
-      x = age_bin,
-      y = mean_n_taxa,
-      group = NULL
-    ),
+    data = data_richness_median,
+    mapping = ggplot2::aes(group = NULL),
     colour = col_green_dark,
     linewidth = 1.2
   ) +
   ggplot2::scale_x_reverse() +
   ggplot2::labs(
-    title = "Genus richness per age bin across age-model iterations",
-    x = "Age bin (cal yr BP)",
-    y = "Genus richness",
+    title = "Genus richness per sample across age-model iterations",
+    x = "Age (cal yr BP)",
+    y = "Genus richness (per sample)",
     caption = paste0(
-      "Thin lines = individual age-model iterations. ",
-      "Thick line = mean across iterations."
+      "Thin lines = individual age-model iterations (each sample at its ",
+      "iteration-specific age, connected in age order).\n",
+      "Thick line = median-age consensus. ",
+      "Based on the vaultkeepr example database; all values are synthetic."
     )
   )
 ```
 
-Each thin line is one age-model iteration; the thick line is the mean.
-The spread between lines makes the ecological impact of age uncertainty
-directly visible: samples can be re-assigned to different 500-year bins
-depending on which iteration is used, producing different richness estimates
-at the same nominal age.  Bins with wider uncertainty intervals (older
-strata, see the plot above) show greater spread between iteration lines.
+Each thin line is one age-model iteration; each point on a line is one
+sample placed at the age assigned to it by that iteration.  The thick line
+places each sample at its median age across all iterations as a consensus
+reference.  Because age uncertainty shifts individual samples left or right,
+the bundle of lines widens for older samples where radiocarbon constraints
+are sparser and the age-depth model variance is larger.
 
 ---
 
@@ -401,20 +425,16 @@ plan <-
   get_samples() |>
   select_samples_by_age(age_lim = c(0, 8000))
 
-# Age uncertainty — companion call, not a pipeline step
+# Age uncertainty — default wide output (sample_name + one col per iteration)
 data_age_unc <-
   get_age_uncertainty(con = plan)
 
 # Extend with taxa for the richness-per-iteration analysis
-# return_raw_data = TRUE is needed to preserve sample_id for joining
-# with data_age_unc
-data_taxa_raw <-
+# default packed output; unnested inside the analysis chunk below
+data_taxa_packed <-
   plan |>
   get_taxa(classify_to = "genus") |>
-  extract_data(
-    return_raw_data = TRUE,
-    verbose = FALSE
-  )
+  extract_data(verbose = FALSE)
 ```
 
 ---
