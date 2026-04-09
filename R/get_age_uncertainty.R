@@ -7,13 +7,23 @@
 #' A `vault_pipe` object created by `open_vault()`. Must already contain
 #' `sample_id` in the data, i.e. `get_samples()` must have been called
 #' earlier in the pipe.
+#' @param return_raw_data
+#' A `logical` indicating whether to return raw long-format data.
+#' If `FALSE` (default), returns a wide `tibble` with one row per
+#' sample identified by `sample_name` and one column per iteration
+#' (e.g. `iteration_1`, `iteration_2`, …).
+#' If `TRUE`, returns the raw long-format `tibble` with columns
+#' `sample_id`, `iteration`, and `age_uncertainty`.
 #' @return
-#' A `tibble` with the columns `sample_id`, `iteration`, and
-#' `age_uncertainty`, restricted to the samples present in the
-#' incoming pipe.
+#' When `return_raw_data = FALSE` (default): a wide `tibble` with
+#' `sample_name` as the key column and one column per age-model
+#' iteration (e.g. `iteration_1`, `iteration_2`, …), restricted to
+#' the samples present in the incoming pipe.
+#' When `return_raw_data = TRUE`: a long `tibble` with columns
+#' `sample_id`, `iteration`, and `age_uncertainty`.
 #' @seealso [open_vault()], [get_samples()]
 #' @export
-get_age_uncertainty <- function(con = NULL) {
+get_age_uncertainty <- function(con = NULL, return_raw_data = FALSE) {
   assertthat::assert_that(
     inherits(con, "vault_pipe"),
     msg = paste(
@@ -53,6 +63,11 @@ get_age_uncertainty <- function(con = NULL) {
   )
 
   assertthat::assert_that(
+    is.logical(return_raw_data),
+    msg = "The 'return_raw_data' must be a logical"
+  )
+
+  assertthat::assert_that(
     "SampleUncertainty" %in% DBI::dbListTables(sel_con),
     msg = paste(
       "SampleUncertainty table does not exist in the Vault database.",
@@ -74,7 +89,7 @@ get_age_uncertainty <- function(con = NULL) {
   # Return only the uncertainty columns for the relevant samples.
   # Rename `age` -> `age_uncertainty` to make the column's meaning
   # explicit when the caller combines this with other data.
-  data_res <-
+  data_res_raw <-
     dplyr::tbl(sel_con, "SampleUncertainty") %>%
     dplyr::rename(age_uncertainty = "age") %>%
     dplyr::semi_join(
@@ -82,8 +97,35 @@ get_age_uncertainty <- function(con = NULL) {
       by = "sample_id"
     )
 
+  if (
+    isTRUE(return_raw_data)
+  ) {
+    res <-
+      dplyr::collect(data_res_raw)
+
+    return(res)
+  }
+
+  data_samples <-
+    dplyr::tbl(sel_con, "Samples") %>%
+    dplyr::select("sample_id", "sample_name")
+
+  data_res_named <-
+    data_res_raw %>%
+    dplyr::left_join(
+      data_samples,
+      by = "sample_id"
+    ) %>%
+    dplyr::select("sample_name", "iteration", "age_uncertainty") %>%
+    dplyr::collect()
+
   res <-
-    dplyr::collect(data_res)
+    tidyr::pivot_wider(
+      data_res_named,
+      names_from = "iteration",
+      values_from = "age_uncertainty",
+      names_prefix = "iteration_"
+    )
 
   return(res)
 }
