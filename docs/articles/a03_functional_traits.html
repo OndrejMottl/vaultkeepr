@@ -50,6 +50,7 @@
     <li><a class="dropdown-item" href="../articles/a03_functional_traits.html">Reconstructing functional diversity through time</a></li>
     <li><a class="dropdown-item" href="../articles/a04_extract_data.html">Exploring extract_data(): from ready-to-use output to raw data</a></li>
     <li><a class="dropdown-item" href="../articles/a05_references.html">Retrieving data citations with get_references()</a></li>
+    <li><a class="dropdown-item" href="../articles/a06_palaeo_uncertainty.html">Understanding paleoecological uncertainty</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -204,7 +205,7 @@
 <span><span class="va">plan</span></span>
 <span><span class="co">#&gt; $data</span></span>
 <span><span class="co">#&gt; # Source:   SQL [?? x 19]</span></span>
-<span><span class="co">#&gt; # Database: sqlite 3.51.2 [D:\Temp\Rtmp0Iy1k3\vaultkeepr_example.sqlite]</span></span>
+<span><span class="co">#&gt; # Database: sqlite 3.47.1 [D:\Temp\RtmpCcHLiz\vaultkeepr_example.sqlite]</span></span>
 <span><span class="co">#&gt;    dataset_id dataset_name data_source_id dataset_type_id data_source_type_id</span></span>
 <span><span class="co">#&gt;         &lt;int&gt; &lt;chr&gt;                 &lt;int&gt;           &lt;int&gt;               &lt;int&gt;</span></span>
 <span><span class="co">#&gt;  1        259 dataset_259               1               2                   3</span></span>
@@ -226,7 +227,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $db_con</span></span>
 <span><span class="co">#&gt; &lt;SQLiteConnection&gt;</span></span>
-<span><span class="co">#&gt;   Path: D:\Temp\Rtmp0Iy1k3\vaultkeepr_example.sqlite</span></span>
+<span><span class="co">#&gt;   Path: D:\Temp\RtmpCcHLiz\vaultkeepr_example.sqlite</span></span>
 <span><span class="co">#&gt;   Extensions: TRUE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; attr(,"class")</span></span>
@@ -261,7 +262,7 @@
 <span><span class="co">#&gt; $ coord_lat               &lt;dbl&gt; -15, -15, -15, -15, -15, -15, -15, -15, -15, -…</span></span>
 <span><span class="co">#&gt; $ sampling_method_details &lt;chr&gt; "Standardised vegetation plot survey (1–1000 m…</span></span>
 <span><span class="co">#&gt; $ data_samples            &lt;list&gt; [&lt;tbl_df[42 x 5]&gt;], [&lt;tbl_df[42 x 5]&gt;], [&lt;tbl…</span></span>
-<span><span class="co">#&gt; $ data_community          &lt;list&gt; [&lt;tbl_df[42 x 10]&gt;], [&lt;tbl_df[42 x 10]&gt;], [&lt;t…</span></span>
+<span><span class="co">#&gt; $ data_community          &lt;list&gt; [&lt;tbl_df[42 x 9]&gt;], [&lt;tbl_df[42 x 8]&gt;], [&lt;tbl…</span></span>
 <span><span class="co">#&gt; $ data_traits             &lt;list&gt; &lt;NULL&gt;, &lt;NULL&gt;, &lt;NULL&gt;, &lt;NULL&gt;, &lt;NULL&gt;, &lt;NULL…</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="full-pipeline">Full pipeline<a class="anchor" aria-label="anchor" href="#full-pipeline"></a>
@@ -289,7 +290,7 @@
 </h2>
 <p><code>data_sa_traits</code> holds one row per dataset. Fossil pollen datasets carry pollen abundances in <code>data_community</code> (wide format: one column per genus) and sample ages in <code>data_samples</code>. Trait datasets carry trait observations in <code>data_traits</code> (wide format: one row per trait × sample, one column per genus). We unnest these to compute a <strong>community-weighted mean (CWM)</strong> plant height for every fossil pollen sample by (1) extracting the mean trait value per genus from <code>data_traits</code>, and (2) computing the abundance-weighted mean over all genera present in each fossil sample.</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Mean trait value per genus from the nested trait datasets</span></span>
 <span><span class="va">data_genus_trait</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">data_sa_traits</span> <span class="op">|&gt;</span></span>
@@ -374,7 +375,7 @@
 <span>    y       <span class="op">=</span> <span class="st">"Community-weighted mean plant height"</span>,</span>
 <span>    caption <span class="op">=</span> <span class="st">"Based on the vaultkeepr example database"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<div class="cell-output-display">
+</details><div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure><p><img src="a03_functional_traits_files/figure-html/plot-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%" alt="Violin plot showing the distribution of community-weighted mean plant height across 2 000-year time bins in South America."></p>
 </figure>

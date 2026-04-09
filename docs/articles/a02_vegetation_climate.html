@@ -50,6 +50,7 @@
     <li><a class="dropdown-item" href="../articles/a03_functional_traits.html">Reconstructing functional diversity through time</a></li>
     <li><a class="dropdown-item" href="../articles/a04_extract_data.html">Exploring extract_data(): from ready-to-use output to raw data</a></li>
     <li><a class="dropdown-item" href="../articles/a05_references.html">Retrieving data citations with get_references()</a></li>
+    <li><a class="dropdown-item" href="../articles/a06_palaeo_uncertainty.html">Understanding paleoecological uncertainty</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -240,16 +241,16 @@
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">data_eu_sdm</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 28</span></span>
 <span><span class="co">#&gt; Columns: 10</span></span>
-<span><span class="co">#&gt; $ dataset_name            &lt;chr&gt; "dataset_506", "dataset_82", "dataset_83", "da…</span></span>
-<span><span class="co">#&gt; $ data_source_desc        &lt;chr&gt; NA, "EVA (European Vegetation Archive)", "EVA …</span></span>
-<span><span class="co">#&gt; $ dataset_type            &lt;chr&gt; "gridpoints", "vegetation_plot", "vegetation_p…</span></span>
-<span><span class="co">#&gt; $ dataset_source_type     &lt;chr&gt; "gridpoints", "BIEN", "BIEN", "BIEN", "sPlotOp…</span></span>
-<span><span class="co">#&gt; $ coord_long              &lt;dbl&gt; 15.00257, 15.00000, 15.00000, 15.00000, 15.000…</span></span>
-<span><span class="co">#&gt; $ coord_lat               &lt;dbl&gt; 44.98108, 45.00000, 45.00000, 45.00000, 45.000…</span></span>
-<span><span class="co">#&gt; $ sampling_method_details &lt;chr&gt; NA, "Standardised vegetation plot survey (1–10…</span></span>
-<span><span class="co">#&gt; $ data_samples            &lt;list&gt; [&lt;tbl_df[1 x 5]&gt;], [&lt;tbl_df[2 x 5]&gt;], [&lt;tbl_d…</span></span>
-<span><span class="co">#&gt; $ data_community          &lt;list&gt; &lt;NULL&gt;, [&lt;tbl_df[2 x 46]&gt;], [&lt;tbl_df[2 x 46]&gt;…</span></span>
-<span><span class="co">#&gt; $ data_abiotic            &lt;list&gt; &lt;NULL&gt;, [&lt;tbl_df[2 x 7]&gt;], [&lt;tbl_df[2 x 7]&gt;],…</span></span></code></pre></div>
+<span><span class="co">#&gt; $ dataset_name            &lt;chr&gt; "dataset_82", "dataset_83", "dataset_84", "dat…</span></span>
+<span><span class="co">#&gt; $ data_source_desc        &lt;chr&gt; "EVA (European Vegetation Archive)", "EVA (Eur…</span></span>
+<span><span class="co">#&gt; $ dataset_type            &lt;chr&gt; "vegetation_plot", "vegetation_plot", "vegetat…</span></span>
+<span><span class="co">#&gt; $ dataset_source_type     &lt;chr&gt; "BIEN", "BIEN", "BIEN", "sPlotOpen", "sPlotOpe…</span></span>
+<span><span class="co">#&gt; $ coord_long              &lt;dbl&gt; 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15…</span></span>
+<span><span class="co">#&gt; $ coord_lat               &lt;dbl&gt; 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45…</span></span>
+<span><span class="co">#&gt; $ sampling_method_details &lt;chr&gt; "Standardised vegetation plot survey (1–1000 m…</span></span>
+<span><span class="co">#&gt; $ data_samples            &lt;list&gt; [&lt;tbl_df[2 x 5]&gt;], [&lt;tbl_df[2 x 5]&gt;], [&lt;tbl_d…</span></span>
+<span><span class="co">#&gt; $ data_community          &lt;list&gt; [&lt;tbl_df[2 x 46]&gt;], [&lt;tbl_df[2 x 46]&gt;], [&lt;tbl…</span></span>
+<span><span class="co">#&gt; $ data_abiotic            &lt;list&gt; [&lt;tbl_df[2 x 7]&gt;], [&lt;tbl_df[2 x 7]&gt;], [&lt;tbl_d…</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="full-pipeline">Full pipeline<a class="anchor" aria-label="anchor" href="#full-pipeline"></a>
 </h2>
@@ -276,7 +277,7 @@
 </h2>
 <p><code>data_eu_sdm</code> holds one row per dataset. Vegetation plot datasets carry taxon abundances in <code>data_community</code> (wide format: one column per taxon) and the linked climate values in <code>data_abiotic</code>. We unnest both to compute per-sample species richness and pair each sample with its mean annual air temperature.</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Species richness per sample from the nested community data</span></span>
 <span><span class="va">data_richness</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">data_eu_sdm</span> <span class="op">|&gt;</span></span>
@@ -334,7 +335,7 @@
 <span>    y       <span class="op">=</span> <span class="st">"Number of taxa per vegetation plot"</span>,</span>
 <span>    caption <span class="op">=</span> <span class="st">"Based on the vaultkeepr example database (CHELSA bio1)"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<div class="cell-output-display">
+</details><div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure><p><img src="a02_vegetation_climate_files/figure-html/plot-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%" alt="Scatter plot of mean annual temperature versus taxa richness for vegetation plots and climate model data across Europe."></p>
 </figure>
