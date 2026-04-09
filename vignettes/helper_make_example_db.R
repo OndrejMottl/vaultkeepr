@@ -874,8 +874,9 @@ if (!file.exists(path_db)) {
   )
 
   # 8. Sample uncertainty ------------------------------------------------------
-  # 5 age-model iterations per temporal sample; SD scales with age so that
-  # older samples show wider spread (more realistic age-depth model behaviour).
+  # 25 age-model iterations per temporal sample; SD baseline raised to 100
+  # so that at 500 yr BP (SD=125) ~32 % of samples cross a 250-year bin
+  # boundary, producing visible spread in the spaghetti richness plot.
   .set_seed()
 
   data_temporal_samples <-
@@ -886,7 +887,7 @@ if (!file.exists(path_db)) {
 
   tidyr::expand_grid(
     data_temporal_samples,
-    iteration = seq_len(5L)
+    iteration = seq_len(25L)
   ) %>%
     dplyr::mutate(
       age = as.integer(
@@ -896,7 +897,7 @@ if (!file.exists(path_db)) {
             stats::rnorm(
               dplyr::n(),
               mean = 0,
-              sd   = age * 0.05 + 50
+              sd   = age * 0.05 + 100
             )
           )
         )
