@@ -216,6 +216,7 @@ data_wna_genus <-
 We bin the samples into 2,000-year intervals and count unique presences per bin and dataset type.
 
 ```{r plot, fig.width = 7, fig.height = 4, out.width = "100%", message = FALSE, fig.alt = "Map and time series of genus occurrences across western North America faceted by 2 000-year age bins and dataset type."}
+#| code-fold: true
 data_plot <-
   data_wna_genus |>
   dplyr::mutate(
@@ -267,5 +268,6 @@ ggplot2::ggplot(
 - Filter to multiple genera with `select_taxa_by_name(sel_taxa = c(...))`
 - Retrieve the underlying references with `get_references()`
 - Combine with climate data — see the [vegetation and climate article](a02_vegetation_climate.html)
+- Explore age uncertainty for the fossil samples — see the [paleoecological uncertainty article](a06_palaeo_uncertainty.html)
 - A comparable real-data example — tracking *Picea* across North America — is shown in the [VegVault Usage Examples](https://ondrejmottl.github.io/VegVault/website/database_examples.html#example-1-spatiotemporal-patterns-of-the-picea-genus-across-north-america-since-the-lgm)
 - When publishing results, cite VegVault using the [data paper](https://doi.org/10.1038/s41597-025-06176-1) and use `get_references()` for primary source citations
