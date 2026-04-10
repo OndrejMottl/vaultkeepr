@@ -7,23 +7,34 @@
 classify_taxa(
   data_source = NULL,
   sel_con = NULL,
-  to = c("original", "species", "genus", "family")
+  to = c("original", "species", "genus", "family"),
+  classification_data = NULL
 )
 }
 \arguments{
 \item{data_source}{A SQL table that contains \code{taxon_id} column.}
 
-\item{sel_con}{A connection to the Vault database.}
+\item{sel_con}{A connection to the Vault database. Required when
+\code{classification_data} is \code{NULL}.}
 
 \item{to}{A character vector that specifies the classification level to
 classify the taxa. The options are \code{original}, \code{species}, \code{genus}, and
 \code{family}.}
+
+\item{classification_data}{An optional \code{data.frame} (or \code{tibble}) to use instead of the
+\code{TaxonClassification} table from the database. Must contain a
+\code{taxon_id} column and the column corresponding to \code{to} (i.e.
+\code{taxon_species}, \code{taxon_genus}, or \code{taxon_family}). If \code{NULL}
+(default), the classification is read from the database.
+Obtain a valid table via
+\code{get_classification_table(con, return_raw_data = TRUE)}.}
 }
 \value{
 A SQL table with the classified taxa.
 }
 \description{
-Classify taxa in a SQL table to a specific level based on the
-classification table in the Vault database.
+Classify taxa in a SQL table to a specific level based on
+the classification table in the Vault database, or a user-supplied
+override table.
 }
 \keyword{internal}

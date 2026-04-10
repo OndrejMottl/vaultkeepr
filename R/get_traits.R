@@ -1,23 +1,32 @@
 #' @title Get trait values for the data
-#' @description Get trait values for the data from the Vault database
-#' @param con A connection object created using `open_vault()`
-#' @param classify_to A character vector specifying the taxonomic level
-#' to classify the taxa to. Default is `original`
-#' @param verbose A logical value indicating whether to print messages.
-#' Default is `TRUE`
-#' @return A connection object with the data and database connection
+#' @description Get trait values for the data from the Vault database.
+#' @param con A connection object created using [open_vault()].
+#' @param classify_to
+#' A character vector specifying the taxonomic level to classify the
+#' taxa to. Default is `original`.
+#' @param verbose
+#' A `logical` indicating whether to print messages. Default is `TRUE`.
+#' @param classification_data
+#' An optional `data.frame` (or `tibble`) used instead of the
+#' `TaxonClassification` table in the database. Must contain `taxon_id`
+#' and the column matching `classify_to` (e.g. `taxon_genus` when
+#' `classify_to = "genus"`). If `NULL` (default), the database table
+#' is used. Obtain a valid table via
+#' `get_classification_table(con, return_raw_data = TRUE)`.
+#' @return A connection object with the data and database connection.
 #' @export
 #' @details
-#' If the function is used after `get_taxa()`, the trait values will be
+#' If the function is used after [get_taxa()], the trait values will be
 #' returned only for the taxa present in the data. If you prefer to
-#' return all trait values, we recommend using `get_traits()` before
-#' `get_taxa()` in the pipe.
-#' In addition, it is important to set `classify_to` to the same value as
-#' in `get_taxa()`.
+#' return all trait values, we recommend using [get_traits()] before
+#' [get_taxa()] in the pipe.
+#' In addition, it is important to set `classify_to` to the same value
+#' as in [get_taxa()].
 get_traits <- function(
     con = NULL,
     classify_to = c("original", "species", "genus", "family"),
-    verbose = TRUE) {
+    verbose = TRUE,
+    classification_data = NULL) {
   .data <- rlang::.data
 
   assertthat::assert_that(
@@ -110,12 +119,25 @@ get_traits <- function(
     msg = "`verbose` must be a logical value"
   )
 
+  if (
+    !is.null(classification_data)
+  ) {
+    assertthat::assert_that(
+      is.data.frame(classification_data),
+      msg = paste(
+        "`classification_data` must be a `data.frame` or `tibble`.",
+        "Obtain one via `get_classification_table(con,",
+        "return_raw_data = TRUE)`."
+      )
+    )
+  }
 
   data_traits <-
     classify_taxa(
       data_source = dplyr::tbl(sel_con, "TraitsValue"),
       sel_con = sel_con,
-      to = classify_to
+      to = classify_to,
+      classification_data = classification_data
     )
 
   # test for presence of taxa values and output a warning

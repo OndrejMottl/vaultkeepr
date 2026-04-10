@@ -183,3 +183,150 @@ testthat::test_that("error when `to` is not a valid value", {
     )
   )
 })
+
+
+# classification_data argument ----
+testthat::test_that("classification_data local tibble gives same result", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  data_class <-
+    dplyr::tbl(test_con, "TaxonClassification") %>%
+    dplyr::collect()
+
+  res_db <-
+    classify_taxa(
+      data_source = dplyr::tbl(test_con, "SampleTaxa"),
+      sel_con = test_con,
+      to = "genus"
+    ) %>%
+    dplyr::distinct(taxon_id) %>%
+    dplyr::collect() %>%
+    dplyr::arrange(taxon_id) %>%
+    dplyr::pull("taxon_id")
+
+  res_local <-
+    classify_taxa(
+      data_source = dplyr::tbl(test_con, "SampleTaxa"),
+      sel_con = test_con,
+      to = "genus",
+      classification_data = data_class
+    ) %>%
+    dplyr::distinct(taxon_id) %>%
+    dplyr::collect() %>%
+    dplyr::arrange(taxon_id) %>%
+    dplyr::pull("taxon_id")
+
+  testthat::expect_equal(res_local, res_db)
+})
+
+testthat::test_that("custom classification_data overrides mapping", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  # Map every species to genus 46 instead of their real genus
+  data_class_custom <-
+    dplyr::tbl(test_con, "TaxonClassification") %>%
+    dplyr::collect() %>%
+    dplyr::mutate(taxon_genus = 46L)
+
+  res <-
+    classify_taxa(
+      data_source = dplyr::tbl(test_con, "SampleTaxa"),
+      sel_con = test_con,
+      to = "genus",
+      classification_data = data_class_custom
+    ) %>%
+    dplyr::distinct(taxon_id) %>%
+    dplyr::collect() %>%
+    dplyr::pull("taxon_id")
+
+  testthat::expect_equal(res, 46L)
+})
+
+testthat::test_that("error when classification_data is not data.frame", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  testthat::expect_error(
+    classify_taxa(
+      data_source = dplyr::tbl(test_con, "SampleTaxa"),
+      sel_con = test_con,
+      to = "genus",
+      classification_data = "bad"
+    )
+  )
+})
+
+testthat::test_that("error when classification_data missing taxon_id", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  data_bad <-
+    dplyr::tbl(test_con, "TaxonClassification") %>%
+    dplyr::collect() %>%
+    dplyr::select(-"taxon_id")
+
+  testthat::expect_error(
+    classify_taxa(
+      data_source = dplyr::tbl(test_con, "SampleTaxa"),
+      sel_con = test_con,
+      to = "genus",
+      classification_data = data_bad
+    )
+  )
+})
+
+testthat::test_that("error when classification_data missing target col", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  data_bad <-
+    dplyr::tbl(test_con, "TaxonClassification") %>%
+    dplyr::collect() %>%
+    dplyr::select(-"taxon_genus")
+
+  testthat::expect_error(
+    classify_taxa(
+      data_source = dplyr::tbl(test_con, "SampleTaxa"),
+      sel_con = test_con,
+      to = "genus",
+      classification_data = data_bad
+    )
+  )
+})

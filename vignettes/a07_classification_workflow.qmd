@@ -1,0 +1,366 @@
+---
+title: "Inspecting and customising the taxonomic classification"
+description: >
+  Learn how to extract the taxonomic classification table for a specific
+  data call, inspect and edit it — by filtering to a single family or by
+  correcting individual taxon assignments — and feed the result back into
+  get_taxa() or get_traits() without re-running the full query from scratch.
+vignette: >
+  %\VignetteIndexEntry{Inspecting and customising the taxonomic classification}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+source("config_quarto.R")
+```
+
+## Introduction
+
+When you call `get_taxa(classify_to = "genus")`, vaultkeepr uses the `TaxonClassification` table built automatically from the [GBIF Taxonomy Backbone](https://www.gbif.org/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c) via the [{taxospace}](https://github.com/OndrejMottl/taxospace) package. That automated process works well for most taxa, but you may sometimes need to:
+
+- **inspect** which species map to which genus or family before committing to a classification;
+- **restrict** the analysis to a single plant family;
+- **override** the classification for a taxon that is notoriously hard to harmonise automatically.
+
+The `get_classification_table()` function is designed for exactly this workflow. It extracts the classification table filtered to the taxa already present in your pipeline, returns it as a plain `tibble` that you can inspect and edit in R, and the result can be passed straight back to `get_taxa()` or `get_traits()` via the `classification_data` argument.
+
+We use a small **example database** (built automatically below) that mirrors the structure and naming conventions of a real VegVault file. You can swap the path for your own VegVault download to run the same code on real data.
+
+::: {.callout-tip}
+## Working with real data
+Download the full VegVault database from the [Database Access](https://ondrejmottl.github.io/VegVault/website/database_access.html) page to run this code on real global vegetation data.
+:::
+
+```{r build-db, message = FALSE}
+# Build (or reuse) the example database and return its file path
+path_to_db <- source("helper_make_example_db.R")$value
+```
+
+---
+
+## Step 1 — Build the plan up to species level
+
+We build a **base plan** that covers dataset and sample metadata but does not include taxa yet. We then branch off `plan_taxa` specifically for the classification-table inspection: `classify_to = "original"` is required because `get_classification_table()` looks up species-level `taxon_id` values in the `TaxonClassification` table. Keeping `plan_base` separate is important — it is the correct starting point for the custom and default classification pipelines in Steps 5 and 6.
+
+```{r open}
+library(vaultkeepr)
+
+plan_base <-
+  open_vault(path = path_to_db) |>
+  get_datasets() |>
+  get_samples()
+
+plan_taxa <-
+  plan_base |>
+  get_taxa(classify_to = "original")
+```
+
+::: {.callout-note}
+`plan_base` and `plan_taxa` are both `vault_pipe` objects — no data has been collected yet. The plan is assembled lazily. `get_classification_table()` in the next step is the first call that actually touches the database.
+:::
+
+---
+
+## Step 2 — Inspect the classification table
+
+`get_classification_table()` executes the query, filters the `TaxonClassification` table to taxa present in the plan, joins the `Taxa` name table for every level, and returns a collected `tibble` — not a `vault_pipe`. This is the "pipeline split": `plan_taxa` is kept intact for the next step.
+
+```{r inspect-table}
+data_class <-
+  get_classification_table(con = plan_taxa)
+
+dplyr::glimpse(data_class)
+```
+
+The default output (`return_raw_data = FALSE`) contains **both IDs and resolved names** for every classification level:
+
+| Column | Content |
+|---|---|
+| `taxon_id` | Original species-level taxon ID |
+| `taxon_name` | Species name (from `Taxa`) |
+| `taxon_species` | Species taxon ID in `TaxonClassification` |
+| `species_name` | Species name resolved from `taxon_species` |
+| `taxon_genus` | Genus taxon ID |
+| `genus_name` | Genus name |
+| `taxon_family` | Family taxon ID |
+| `family_name` | Family name |
+
+The ID columns (`taxon_id`, `taxon_species`, `taxon_genus`, `taxon_family`) make the tibble directly usable as `classification_data` in subsequent calls, while the name columns let you inspect it with human-readable labels.
+
+```{r show-table}
+data_class
+```
+
+---
+
+## Step 3 — Explore the family breakdown
+
+A quick summary shows how many species fall into each family in the data:
+
+```{r family-summary}
+data_class |>
+  dplyr::count(family_name, sort = TRUE)
+```
+
+And within a specific family:
+
+```{r betulaceae}
+data_class |>
+  dplyr::filter(family_name == "Betulaceae") |>
+  dplyr::select(
+    taxon_name,
+    genus_name,
+    family_name
+  )
+```
+
+---
+
+## Step 4 — Create a restricted classification table
+
+Suppose we want to run the genus-level analysis for **Betulaceae only** (genera *Betula*, *Alnus*, *Corylus*). We simply filter the table and pass it to `get_taxa()`.
+
+```{r filter-class}
+data_class_betulaceae <-
+  data_class |>
+  dplyr::filter(family_name == "Betulaceae")
+
+data_class_betulaceae
+```
+
+::: {.callout-tip}
+Any column transformation is valid here — you can also **re-map** individual species to different genera by editing the `taxon_genus` column directly, or remove rows for taxa you want to exclude entirely. The only requirement is that the table contains a `taxon_id` column and the column corresponding to `classify_to` (e.g. `taxon_genus` for `classify_to = "genus"`).
+:::
+
+---
+
+## Step 5 — Apply the custom classification
+
+We pass `data_class_betulaceae` back into `get_taxa()` via `classification_data`, starting from `plan_base` — the plan **before** any taxa were added. Taxa not present in the custom table are **dropped** automatically — only Betulaceae species are retained.
+
+```{r apply-custom}
+plan_betulaceae <-
+  plan_base |>
+  get_taxa(
+    classify_to = "genus",
+    classification_data = data_class_betulaceae
+  )
+```
+
+---
+
+## Step 6 — Compare default vs. custom classification
+
+Let us execute both pipelines and compare the resulting taxa.
+
+```{r default-result}
+# Default: all families, classified to genus
+data_default <-
+  plan_base |>
+  get_taxa(classify_to = "genus") |>
+  extract_data(verbose = FALSE)
+```
+
+```{r custom-result}
+# Custom: Betulaceae only
+data_custom <-
+  plan_betulaceae |>
+  extract_data(verbose = FALSE)
+```
+
+```{r compare}
+# Genera present in the default (all-families) classification
+data_default |>
+  dplyr::pull("data_community") |>
+  purrr::map(colnames) |>
+  purrr::list_c() |>
+  unique() |>
+  setdiff("sample_name") |>
+  sort()
+```
+
+```{r compare-custom}
+# Genera present in the custom (Betulaceae-only) classification
+data_custom |>
+  dplyr::pull("data_community") |>
+  purrr::map(colnames) |>
+  purrr::list_c() |>
+  unique() |>
+  setdiff("sample_name") |>
+  sort()
+```
+
+The custom result contains only the three Betulaceae genera (*Betula*, *Alnus*, *Corylus*), while the default contains all nine genera present in the example data.
+
+---
+
+## Scenario B — Overriding a specific taxon assignment
+
+Sometimes you need to **correct or re-map a single row** rather than
+restrict the whole table. Typical reasons include:
+
+- the automated GBIF harmonisation is known to misplace a taxon
+  (e.g., *Senecio jacobaea* has been reclassified to *Jacobaea vulgaris*
+  in many modern treatments — and automated pipelines often still
+  map it back to *Senecio*);
+- your analysis follows a different taxonomic authority than GBIF
+  (e.g., lumping *Betula nana* with *Alnus* s.l. for broad
+  palaeoecological summaries).
+
+The edit is a two-step process:
+
+1. Retrieve the **target genus ID** from the classification table itself.
+2. Patch the affected rows with `dplyr::mutate()` and
+   `dplyr::case_when()`.
+
+```{r lookup-genus-id}
+# Step 1: retrieve the taxon_genus ID for the target genus (Alnus)
+id_genus_alnus <-
+  data_class |>
+  dplyr::filter(genus_name == "Alnus") |>
+  dplyr::pull(taxon_genus) |>
+  unique()
+
+id_genus_alnus
+```
+
+```{r override-classification}
+# Step 2: patch the table — reassign Betula nana to Alnus
+# Only taxon_genus (the ID column) needs to change; name columns
+# are display-only and have no effect on the query.
+data_class_corrected <-
+  data_class |>
+  dplyr::mutate(
+    taxon_genus = dplyr::case_when(
+      taxon_name == "Betula nana" ~ id_genus_alnus,
+      .default = taxon_genus
+    )
+  )
+
+# Confirm: Betula nana now carries the Alnus genus ID (id_genus_alnus),
+# while its genus_name display column still reads "Betula" — the
+# pipeline uses only the ID, so the display value is irrelevant.
+data_class_corrected |>
+  dplyr::filter(
+    taxon_name %in% c("Betula pendula", "Betula nana")
+  ) |>
+  dplyr::select(taxon_name, taxon_genus, genus_name)
+```
+
+::: {.callout-note}
+Only the **ID columns** (`taxon_id`, `taxon_species`, `taxon_genus`,
+`taxon_family`) influence the pipeline result. The display columns
+(`genus_name`, `family_name`, …) are resolved from the database at
+collection time and can be left as-is — the confirmation above shows
+that *Betula nana* still reads `genus_name = "Betula"` even though
+its `taxon_genus` ID now points to *Alnus*. The pipeline will group
+it under *Alnus* regardless.
+:::
+
+Apply the corrected table starting from `plan_base`. Because *Betula nana*
+is now lumped with *Alnus*, its abundance contributes to the `Alnus`
+column instead of `Betula`.
+
+```{r apply-corrected}
+data_corrected <-
+  plan_base |>
+  get_taxa(
+    classify_to = "genus",
+    classification_data = data_class_corrected
+  ) |>
+  extract_data(verbose = FALSE)
+```
+
+```{r compare-corrected}
+# Compare total Betula and Alnus abundance across all samples
+dplyr::bind_rows(
+  data_default |>
+    dplyr::pull("data_community") |>
+    purrr::list_rbind() |>
+    dplyr::summarise(
+      Betula = sum(Betula, na.rm = TRUE),
+      Alnus  = sum(Alnus,  na.rm = TRUE)
+    ) |>
+    dplyr::mutate(classification = "default"),
+  data_corrected |>
+    dplyr::pull("data_community") |>
+    purrr::list_rbind() |>
+    dplyr::summarise(
+      Betula = sum(Betula, na.rm = TRUE),
+      Alnus  = sum(Alnus,  na.rm = TRUE)
+    ) |>
+    dplyr::mutate(classification = "corrected")
+) |>
+  dplyr::relocate(classification)
+```
+
+The `Betula` total is lower in the corrected result (one species removed)
+and the `Alnus` total is higher by exactly the same amount (*Betula nana*
+gained). Other genera are unchanged. The genus columns themselves do not
+disappear — *Betula* still has four species — but the abundance budget
+shifts between the two genera.
+
+::: {.callout-tip}
+To re-map **every species of a genus** rather than a single taxon, use
+`genus_name == "Betula"` as the `dplyr::case_when()` condition instead
+of `taxon_name == "Betula nana"`. The same approach works for family-
+level remapping via `taxon_family`.
+:::
+
+---
+
+## Using the raw-ID table
+
+If you only need the ID columns (e.g. to edit IDs programmatically or to pass to a function that expects only the `TaxonClassification` schema), set `return_raw_data = TRUE`:
+
+```{r raw-table}
+data_class_raw <-
+  get_classification_table(
+    con = plan_taxa,
+    return_raw_data = TRUE
+  )
+
+data_class_raw
+```
+
+This returns only `taxon_id`, `taxon_species`, `taxon_genus`, and `taxon_family`. It is slightly lighter than the default but lacks the resolved names, so it is harder to inspect by eye.
+
+---
+
+## Full pipeline
+
+The complete workflow — from opening the vault to applying a custom family filter — can be written as a single expression:
+
+```{r full-pipeline, eval = FALSE}
+# Step 1: build the base plan (no taxa yet) and branch for inspection
+plan_base <-
+  open_vault(path = path_to_db) |>
+  get_datasets() |>
+  get_samples()
+
+# Step 2: get and filter the classification table
+data_class_betulaceae <-
+  get_classification_table(
+    con = plan_base |> get_taxa(classify_to = "original")
+  ) |>
+  dplyr::filter(family_name == "Betulaceae")
+
+# Step 3: apply and extract, starting from the base plan
+data_betulaceae <-
+  plan_base |>
+  get_taxa(
+    classify_to = "genus",
+    classification_data = data_class_betulaceae
+  ) |>
+  extract_data()
+```
+
+---
+
+## Next steps
+
+- Combine with climate data after restricting the taxa of interest — see the [vegetation and climate article](a02_vegetation_climate.html)
+- Retrieve the full trait dataset for the restricted or overridden taxa with `get_traits(classify_to = "genus", classification_data = ...)` — the same `classification_data` argument is available there too
+- Explore age uncertainty for the filtered fossil samples — see the [paleoecological uncertainty article](a06_palaeo_uncertainty.html)
+- Chain both edits: first filter the table to a family, then patch individual rows within it before passing the result to `get_taxa()`
