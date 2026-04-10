@@ -6,7 +6,7 @@ assertthat_cli <- function(exp, msg, verbose = TRUE) {
       sys.calls()[[sys.nframe() - 1]][1]
 
     error_msg <-
-      paste0(
+      stringr::str_c(
         "Error in function: ",
         "{.fn {fc_name}}", # name of caller
         ": ",
