@@ -12,6 +12,8 @@
 #' `classify_to = "genus"`). If `NULL` (default), the database table
 #' is used. Obtain a valid table via
 #' `get_classification_table(con, return_raw_data = TRUE)`.
+#' @param verbose A logical value indicating whether to print messages.
+#' Default is `TRUE`.
 #' @return
 #' A `vault_pipe` object with the data and the connection to the Vault
 #' database.
@@ -19,94 +21,70 @@
 get_taxa <- function(
     con = NULL,
     classify_to = c("original", "species", "genus", "family"),
-    classification_data = NULL) {
-  assertthat::assert_that(
+    classification_data = NULL,
+    verbose = TRUE) {
+  assertthat_cli(
     inherits(con, "vault_pipe"),
-    msg = paste(
-      "`con` must be a class of `vault_pipe`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must be a class of {.cls vault_pipe}. Use {.fn open_vault} to create a connection."
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(names(con) %in% c("data", "db_con")),
-    msg = paste(
-      "con must have `data` and `db_con`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must have {.code data} and {.code db_con}. Use {.fn open_vault} to create a connection."
   )
 
   sel_data <- con$data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_data, "tbl"),
-    msg = "data must be a class of `tbl`"
+    msg = "{.code data} must be a class of {.cls tbl}."
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "sample_id" %in% colnames(sel_data),
-    msg = paste(
-      "The dataset does not contain `sample_id` columns. Please add",
-      "`get_samples()` to the pipe before this function."
-    )
+    msg = "The dataset does not contain {.code sample_id} column. Please add {.fn get_samples} to the pipe before this function."
   )
 
   sel_con <- con$db_con
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "db_con must be a class of `SQLiteConnection`"
+    msg = "{.code db_con} must be a class of {.cls SQLiteConnection}."
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "SampleTaxa" %in% DBI::dbListTables(sel_con),
-    msg = paste(
-      "SampleTaxa table does not exist in the Vault database",
-      "Make sure to connect to the correct database"
-    )
+    msg = "{.code SampleTaxa} table does not exist in the Vault database. Make sure to connect to the correct database."
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "sample_id" %in% colnames(dplyr::tbl(sel_con, "SampleTaxa")),
-    msg = paste(
-      "The SampleTaxa does not contain `sample_id` column in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code SampleTaxa} table does not contain {.code sample_id} column. Make sure to connect to the correct database."
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "taxon_id" %in% colnames(dplyr::tbl(sel_con, "SampleTaxa")),
-    msg = paste(
-      "The SampleTaxa does not contain `taxon_id` column in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code SampleTaxa} table does not contain {.code taxon_id} column. Make sure to connect to the correct database."
   )
 
   classify_to <- match.arg(classify_to)
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.character(classify_to),
-    msg = "`classify_to` must be a character vector"
+    msg = "{.arg classify_to} must be a character vector."
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(classify_to %in% c("original", "species", "genus", "family")),
-    msg = paste(
-      "The `classify_to` must be one of the following:",
-      "`original`, `species`, `genus`, `family`"
-    )
+    msg = "{.arg classify_to} must be one of {.code original}, {.code species}, {.code genus}, or {.code family}."
   )
 
   if (
     !is.null(classification_data)
   ) {
-    assertthat::assert_that(
+    assertthat_cli(
       is.data.frame(classification_data),
-      msg = paste(
-        "`classification_data` must be a `data.frame` or `tibble`.",
-        "Obtain one via `get_classification_table(con,",
-        "return_raw_data = TRUE)`."
-      )
+      msg = "{.arg classification_data} must be a {.cls data.frame} or {.cls tibble}. Obtain one via {.code get_classification_table(con, return_raw_data = TRUE)}"
     )
   }
 
@@ -126,16 +104,18 @@ get_taxa <- function(
   if (
     c("taxon_id") %in% colnames(sel_data)
   ) {
-    message(
-      paste(
-        "The column `taxon_id` is already present in the data,",
-        "possibly from Trait data.",
-        "Therefore, the column `taxon_id` from the `SampleTaxa` table",
-        "is going to be renamed to `taxon_id_vegetation`",
-        "to avoid any conflict.", "\n",
-        "We recommned using `get_taxa()` before `get_traits()`"
+    if (
+      isTRUE(verbose)
+    ) {
+      cli::cli_alert_warning(
+        stringr::str_c(
+          "The column {.code taxon_id} is already present in the data, possibly from Trait data. ",
+          "Therefore, the column {.code taxon_id} from the {.code SampleTaxa} table ",
+          "is going to be renamed to {.code taxon_id_vegetation} to avoid any conflict. ",
+          "We recommend using {.fn get_taxa} before {.fn get_traits}."
+        )
       )
-    )
+    }
   }
 
   data_res <-

@@ -27,32 +27,26 @@ classify_taxa <- function(
     sel_con = NULL,
     to = c("original", "species", "genus", "family"),
     classification_data = NULL) {
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(data_source, "tbl_sql"),
-    msg = "data_source must be a class of `tbl_sql`"
+    msg = "{.arg data_source} must be a {.cls tbl_sql}"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "taxon_id" %in% colnames(data_source),
-    msg = paste(
-      "The data does not contain `taxon_id` column. Please add",
-      "`add_taxa()` to the pipe before this function."
-    )
+    msg = "The data does not contain the {.code taxon_id} column. Use {.fn get_taxa} before this function"
   )
 
   to <- match.arg(to)
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.character(to),
-    msg = "`to` must be a character vector"
+    msg = "{.arg to} must be a character vector"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(to %in% c("original", "species", "genus", "family")),
-    msg = paste(
-      "The `to` must be one of the following:",
-      "`original`, `species`, `genus`, `family`"
-    )
+    msg = "{.arg to} must be one of: {.code original}, {.code species}, {.code genus}, {.code family}"
   )
 
   to_long <- switch(to,
@@ -82,32 +76,20 @@ classify_taxa <- function(
   if (
     !is.null(classification_data)
   ) {
-    assertthat::assert_that(
+    assertthat_cli(
       is.data.frame(classification_data),
-      msg = paste(
-        "`classification_data` must be a `data.frame` or `tibble`.",
-        "Obtain one via `get_classification_table(con,",
-        "return_raw_data = TRUE)`."
-      )
+      msg = "{.arg classification_data} must be a {.cls data.frame} or {.cls tibble}. Obtain one via {.code get_classification_table(con, return_raw_data = TRUE)}"
     )
 
-    assertthat::assert_that(
+    assertthat_cli(
       "taxon_id" %in% colnames(classification_data),
-      msg = paste(
-        "`classification_data` must contain a `taxon_id` column.",
-        "Obtain a valid table via `get_classification_table(con,",
-        "return_raw_data = TRUE)`."
-      )
+      msg = "{.arg classification_data} must contain a {.code taxon_id} column. Obtain a valid table via {.code get_classification_table(con, return_raw_data = TRUE)}"
     )
 
-    assertthat::assert_that(
+    assertthat_cli(
       to_long %in% colnames(classification_data),
-      msg = paste0(
-        "`classification_data` must contain a `",
-        to_long,
-        "` column for `to = '",
-        to,
-        "'`."
+      msg = stringr::str_glue(
+        "{.arg classification_data} must contain a {.code {to_long}} column for {.code to = '{to}'}"
       )
     )
 
@@ -138,25 +120,19 @@ classify_taxa <- function(
     return(data_res)
   }
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "sel_con must be a class of `SQLiteConnection`"
+    msg = "{.arg sel_con} must be a {.cls SQLiteConnection}"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "TaxonClassification" %in% DBI::dbListTables(sel_con),
-    msg = paste(
-      "TaxonClassification table does not exist in the Vault database",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code TaxonClassification} table does not exist in the database. Make sure to connect to the correct database"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "taxon_id" %in% colnames(dplyr::tbl(sel_con, "TaxonClassification")),
-    msg = paste(
-      "The TaxonClassification does not contain `taxon_id` column in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code TaxonClassification} table does not contain the {.code taxon_id} column. Make sure to connect to the correct database"
   )
 
   data_class_sub <-

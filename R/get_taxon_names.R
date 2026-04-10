@@ -15,58 +15,43 @@
 get_taxon_names <- function(con = NULL) {
   .data <- rlang::.data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(con, "vault_pipe"),
-    msg = paste(
-      "`con` must be a class of `vault_pipe`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must be a {.cls vault_pipe} object. Use {.fn open_vault} to create a connection"
   )
 
-  assertthat::assert_that(
-    base::all(base::names(con) %in% c("data", "db_con")),
-    msg = paste(
-      "con must have `data` and `db_con`",
-      "Use `open_vault()` to create a connection"
-    )
+  assertthat_cli(
+    all(names(con) %in% c("data", "db_con")),
+    msg = "{.arg con} must have {.code data} and {.code db_con} elements. Use {.fn open_vault} to create a connection"
   )
 
   sel_data <- con$data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_data, "tbl"),
-    msg = "data must be a class of `tbl`"
+    msg = "{.code con$data} must be a {.cls tbl}"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "taxon_id" %in% colnames(sel_data),
-    msg = paste(
-      "The dataset does not contain `taxon_id` column. Please add",
-      "`get_taxa()` to the pipe before this function."
-    )
+    msg = "The data does not contain the {.code taxon_id} column. Use {.fn get_taxa} before this function"
   )
 
   sel_con <- con$db_con
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "db_con must be a class of `SQLiteConnection`"
+    msg = "{.code con$db_con} must be a {.cls SQLiteConnection}"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "Taxa" %in% DBI::dbListTables(sel_con),
-    msg = paste(
-      "Taxa table does not exist in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code Taxa} table does not exist in the database. Make sure to connect to the correct database"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "taxon_id" %in% colnames(dplyr::tbl(sel_con, "Taxa")),
-    msg = paste(
-      "The Taxa table does not contain `taxon_id` column.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code Taxa} table does not contain the {.code taxon_id} column. Make sure to connect to the correct database"
   )
 
   res <-

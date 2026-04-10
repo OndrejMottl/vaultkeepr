@@ -29,106 +29,90 @@ get_traits <- function(
     classification_data = NULL) {
   .data <- rlang::.data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(con, "vault_pipe"),
-    msg = paste(
-      "`con` must be a class of `vault_pipe`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must be a class of {.cls vault_pipe}. Use {.fn open_vault} to create a connection.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(names(con) %in% c("data", "db_con")),
-    msg = paste(
-      "con must have `data` and `db_con`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must have {.code data} and {.code db_con}. Use {.fn open_vault} to create a connection.",
+    verbose = verbose
   )
 
   sel_data <- con$data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_data, "tbl"),
-    msg = "data must be a class of `tbl`"
+    msg = "{.code data} must be a class of {.cls tbl}.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "dataset_id" %in% colnames(sel_data),
-    msg = paste(
-      "The dataset does not contain `dataset_id` columns. Please add",
-      "`get_datasets()` to the pipe before this function."
-    )
+    msg = "The dataset does not contain {.code dataset_id} column. Please add {.fn get_datasets} to the pipe before this function.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "sample_id" %in% colnames(sel_data),
-    msg = paste(
-      "The dataset does not contain `sample_id` columns. Please add",
-      "`get_samples()` to the pipe before this function."
-    )
+    msg = "The dataset does not contain {.code sample_id} column. Please add {.fn get_samples} to the pipe before this function.",
+    verbose = verbose
   )
 
   sel_con <- con$db_con
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "db_con must be a class of `SQLiteConnection`"
+    msg = "{.code db_con} must be a class of {.cls SQLiteConnection}.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "TraitsValue" %in% DBI::dbListTables(sel_con),
-    msg = paste(
-      "TraitsValue table does not exist in the Vault database",
-      "Make sure to connect to the correct database"
-    )
+    msg = "{.code TraitsValue} table does not exist in the Vault database. Make sure to connect to the correct database.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "sample_id" %in% colnames(dplyr::tbl(sel_con, "TraitsValue")),
-    msg = paste(
-      "The TraitsValue does not contain `sample_id` column in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code TraitsValue} table does not contain {.code sample_id} column. Make sure to connect to the correct database.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "taxon_id" %in% colnames(dplyr::tbl(sel_con, "TraitsValue")),
-    msg = paste(
-      "The TraitsValue does not contain `taxon_id` column in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code TraitsValue} table does not contain {.code taxon_id} column. Make sure to connect to the correct database.",
+    verbose = verbose
   )
 
   classify_to <- match.arg(classify_to)
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.character(classify_to),
-    msg = "`classify_to` must be a character vector"
+    msg = "{.arg classify_to} must be a character vector.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(classify_to %in% c("original", "species", "genus", "family")),
-    msg = paste(
-      "The `classify_to` must be one of the following:",
-      "`original`, `species`, `genus`, `family`"
-    )
+    msg = "{.arg classify_to} must be one of {.code original}, {.code species}, {.code genus}, or {.code family}.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(verbose, "logical"),
-    msg = "`verbose` must be a logical value"
+    msg = "{.arg verbose} must be a logical value."
   )
 
   if (
     !is.null(classification_data)
   ) {
-    assertthat::assert_that(
+    assertthat_cli(
       is.data.frame(classification_data),
-      msg = paste(
-        "`classification_data` must be a `data.frame` or `tibble`.",
-        "Obtain one via `get_classification_table(con,",
-        "return_raw_data = TRUE)`."
-      )
+      msg = "{.arg classification_data} must be a {.cls data.frame} or {.cls tibble}. Obtain one via {.code get_classification_table(con, return_raw_data = TRUE)}",
+      verbose = verbose
     )
   }
 
@@ -148,28 +132,20 @@ get_traits <- function(
     if (
       isTRUE(verbose)
     ) {
-      message(
-        paste(
-          "The column `taxon_id` is already present in the data.",
-          "Therefore, trait values will be returned only for the taxa present",
-          "in the data. If you prefer to return all trait values,",
-          " we recommned using `get_traits()` before `get_taxa()` in the pipe."
+      cli::cli_alert_warning(
+        stringr::str_c(
+          "The column {.code taxon_id} is already present in the data. ",
+          "Therefore, trait values will be returned only for the taxa present in the data. ",
+          "If you prefer to return all trait values, we recommend using {.fn get_traits} before {.fn get_taxa} in the pipe."
         )
       )
 
-      message(
-        paste(
-          "! Important !: ",
-          "Make sure to set `classify_to` to same value as in `get_taxa()`"
-        )
+      cli::cli_alert_warning(
+        "Make sure to set {.arg classify_to} to the same value as in {.fn get_taxa}."
       )
 
-      message(
-        paste(
-          "In addition, the column `taxon_id`",
-          "is going to be renamed to `taxon_id_trait`",
-          "to avoid any conflict.", "\n"
-        )
+      cli::cli_alert_warning(
+        "In addition, the column {.code taxon_id} is going to be renamed to {.code taxon_id_trait} to avoid any conflict."
       )
     }
 

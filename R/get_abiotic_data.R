@@ -33,43 +33,36 @@ get_abiotic_data <- function(
   median <- stats::median
   `%>%` <- magrittr::`%>%`
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(con, "vault_pipe"),
-    msg = paste(
-      "`con` must be a class of `vault_pipe`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must be a class of {.cls vault_pipe}. Use {.fn open_vault} to create a connection.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(names(con) %in% c("data", "db_con")),
-    msg = paste(
-      "con must have `data` and `db_con`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must have {.code data} and {.code db_con}. Use {.fn open_vault} to create a connection.",
+    verbose = verbose
   )
 
   sel_data <- con$data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_data, "tbl"),
-    msg = "data must be a class of `tbl`"
+    msg = "{.code data} must be a class of {.cls tbl}.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "dataset_type_id" %in% colnames(sel_data),
-    msg = paste(
-      "The dataset does not contain `dataset_type_id` columns. Please add",
-      "`get_datasets()` to the pipe before this function."
-    )
+    msg = "The dataset does not contain {.code dataset_type_id} column. Please add {.fn get_datasets} to the pipe before this function.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "sample_id" %in% colnames(sel_data),
-    msg = paste(
-      "The dataset does not contain `sample_id` columns. Please add",
-      "`get_samples()` to the pipe before this function."
-    )
+    msg = "The dataset does not contain {.code sample_id} column. Please add {.fn get_samples} to the pipe before this function.",
+    verbose = verbose
   )
 
   n_datasets_gridpoints <-
@@ -79,12 +72,10 @@ get_abiotic_data <- function(
     dplyr::collect() %>%
     dplyr::pull("N")
 
-  assertthat::assert_that(
+  assertthat_cli(
     n_datasets_gridpoints > 0,
-    msg = paste(
-      "The dataset does not contain any gridpoints.",
-      "Please make sure to not filter them out."
-    )
+    msg = "The dataset does not contain any gridpoints. Please make sure to not filter them out.",
+    verbose = verbose
   )
 
   n_datasets_non_gridpoints <-
@@ -94,46 +85,39 @@ get_abiotic_data <- function(
     dplyr::collect() %>%
     dplyr::pull("N")
 
-  assertthat::assert_that(
+  assertthat_cli(
     n_datasets_non_gridpoints > 0,
-    msg = paste(
-      "The dataset does not contain any non-gridpoints.",
-      "Please make sure to not filter them out."
-    )
+    msg = "The dataset does not contain any non-gridpoints. Please make sure to not filter them out.",
+    verbose = verbose
   )
 
   sel_con <- con$db_con
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "db_con must be a class of `SQLiteConnection`"
+    msg = "{.code db_con} must be a class of {.cls SQLiteConnection}.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "AbioticData" %in% DBI::dbListTables(sel_con),
-    msg = paste(
-      "AbioticData table does not exist in the Vault database",
-      "Make sure to connect to the correct database"
-    )
+    msg = "{.code AbioticData} table does not exist in the Vault database. Make sure to connect to the correct database.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "AbioticDataReference" %in% DBI::dbListTables(sel_con),
-    msg = paste(
-      "AbioticDataReference table does not exist in the Vault database",
-      "Make sure to connect to the correct database"
-    )
+    msg = "{.code AbioticDataReference} table does not exist in the Vault database. Make sure to connect to the correct database.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "sample_id" %in% colnames(dplyr::tbl(sel_con, "AbioticData")),
-    msg = paste(
-      "The AbioticData does not contain `sample_id` column in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code AbioticData} table does not contain {.code sample_id} column. Make sure to connect to the correct database.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(
       c(
         "sample_id",
@@ -143,70 +127,57 @@ get_abiotic_data <- function(
       ) %in%
         colnames(dplyr::tbl(sel_con, "AbioticDataReference"))
     ),
-    msg = paste(
-      "The AbioticDataReference does not contain columns",
-      "`sample_id`, `sample_ref_id`, `distance_in_km`, `distance_in_years`",
-      "in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code AbioticDataReference} table does not contain required columns {.code sample_id}, {.code sample_ref_id}, {.code distance_in_km}, {.code distance_in_years}. Make sure to connect to the correct database.",
+    verbose = verbose
   )
 
   mode <- match.arg(mode)
 
-  assertthat::assert_that(
+  assertthat_cli(
     mode %in% c("nearest", "mean", "median"),
-    msg = paste(
-      "`mode` must be one of `nearest`, `mean`, `median`"
-    )
+    msg = "{.arg mode} must be one of {.code nearest}, {.code mean}, or {.code median}.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.numeric(limit_by_distance_km),
-    msg = paste(
-      "`limit_by_distance_km` must be a numeric value"
-    )
+    msg = "{.arg limit_by_distance_km} must be a numeric value.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     length(limit_by_distance_km) == 1,
-    msg = paste(
-      "`limit_by_distance_km` must be a single value"
-    )
+    msg = "{.arg limit_by_distance_km} must be a single value.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     limit_by_distance_km > 0,
-    msg = paste(
-      "`limit_by_distance_km` must be greater than 0"
-    )
+    msg = "{.arg limit_by_distance_km} must be greater than 0.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.numeric(limit_by_age_years),
-    msg = paste(
-      "`limit_by_age_years` must be a numeric value"
-    )
+    msg = "{.arg limit_by_age_years} must be a numeric value.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     length(limit_by_age_years) == 1,
-    msg = paste(
-      "`limit_by_age_years` must be a single value"
-    )
+    msg = "{.arg limit_by_age_years} must be a single value.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     limit_by_age_years > 0,
-    msg = paste(
-      "`limit_by_age_years` must be greater than 0"
-    )
+    msg = "{.arg limit_by_age_years} must be greater than 0.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.logical(verbose),
-    msg = paste(
-      "`verbose` must be a logical value"
-    )
+    msg = "{.arg verbose} must be a logical value."
   )
 
   vec_vegetation_sample_id <-
@@ -227,11 +198,8 @@ get_abiotic_data <- function(
   if (
     isTRUE(verbose)
   ) {
-    message(
-      paste(
-        "Getting the information about sample connections.",
-        "This may take a while."
-      )
+    cli::cli_alert_info(
+      "Getting the information about sample connections. This may take a while."
     )
   }
 
@@ -291,11 +259,11 @@ get_abiotic_data <- function(
   if (
     isTRUE(verbose)
   ) {
-    message(
+    cli::cli_alert_info(
       switch(mode,
-        "nearest" = "Getting value of the nearest gridpont data",
-        "mean" = "Getting the mean value of all gridpoint within the limit",
-        "median" = "Getting the median  value of all gridpoint within the limit"
+        "nearest" = "Getting value of the nearest gridpoint data.",
+        "mean" = "Getting the mean value of all gridpoints within the limit.",
+        "median" = "Getting the median value of all gridpoints within the limit."
       )
     )
   }
