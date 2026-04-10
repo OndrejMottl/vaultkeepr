@@ -32,7 +32,7 @@ Suggests:
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
-Config/testthat/start-first: open_vault, get_datasets,
+Config/testthat/start-first: open_vault, explore_vault, get_datasets,
     get_readable_column_names, pack_data, extract_data,
     get_common_dataset_type, select_dataset_by_type,
     select_dataset_by_geo, get_samples, get_age_uncertainty,

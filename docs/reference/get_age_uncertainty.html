@@ -73,7 +73,7 @@ earlier in the pipe.</p></dd>
 <dd><p>A <code>logical</code> indicating whether to return raw long-format data.
 If <code>FALSE</code> (default), returns a wide <code>tibble</code> with one row per
 sample identified by <code>sample_name</code> and one column per iteration
-(e.g. <code>iteration_1</code>, <code>iteration_2</code>, …).
+(e.g. <code>iteration_1</code>, <code>iteration_2</code>, ...).
 If <code>TRUE</code>, returns the raw long-format <code>tibble</code> with columns
 <code>sample_id</code>, <code>iteration</code>, and <code>age_uncertainty</code>.</p></dd>
 
@@ -82,7 +82,7 @@ If <code>TRUE</code>, returns the raw long-format <code>tibble</code> with colum
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>When <code>return_raw_data = FALSE</code> (default): a wide <code>tibble</code> with
 <code>sample_name</code> as the key column and one column per age-model
-iteration (e.g. <code>iteration_1</code>, <code>iteration_2</code>, …), restricted to
+iteration (e.g. <code>iteration_1</code>, <code>iteration_2</code>, ...), restricted to
 the samples present in the incoming pipe.
 When <code>return_raw_data = TRUE</code>: a long <code>tibble</code> with columns
 <code>sample_id</code>, <code>iteration</code>, and <code>age_uncertainty</code>.</p>
