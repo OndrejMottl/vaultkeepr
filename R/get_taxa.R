@@ -1,14 +1,25 @@
 #' @title Get taxa information
-#' @description For each Sample, get information about Taxa and their abundances
-#' from the Vault database
-#' @param con A connection to the Vault database
-#' @param classify_to A character vector specifying the taxonomic level to classify
-#' the taxa to. The options are `original`, `species`, `genus`, and `family`.
-#' @return A `vault_pipe` object with the data and the connection to the Vault database
+#' @description For each Sample, get information about Taxa and their
+#' abundances from the Vault database.
+#' @param con A connection to the Vault database.
+#' @param classify_to
+#' A character vector specifying the taxonomic level to classify the taxa
+#' to. The options are `original`, `species`, `genus`, and `family`.
+#' @param classification_data
+#' An optional `data.frame` (or `tibble`) used instead of the
+#' `TaxonClassification` table in the database. Must contain `taxon_id`
+#' and the column matching `classify_to` (e.g. `taxon_genus` when
+#' `classify_to = "genus"`). If `NULL` (default), the database table
+#' is used. Obtain a valid table via
+#' `get_classification_table(con, return_raw_data = TRUE)`.
+#' @return
+#' A `vault_pipe` object with the data and the connection to the Vault
+#' database.
 #' @export
 get_taxa <- function(
     con = NULL,
-    classify_to = c("original", "species", "genus", "family")) {
+    classify_to = c("original", "species", "genus", "family"),
+    classification_data = NULL) {
   assertthat::assert_that(
     inherits(con, "vault_pipe"),
     msg = paste(
@@ -86,6 +97,19 @@ get_taxa <- function(
     )
   )
 
+  if (
+    !is.null(classification_data)
+  ) {
+    assertthat::assert_that(
+      is.data.frame(classification_data),
+      msg = paste(
+        "`classification_data` must be a `data.frame` or `tibble`.",
+        "Obtain one via `get_classification_table(con,",
+        "return_raw_data = TRUE)`."
+      )
+    )
+  }
+
   data_taxa <-
     dplyr::tbl(sel_con, "SampleTaxa")
 
@@ -93,7 +117,8 @@ get_taxa <- function(
     classify_taxa(
       data_source = data_taxa,
       sel_con = sel_con,
-      to = classify_to
+      to = classify_to,
+      classification_data = classification_data
     )
 
   # test for presence of trait values and output a warning

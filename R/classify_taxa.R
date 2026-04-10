@@ -1,14 +1,28 @@
 #' @title Classify taxa
-#' @description Classify taxa in a SQL table to a specific level based on the
-#' classification table in the Vault database.
+#' @description Classify taxa in a SQL table to a specific level based on
+#' the classification table in the Vault database, or a user-supplied
+#' override table.
 #' @param data_source A SQL table that contains `taxon_id` column.
-#' @param sel_con A connection to the Vault database.
+#' @param sel_con A connection to the Vault database. Required when
+#' `classification_data` is `NULL`.
 #' @param to A character vector that specifies the classification level to
 #' classify the taxa. The options are `original`, `species`, `genus`, and
 #' `family`.
+#' @param classification_data
+#' An optional `data.frame` (or `tibble`) to use instead of the
+#' `TaxonClassification` table from the database. Must contain a
+#' `taxon_id` column and the column corresponding to `to` (i.e.
+#' `taxon_species`, `taxon_genus`, or `taxon_family`). If `NULL`
+#' (default), the classification is read from the database.
+#' Obtain a valid table via
+#' `get_classification_table(con, return_raw_data = TRUE)`.
 #' @return A SQL table with the classified taxa.
 #' @keywords internal
-classify_taxa <- function(data_source = NULL, sel_con = NULL, to = c("original", "species", "genus", "family")) {
+classify_taxa <- function(
+    data_source = NULL,
+    sel_con = NULL,
+    to = c("original", "species", "genus", "family"),
+    classification_data = NULL) {
   assertthat::assert_that(
     inherits(data_source, "tbl_sql"),
     msg = "data_source must be a class of `tbl_sql`"
@@ -48,6 +62,65 @@ classify_taxa <- function(data_source = NULL, sel_con = NULL, to = c("original",
     to_long == "taxon_id"
   ) {
     return(data_source)
+  }
+
+  if (
+    !is.null(classification_data)
+  ) {
+    assertthat::assert_that(
+      is.data.frame(classification_data),
+      msg = paste(
+        "`classification_data` must be a `data.frame` or `tibble`.",
+        "Obtain one via `get_classification_table(con,",
+        "return_raw_data = TRUE)`."
+      )
+    )
+
+    assertthat::assert_that(
+      "taxon_id" %in% colnames(classification_data),
+      msg = paste(
+        "`classification_data` must contain a `taxon_id` column.",
+        "Obtain a valid table via `get_classification_table(con,",
+        "return_raw_data = TRUE)`."
+      )
+    )
+
+    assertthat::assert_that(
+      to_long %in% colnames(classification_data),
+      msg = paste0(
+        "`classification_data` must contain a `",
+        to_long,
+        "` column for `to = '",
+        to,
+        "'`."
+      )
+    )
+
+    data_class_sub <-
+      classification_data %>%
+      dplyr::select(
+        "taxon_id",
+        dplyr::all_of(to_long)
+      ) %>%
+      dplyr::rename(
+        taxon_id_new = !!to_long
+      )
+
+    data_res <-
+      data_source %>%
+      dplyr::inner_join(
+        data_class_sub,
+        by = "taxon_id",
+        copy = TRUE
+      ) %>%
+      dplyr::select(
+        -"taxon_id"
+      ) %>%
+      dplyr::rename(
+        taxon_id = "taxon_id_new"
+      )
+
+    return(data_res)
   }
 
   assertthat::assert_that(
