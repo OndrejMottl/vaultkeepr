@@ -31,47 +31,47 @@ get_references <- function(
   .data <- rlang::.data
   `%>%` <- magrittr::`%>%`
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(con, "vault_pipe"),
-    msg = paste(
-      "`con` must be a class of `vault_pipe`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must be a class of {.cls vault_pipe}. Use {.fn open_vault} to create a connection.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(names(con) %in% c("data", "db_con")),
-    msg = paste(
-      "con must have `data` and `db_con`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must have {.code data} and {.code db_con}. Use {.fn open_vault} to create a connection.",
+    verbose = verbose
   )
 
   sel_data <- con$data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_data, "tbl"),
-    msg = "data must be a class of `tbl`"
+    msg = "{.code data} must be a class of {.cls tbl}.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(type, "character"),
-    msg = "data must be a class of `character`"
+    msg = "{.arg type} must be a character vector.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     length(type) > 0,
-    msg = "'type' must have at least one element"
+    msg = "{.arg type} must have at least one element.",
+    verbose = verbose
   )
 
   sel_con <- con$db_con
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "path does not lead to valid SQLite database"
+    msg = "{.arg con} does not contain a valid SQLite database connection.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(
       type %in% c(
         "Dataset",
@@ -84,27 +84,19 @@ get_references <- function(
         "AbioticVariable"
       )
     ),
-    msg = paste(
-      "The 'type' must be one of the following:",
-      "Dataset,
-      DatasetSource,
-      DatasetSourceType,
-      SamplingMethod,
-      Sample,
-      Taxon,
-      Trait,
-      AbioticVariable"
-    )
+    msg = "{.arg type} must be one of {.code Dataset}, {.code DatasetSource}, {.code DatasetSourceType}, {.code SamplingMethod}, {.code Sample}, {.code Taxon}, {.code Trait}, {.code AbioticVariable}.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.logical(get_source),
-    msg = "'get_source' must be a class of `logical`"
+    msg = "{.arg get_source} must be a logical value.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.logical(verbose),
-    msg = "'verbose' must be a class of `logical`"
+    msg = "{.arg verbose} must be a logical value."
   )
 
   data_extracted_refs <-
@@ -291,7 +283,7 @@ get_references <- function(
     if (
       isTRUE(verbose)
     ) {
-      message("No references found for the selected data compilation.")
+      cli::cli_alert_warning("No references found for the selected data compilation.")
     }
 
     return(NULL)
@@ -339,13 +331,13 @@ get_references <- function(
       res_full %>%
       dplyr::distinct(.data$reference_source) %>%
       purrr::chuck("reference_source") %>%
-      paste(collapse = ", ")
+      stringr::str_c(collapse = ", ")
 
-    paste(
-      "References for the following types have been extracted:",
-      vec_refs_collapse
-    ) %>%
-      message()
+    cli::cli_alert_info(
+      stringr::str_glue(
+        "References for the following types have been extracted: {vec_refs_collapse}"
+      )
+    )
   }
 
   if (
