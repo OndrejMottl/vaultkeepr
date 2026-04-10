@@ -11,13 +11,13 @@
 #' A `logical` indicating whether to return raw long-format data.
 #' If `FALSE` (default), returns a wide `tibble` with one row per
 #' sample identified by `sample_name` and one column per iteration
-#' (e.g. `iteration_1`, `iteration_2`, …).
+#' (e.g. `iteration_1`, `iteration_2`, ...).
 #' If `TRUE`, returns the raw long-format `tibble` with columns
 #' `sample_id`, `iteration`, and `age_uncertainty`.
 #' @return
 #' When `return_raw_data = FALSE` (default): a wide `tibble` with
 #' `sample_name` as the key column and one column per age-model
-#' iteration (e.g. `iteration_1`, `iteration_2`, …), restricted to
+#' iteration (e.g. `iteration_1`, `iteration_2`, ...), restricted to
 #' the samples present in the incoming pipe.
 #' When `return_raw_data = TRUE`: a long `tibble` with columns
 #' `sample_id`, `iteration`, and `age_uncertainty`.

@@ -14,14 +14,14 @@ earlier in the pipe.}
 \item{return_raw_data}{A \code{logical} indicating whether to return raw long-format data.
 If \code{FALSE} (default), returns a wide \code{tibble} with one row per
 sample identified by \code{sample_name} and one column per iteration
-(e.g. \code{iteration_1}, \code{iteration_2}, …).
+(e.g. \code{iteration_1}, \code{iteration_2}, ...).
 If \code{TRUE}, returns the raw long-format \code{tibble} with columns
 \code{sample_id}, \code{iteration}, and \code{age_uncertainty}.}
 }
 \value{
 When \code{return_raw_data = FALSE} (default): a wide \code{tibble} with
 \code{sample_name} as the key column and one column per age-model
-iteration (e.g. \code{iteration_1}, \code{iteration_2}, …), restricted to
+iteration (e.g. \code{iteration_1}, \code{iteration_2}, ...), restricted to
 the samples present in the incoming pipe.
 When \code{return_raw_data = TRUE}: a long \code{tibble} with columns
 \code{sample_id}, \code{iteration}, and \code{age_uncertainty}.
