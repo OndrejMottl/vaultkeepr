@@ -128,18 +128,20 @@ testthat::test_that("return_raw_data = TRUE result is usable in get_taxa", {
     )
 
   res <-
-    open_vault(
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
+    suppressWarnings(
+      open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ) %>%
+      get_datasets() %>%
+      get_samples() %>%
+      get_taxa(
+        classify_to = "genus",
+        classification_data = data_class
       )
-    ) %>%
-    get_datasets() %>%
-    get_samples() %>%
-    get_taxa(
-      classify_to = "genus",
-      classification_data = data_class
     )
 
   testthat::expect_s3_class(res, "vault_pipe")

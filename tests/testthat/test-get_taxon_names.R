@@ -93,16 +93,18 @@ testthat::test_that("filtering by taxa name reduces the result", {
 
 testthat::test_that("genus classification returns 9 rows", {
   res <-
-    open_vault(
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      )
+    suppressWarnings(
+      open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ) %>%
+      get_datasets() %>%
+      get_samples() %>%
+      get_taxa(classify_to = "genus")
     ) %>%
-    get_datasets() %>%
-    get_samples() %>%
-    get_taxa(classify_to = "genus") %>%
     get_taxon_names()
 
   testthat::expect_equal(base::nrow(res), 9L)
@@ -110,16 +112,18 @@ testthat::test_that("genus classification returns 9 rows", {
 
 testthat::test_that("genus result is still a tibble with taxon_name column", {
   res <-
-    open_vault(
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      )
+    suppressWarnings(
+      open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ) %>%
+      get_datasets() %>%
+      get_samples() %>%
+      get_taxa(classify_to = "genus")
     ) %>%
-    get_datasets() %>%
-    get_samples() %>%
-    get_taxa(classify_to = "genus") %>%
     get_taxon_names()
 
   testthat::expect_s3_class(res, "tbl_df")

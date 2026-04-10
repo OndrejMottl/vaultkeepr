@@ -75,17 +75,19 @@ testthat::test_that("number of raw taxa", {
 
 testthat::test_that("number of taxa by family", {
   test_datasets <-
-    open_vault(
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
+    suppressWarnings(
+      open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ) %>%
+      get_datasets() %>%
+      get_samples() %>%
+      get_taxa(
+        classify_to = "family"
       )
-    ) %>%
-    get_datasets() %>%
-    get_samples() %>%
-    get_taxa(
-      classify_to = "family"
     )
 
   test_n_taxa <-
@@ -193,18 +195,20 @@ testthat::test_that("classification_data tibble gives same genus result", {
     )
 
   res_with_data <-
-    open_vault(
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
+    suppressWarnings(
+      open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ) %>%
+      get_datasets() %>%
+      get_samples() %>%
+      get_taxa(
+        classify_to = "genus",
+        classification_data = data_class
       )
-    ) %>%
-    get_datasets() %>%
-    get_samples() %>%
-    get_taxa(
-      classify_to = "genus",
-      classification_data = data_class
     ) %>%
     purrr::chuck("data") %>%
     dplyr::distinct(taxon_id) %>%
@@ -214,16 +218,18 @@ testthat::test_that("classification_data tibble gives same genus result", {
     dplyr::pull("taxon_id")
 
   res_without_data <-
-    open_vault(
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      )
+    suppressWarnings(
+      open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ) %>%
+      get_datasets() %>%
+      get_samples() %>%
+      get_taxa(classify_to = "genus")
     ) %>%
-    get_datasets() %>%
-    get_samples() %>%
-    get_taxa(classify_to = "genus") %>%
     purrr::chuck("data") %>%
     dplyr::distinct(taxon_id) %>%
     dplyr::collect() %>%
@@ -255,18 +261,20 @@ testthat::test_that("custom classification_data overrides genus mapping", {
     dplyr::mutate(taxon_genus = 46L)
 
   res <-
-    open_vault(
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
+    suppressWarnings(
+      open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ) %>%
+      get_datasets() %>%
+      get_samples() %>%
+      get_taxa(
+        classify_to = "genus",
+        classification_data = data_class_custom
       )
-    ) %>%
-    get_datasets() %>%
-    get_samples() %>%
-    get_taxa(
-      classify_to = "genus",
-      classification_data = data_class_custom
     ) %>%
     purrr::chuck("data") %>%
     dplyr::distinct(taxon_id) %>%
