@@ -25,7 +25,7 @@ testthat::test_that("return correct class-high", {
         "example.sqlite",
         sep = "/"
       ),
-      vebose = FALSE
+      verbose = FALSE
     )
 
   testthat::expect_s3_class(con_db, "vault_pipe")
@@ -42,7 +42,7 @@ testthat::test_that("return correct class-low-connection", {
         "example.sqlite",
         sep = "/"
       ),
-      vebose = FALSE
+      verbose = FALSE
     )
 
   testthat::expect_s4_class(con_db$db_con, "SQLiteConnection")
@@ -58,7 +58,7 @@ testthat::test_that("return correct class-low-data", {
         "example.sqlite",
         sep = "/"
       ),
-      vebose = FALSE
+      verbose = FALSE
     )
 
   testthat::expect_s3_class(con_db$data, "tbl_df")
@@ -76,7 +76,7 @@ testthat::test_that("return corrent tables", {
         "example.sqlite",
         sep = "/"
       ),
-      vebose = FALSE
+      verbose = FALSE
     )
 
   testthat::expect_equal(
@@ -126,7 +126,7 @@ testthat::test_that("error handling", {
   testthat::expect_error(
     open_vault(
       path = "not_a_file.sqlite",
-      vebose = FALSE
+      verbose = FALSE
     )
   )
 })
@@ -135,7 +135,7 @@ testthat::test_that("error handling", {
   testthat::expect_error(
     open_vault(
       path = 1,
-      vebose = FALSE
+      verbose = FALSE
     )
   )
 })
@@ -148,7 +148,7 @@ testthat::test_that("error handling", {
         "example.sqlite",
         sep = "/"
       ),
-      vebose = 1
+      verbose = 1
     )
   )
 })
@@ -161,7 +161,7 @@ testthat::test_that("error handling", {
         "example.sqlite",
         sep = "/"
       ),
-      vebose = "true"
+      verbose = "true"
     )
   )
 })

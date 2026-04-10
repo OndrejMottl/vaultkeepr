@@ -4,30 +4,30 @@
 #' @param verbose A logical value indicating whether to print messages
 #' @return A list with two elements: `data` and `db_con`
 #' @export
-open_vault <- function(path, vebose = TRUE) {
+open_vault <- function(path, verbose = TRUE) {
   # test various things
 
   assertthat_cli(
-    is.logical(vebose),
-    msg = "{.arg vebose} must be a logical"
+    is.logical(verbose),
+    msg = "{.arg verbose} must be a logical"
   )
 
   assertthat_cli(
     is.character(path),
-    msg = "{.arg  path} must be a character",
-    verbose = vebose
+    msg = "{.arg path} must be a character",
+    verbose = verbose
   )
 
   assertthat_cli(
     length(path) == 1,
-    msg = "{.args path} must be a single string",
-    verbose = vebose
+    msg = "{.arg path} must be a single string",
+    verbose = verbose
   )
 
   assertthat_cli(
     file.exists(path),
     msg = "file does not exist",
-    verbose = vebose
+    verbose = verbose
   )
 
 
@@ -47,7 +47,7 @@ open_vault <- function(path, vebose = TRUE) {
     )
 
   if (
-    isTRUE(vebose)
+    isTRUE(verbose)
   ) {
     cli::cli_alert_info("Vault opened successfully")
   }
