@@ -102,7 +102,8 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/OndrejMottl/vaultkeepr" class="external-link">vaultkeepr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">plan</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="../reference/open_vault.html">open_vault</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">path_to_db</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/open_vault.html">open_vault</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">path_to_db</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ℹ Vault opened successfully</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="step-2-add-dataset-metadata">Step 2 — Add dataset metadata<a class="anchor" aria-label="anchor" href="#step-2-add-dataset-metadata"></a>
 </h2>
@@ -148,9 +149,8 @@
 <span>    long_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">61</span>, <span class="op">-</span><span class="fl">59</span><span class="op">)</span>,</span>
 <span>    lat_lim  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">16</span>, <span class="op">-</span><span class="fl">14</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; The data does not contain the all dataset types specified in `vec_dataset_type`. </span></span>
-<span><span class="co">#&gt;  Changing `vec_dataset_type` to the dataset types present in the data as: fossil_pollen_archive</span></span>
-<span><span class="co">#&gt; The selected dataset type will not be filtered: traits</span></span></code></pre></div>
+<span><span class="co">#&gt; ! The data does not contain all dataset types specified in `vec_dataset_type`. Changing `vec_dataset_type` to the dataset types present in the data as: fossil_pollen_archive</span></span>
+<span><span class="co">#&gt; ! The selected dataset type will not be filtered: traits</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="step-5-add-sample-information">Step 5 — Add sample information<a class="anchor" aria-label="anchor" href="#step-5-add-sample-information"></a>
 </h2>
@@ -169,9 +169,8 @@
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">plan</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/select_samples_by_age.html">select_samples_by_age</a></span><span class="op">(</span>age_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4000</span>, <span class="fl">8000</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; The data does not contain the all dataset types specified in `vec_dataset_type`. </span></span>
-<span><span class="co">#&gt;  Changing `vec_dataset_type` to the dataset types present in the data as: fossil_pollen_archive</span></span>
-<span><span class="co">#&gt; The selected dataset type will not be filtered: traits</span></span></code></pre></div>
+<span><span class="co">#&gt; ! The data does not contain all dataset types specified in `vec_dataset_type`. Changing `vec_dataset_type` to the dataset types present in the data as: fossil_pollen_archive</span></span>
+<span><span class="co">#&gt; ! The selected dataset type will not be filtered: traits</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="step-7-add-taxa-harmonised-to-genus">Step 7 — Add taxa (harmonised to genus)<a class="anchor" aria-label="anchor" href="#step-7-add-taxa-harmonised-to-genus"></a>
 </h2>
@@ -206,7 +205,7 @@
 <span><span class="va">plan</span></span>
 <span><span class="co">#&gt; $data</span></span>
 <span><span class="co">#&gt; # Source:   SQL [?? x 19]</span></span>
-<span><span class="co">#&gt; # Database: sqlite 3.47.1 [D:\Temp\Rtmp06dn8X\vaultkeepr_example.sqlite]</span></span>
+<span><span class="co">#&gt; # Database: sqlite 3.47.1 [D:\Temp\RtmpiGBXCJ\vaultkeepr_example.sqlite]</span></span>
 <span><span class="co">#&gt;    dataset_id dataset_name data_source_id dataset_type_id data_source_type_id</span></span>
 <span><span class="co">#&gt;         &lt;int&gt; &lt;chr&gt;                 &lt;int&gt;           &lt;int&gt;               &lt;int&gt;</span></span>
 <span><span class="co">#&gt;  1        259 dataset_259               1               2                   3</span></span>
@@ -228,7 +227,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $db_con</span></span>
 <span><span class="co">#&gt; &lt;SQLiteConnection&gt;</span></span>
-<span><span class="co">#&gt;   Path: D:\Temp\Rtmp06dn8X\vaultkeepr_example.sqlite</span></span>
+<span><span class="co">#&gt;   Path: D:\Temp\RtmpiGBXCJ\vaultkeepr_example.sqlite</span></span>
 <span><span class="co">#&gt;   Extensions: TRUE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; attr(,"class")</span></span>
