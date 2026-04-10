@@ -109,13 +109,10 @@ get_traits <- function(
   if (
     !is.null(classification_data)
   ) {
-    assertthat::assert_that(
+    assertthat_cli(
       is.data.frame(classification_data),
-      msg = paste(
-        "`classification_data` must be a `data.frame` or `tibble`.",
-        "Obtain one via `get_classification_table(con,",
-        "return_raw_data = TRUE)`."
-      )
+      msg = "{.arg classification_data} must be a {.cls data.frame} or {.cls tibble}. Obtain one via {.code get_classification_table(con, return_raw_data = TRUE)}",
+      verbose = verbose
     )
   }
 
