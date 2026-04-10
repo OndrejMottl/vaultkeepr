@@ -10,13 +10,14 @@ Description: An R package for extracting and analyzing data from the
 License: MIT + file LICENSE
 URL: https://github.com/OndrejMottl/vaultkeepr
 Imports: 
-    assertthat,
+    cli,
     DBI,
     lifecycle,
     magrittr,
     purrr,
     rlang,
     RSQLite,
+    stringr,
     tibble
 Suggests: 
     dbplyr,
@@ -26,7 +27,6 @@ Suggests:
     knitr,
     rmarkdown,
     scales,
-    stringr,
     testthat (>= 3.0.0),
     tidyr
 VignetteBuilder: 

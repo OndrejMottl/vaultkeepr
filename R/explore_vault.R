@@ -8,27 +8,21 @@
 #' A `character` vector of table names present in the VegVault database.
 #' @export
 explore_vault <- function(con = NULL) {
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(con, "vault_pipe"),
-    msg = paste(
-      "`con` must be a class of `vault_pipe`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must be a {.cls vault_pipe} object. Use {.fn open_vault} to create a connection"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(names(con) %in% c("data", "db_con")),
-    msg = paste(
-      "con must have `data` and `db_con`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must have {.code data} and {.code db_con} elements. Use {.fn open_vault} to create a connection"
   )
 
   sel_con <- con$db_con
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "db_con must be a class of `SQLiteConnection`"
+    msg = "{.code con$db_con} must be a {.cls SQLiteConnection}"
   )
 
   res <-

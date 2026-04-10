@@ -9,88 +9,63 @@ select_traits_by_domain_name <- function(
     sel_domain = NULL) {
   .data <- rlang::.data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(con, "vault_pipe"),
-    msg = paste(
-      "`con` must be a class of `vault_pipe`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must be a {.cls vault_pipe} object. Use {.fn open_vault} to create a connection"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(names(con) %in% c("data", "db_con")),
-    msg = paste(
-      "con must have `data` and `db_con`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must have {.code data} and {.code db_con} elements. Use {.fn open_vault} to create a connection"
   )
 
   sel_data <- con$data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_data, "tbl"),
-    msg = "data must be a class of `tbl`"
+    msg = "{.code con$data} must be a {.cls tbl}"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "trait_id" %in% colnames(sel_data),
-    msg = paste(
-      "The data does not contain `trait_id` columns. Please add",
-      "`get_traits()` to the pipe before this function."
-    )
+    msg = "The data does not contain the {.code trait_id} column. Use {.fn get_traits} before this function"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "dataset_type" %in% colnames(sel_data),
-    msg = paste(
-      "The data should be filtered only for `traits` dataset type.",
-      "However, the does not contain `dataset_type` columns. Please add",
-      "`get_datasets()` to the pipe before this function."
-    )
+    msg = "The data does not contain the {.code dataset_type} column. Use {.fn get_datasets} before this function"
   )
 
   sel_con <- con$db_con
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "db_con must be a class of `SQLiteConnection`"
+    msg = "{.code con$db_con} must be a {.cls SQLiteConnection}"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "TraitsDomain" %in% DBI::dbListTables(sel_con),
-    msg = paste(
-      "TraitsDomain table does not exist in the Vault database",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code TraitsDomain} table does not exist in the database. Make sure to connect to the correct database"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "Traits" %in% DBI::dbListTables(sel_con),
-    msg = paste(
-      "Traits table does not exist in the Vault database",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code Traits} table does not exist in the database. Make sure to connect to the correct database"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "trait_domain_id" %in% colnames(dplyr::tbl(sel_con, "TraitsDomain")),
-    msg = paste(
-      "The TraitsDomain does not contain `trait_domain_id` column in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code TraitsDomain} table does not contain the {.code trait_domain_id} column. Make sure to connect to the correct database"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "trait_domain_id" %in% colnames(dplyr::tbl(sel_con, "Traits")),
-    msg = paste(
-      "The Traits does not contain `trait_domain_id` column in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code Traits} table does not contain the {.code trait_domain_id} column. Make sure to connect to the correct database"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.character(sel_domain),
-    msg = "`sel_var_name` must be a character vector"
+    msg = "{.arg sel_domain} must be a character vector"
   )
 
   data_traits <-

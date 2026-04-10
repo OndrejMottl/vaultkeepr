@@ -158,7 +158,8 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/OndrejMottl/vaultkeepr" class="external-link">vaultkeepr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">plan</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="../reference/open_vault.html">open_vault</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">path_to_db</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/open_vault.html">open_vault</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">path_to_db</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ℹ Vault opened successfully</span></span></code></pre></div>
 </div>
 </section><section class="level3"><h3 id="step-2-add-dataset-metadata">Step 2 — Add dataset metadata<a class="anchor" aria-label="anchor" href="#step-2-add-dataset-metadata"></a>
 </h3>
@@ -191,8 +192,7 @@
 <span>    long_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">14</span>, <span class="fl">16</span><span class="op">)</span>,</span>
 <span>    lat_lim  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">44</span>, <span class="fl">46</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; The data does not contain the all dataset types specified in `vec_dataset_type`. </span></span>
-<span><span class="co">#&gt;  Changing `vec_dataset_type` to the dataset types present in the data as: vegetation_plot, gridpoints</span></span></code></pre></div>
+<span><span class="co">#&gt; ! The data does not contain all dataset types specified in `vec_dataset_type`. Changing `vec_dataset_type` to the dataset types present in the data as: vegetation_plot, gridpoints</span></span></code></pre></div>
 </div>
 </section><section class="level3"><h3 id="step-5-add-sample-metadata">Step 5 — Add sample metadata<a class="anchor" aria-label="anchor" href="#step-5-add-sample-metadata"></a>
 </h3>
@@ -232,7 +232,7 @@
 <span>    con <span class="op">=</span> <span class="va">plan</span>,</span>
 <span>    verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; References for the following types have been extracted: Dataset, DatasetSource, DatasetSourceType, SamplingMethod, Sample, Taxon, AbioticVariable</span></span>
+<span><span class="co">#&gt; ℹ References for the following types have been extracted: Dataset, DatasetSource, DatasetSourceType, SamplingMethod, Sample, Taxon, AbioticVariable</span></span>
 <span></span>
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">data_refs</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 25</span></span>
@@ -407,8 +407,8 @@
 <span>    return_raw_data <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; References for the following types have been extracted: Dataset, DatasetSource, DatasetSourceType, SamplingMethod, Sample, Taxon, AbioticVariable</span></span>
-<span><span class="co">#&gt; !!! The data contains mandatory references !!!Please make sure to run `get_references()` before extracting data</span></span></code></pre></div>
+<span><span class="co">#&gt; ℹ References for the following types have been extracted: Dataset, DatasetSource, DatasetSourceType, SamplingMethod, Sample, Taxon, AbioticVariable</span></span>
+<span><span class="co">#&gt; ! The data contains mandatory references. Please make sure to run `get_references()` before extracting data.</span></span></code></pre></div>
 </div>
 <p>The message is informational only — extraction always proceeds regardless, but it signals that <code><a href="../reference/get_references.html">get_references()</a></code> should be run before publication.</p>
 <p>To silence the check entirely, set <code>check_mandatory_references = FALSE</code>:</p>

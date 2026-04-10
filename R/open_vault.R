@@ -1,24 +1,35 @@
 #' @title Open a vault
 #' @description Open a connection to a SQLite database
 #' @param path A character string of the path to the SQLite database
+#' @param verbose A logical value indicating whether to print messages
 #' @return A list with two elements: `data` and `db_con`
 #' @export
-open_vault <- function(path) {
+open_vault <- function(path, verbose = TRUE) {
   # test various things
-  assertthat::assert_that(
+
+  assertthat_cli(
+    is.logical(verbose),
+    msg = "{.arg verbose} must be a logical"
+  )
+
+  assertthat_cli(
     is.character(path),
-    msg = "path must be a character"
+    msg = "{.arg path} must be a character",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     length(path) == 1,
-    msg = "path must be a single string"
+    msg = "{.arg path} must be a single string",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     file.exists(path),
-    msg = "file does not exist"
+    msg = "file does not exist",
+    verbose = verbose
   )
+
 
   db_con <-
     DBI::dbConnect(
@@ -34,6 +45,12 @@ open_vault <- function(path) {
       ),
       class = c("list", "vault_pipe")
     )
+
+  if (
+    isTRUE(verbose)
+  ) {
+    cli::cli_alert_info("Vault opened successfully")
+  }
 
   return(dummy)
 }
