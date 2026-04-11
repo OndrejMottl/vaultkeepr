@@ -7,7 +7,8 @@
 get_taxa(
   con = NULL,
   classify_to = c("original", "species", "genus", "family"),
-  classification_data = NULL
+  classification_data = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,9 @@ and the column matching \code{classify_to} (e.g. \code{taxon_genus} when
 \code{classify_to = "genus"}). If \code{NULL} (default), the database table
 is used. Obtain a valid table via
 \code{get_classification_table(con, return_raw_data = TRUE)}.}
+
+\item{verbose}{A logical value indicating whether to print messages.
+Default is \code{TRUE}.}
 }
 \value{
 A \code{vault_pipe} object with the data and the connection to the Vault

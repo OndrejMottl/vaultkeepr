@@ -22,8 +22,8 @@ If \code{TRUE}, returns a raw \code{tibble} with only ID columns \code{taxon_id}
 }
 \value{
 When \code{return_raw_data = FALSE} (default): a \code{tibble} with eight
-columns — \code{taxon_id}, \code{taxon_name}, \code{taxon_species}, \code{species_name},
-\code{taxon_genus}, \code{genus_name}, \code{taxon_family}, \code{family_name} —
+columns (\code{taxon_id}, \code{taxon_name}, \code{taxon_species}, \code{species_name},
+\code{taxon_genus}, \code{genus_name}, \code{taxon_family}, \code{family_name})
 restricted to taxa present in the data. Both IDs and resolved names
 are included, so the tibble can be inspected directly and also passed
 to the \code{classification_data} argument of \code{\link[=get_taxa]{get_taxa()}} or \code{\link[=get_traits]{get_traits()}}.
