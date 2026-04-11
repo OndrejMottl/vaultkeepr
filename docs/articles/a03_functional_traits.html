@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>a03_functional_traits • vaultkeepr</title>
+<title>Reconstructing functional diversity through time • vaultkeepr</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="a03_functional_traits_files/libs/quarto-html/popper.min.js"></script><script src="a03_functional_traits_files/libs/quarto-html/tippy.umd.min.js"></script><link href="a03_functional_traits_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="a03_functional_traits_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="a03_functional_traits">
+<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Reconstructing functional diversity through time">
 <meta property="og:image" content="https://hope-uib-bio.github.io/vaultkeepr/reference/figures/vaultkeeper_logo.png">
 <meta property="og:image:alt" content="VegVault logo">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">vaultkeepr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,6 +50,8 @@
     <li><a class="dropdown-item" href="../articles/a03_functional_traits.html">Reconstructing functional diversity through time</a></li>
     <li><a class="dropdown-item" href="../articles/a04_extract_data.html">Exploring extract_data(): from ready-to-use output to raw data</a></li>
     <li><a class="dropdown-item" href="../articles/a05_references.html">Retrieving data citations with get_references()</a></li>
+    <li><a class="dropdown-item" href="../articles/a06_palaeo_uncertainty.html">Understanding paleoecological uncertainty</a></li>
+    <li><a class="dropdown-item" href="../articles/a07_classification_workflow.html">Inspecting and customising the taxonomic classification</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -100,7 +102,8 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/OndrejMottl/vaultkeepr" class="external-link">vaultkeepr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">plan</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="../reference/open_vault.html">open_vault</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">path_to_db</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/open_vault.html">open_vault</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">path_to_db</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ℹ Vault opened successfully</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="step-2-add-dataset-metadata">Step 2 — Add dataset metadata<a class="anchor" aria-label="anchor" href="#step-2-add-dataset-metadata"></a>
 </h2>
@@ -146,9 +149,8 @@
 <span>    long_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">61</span>, <span class="op">-</span><span class="fl">59</span><span class="op">)</span>,</span>
 <span>    lat_lim  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">16</span>, <span class="op">-</span><span class="fl">14</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; The data does not contain the all dataset types specified in `vec_dataset_type`. </span></span>
-<span><span class="co">#&gt;  Changing `vec_dataset_type` to the dataset types present in the data as: fossil_pollen_archive</span></span>
-<span><span class="co">#&gt; The selected dataset type will not be filtered: traits</span></span></code></pre></div>
+<span><span class="co">#&gt; ! The data does not contain all dataset types specified in `vec_dataset_type`. Changing `vec_dataset_type` to the dataset types present in the data as: fossil_pollen_archive</span></span>
+<span><span class="co">#&gt; ! The selected dataset type will not be filtered: traits</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="step-5-add-sample-information">Step 5 — Add sample information<a class="anchor" aria-label="anchor" href="#step-5-add-sample-information"></a>
 </h2>
@@ -167,9 +169,8 @@
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">plan</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/select_samples_by_age.html">select_samples_by_age</a></span><span class="op">(</span>age_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4000</span>, <span class="fl">8000</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; The data does not contain the all dataset types specified in `vec_dataset_type`. </span></span>
-<span><span class="co">#&gt;  Changing `vec_dataset_type` to the dataset types present in the data as: fossil_pollen_archive</span></span>
-<span><span class="co">#&gt; The selected dataset type will not be filtered: traits</span></span></code></pre></div>
+<span><span class="co">#&gt; ! The data does not contain all dataset types specified in `vec_dataset_type`. Changing `vec_dataset_type` to the dataset types present in the data as: fossil_pollen_archive</span></span>
+<span><span class="co">#&gt; ! The selected dataset type will not be filtered: traits</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="step-7-add-taxa-harmonised-to-genus">Step 7 — Add taxa (harmonised to genus)<a class="anchor" aria-label="anchor" href="#step-7-add-taxa-harmonised-to-genus"></a>
 </h2>
@@ -184,7 +185,11 @@
 <div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">plan</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/get_taxa.html">get_taxa</a></span><span class="op">(</span>classify_to <span class="op">=</span> <span class="st">"genus"</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/get_taxa.html">get_taxa</a></span><span class="op">(</span>classify_to <span class="op">=</span> <span class="st">"genus"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: The classification is being made using an automatic workflow</span></span>
+<span><span class="co">#&gt; and might contain errors.</span></span>
+<span><span class="co">#&gt; ℹ We recommend checking the classification table by calling</span></span>
+<span><span class="co">#&gt;   `get_classification_table()`.</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="step-8-attach-trait-data">Step 8 — Attach trait data<a class="anchor" aria-label="anchor" href="#step-8-attach-trait-data"></a>
 </h2>
@@ -200,11 +205,15 @@
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">plan</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/get_traits.html">get_traits</a></span><span class="op">(</span>classify_to <span class="op">=</span> <span class="st">"genus"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: The classification is being made using an automatic workflow</span></span>
+<span><span class="co">#&gt; and might contain errors.</span></span>
+<span><span class="co">#&gt; ℹ We recommend checking the classification table by calling</span></span>
+<span><span class="co">#&gt;   `get_classification_table()`.</span></span>
 <span></span>
 <span><span class="va">plan</span></span>
 <span><span class="co">#&gt; $data</span></span>
 <span><span class="co">#&gt; # Source:   SQL [?? x 19]</span></span>
-<span><span class="co">#&gt; # Database: sqlite 3.47.1 [D:\Temp\RtmpWOIBRS\vaultkeepr_example.sqlite]</span></span>
+<span><span class="co">#&gt; # Database: sqlite 3.47.1 [D:\Temp\RtmpqInpSD\vaultkeepr_example.sqlite]</span></span>
 <span><span class="co">#&gt;    dataset_id dataset_name data_source_id dataset_type_id data_source_type_id</span></span>
 <span><span class="co">#&gt;         &lt;int&gt; &lt;chr&gt;                 &lt;int&gt;           &lt;int&gt;               &lt;int&gt;</span></span>
 <span><span class="co">#&gt;  1        259 dataset_259               1               2                   3</span></span>
@@ -226,7 +235,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $db_con</span></span>
 <span><span class="co">#&gt; &lt;SQLiteConnection&gt;</span></span>
-<span><span class="co">#&gt;   Path: D:\Temp\RtmpWOIBRS\vaultkeepr_example.sqlite</span></span>
+<span><span class="co">#&gt;   Path: D:\Temp\RtmpqInpSD\vaultkeepr_example.sqlite</span></span>
 <span><span class="co">#&gt;   Extensions: TRUE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; attr(,"class")</span></span>
@@ -261,7 +270,7 @@
 <span><span class="co">#&gt; $ coord_lat               &lt;dbl&gt; -15, -15, -15, -15, -15, -15, -15, -15, -15, -…</span></span>
 <span><span class="co">#&gt; $ sampling_method_details &lt;chr&gt; "Standardised vegetation plot survey (1–1000 m…</span></span>
 <span><span class="co">#&gt; $ data_samples            &lt;list&gt; [&lt;tbl_df[42 x 5]&gt;], [&lt;tbl_df[42 x 5]&gt;], [&lt;tbl…</span></span>
-<span><span class="co">#&gt; $ data_community          &lt;list&gt; [&lt;tbl_df[42 x 10]&gt;], [&lt;tbl_df[42 x 10]&gt;], [&lt;t…</span></span>
+<span><span class="co">#&gt; $ data_community          &lt;list&gt; [&lt;tbl_df[42 x 9]&gt;], [&lt;tbl_df[42 x 8]&gt;], [&lt;tbl…</span></span>
 <span><span class="co">#&gt; $ data_traits             &lt;list&gt; &lt;NULL&gt;, &lt;NULL&gt;, &lt;NULL&gt;, &lt;NULL&gt;, &lt;NULL&gt;, &lt;NULL…</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="full-pipeline">Full pipeline<a class="anchor" aria-label="anchor" href="#full-pipeline"></a>
@@ -289,7 +298,7 @@
 </h2>
 <p><code>data_sa_traits</code> holds one row per dataset. Fossil pollen datasets carry pollen abundances in <code>data_community</code> (wide format: one column per genus) and sample ages in <code>data_samples</code>. Trait datasets carry trait observations in <code>data_traits</code> (wide format: one row per trait × sample, one column per genus). We unnest these to compute a <strong>community-weighted mean (CWM)</strong> plant height for every fossil pollen sample by (1) extracting the mean trait value per genus from <code>data_traits</code>, and (2) computing the abundance-weighted mean over all genera present in each fossil sample.</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Mean trait value per genus from the nested trait datasets</span></span>
 <span><span class="va">data_genus_trait</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">data_sa_traits</span> <span class="op">|&gt;</span></span>
@@ -374,7 +383,7 @@
 <span>    y       <span class="op">=</span> <span class="st">"Community-weighted mean plant height"</span>,</span>
 <span>    caption <span class="op">=</span> <span class="st">"Based on the vaultkeepr example database"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<div class="cell-output-display">
+</details><div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure><p><img src="a03_functional_traits_files/figure-html/plot-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%" alt="Violin plot showing the distribution of community-weighted mean plant height across 2 000-year time bins in South America."></p>
 </figure>

@@ -4,74 +4,53 @@
 #' @return A connection to the Vault database
 #' @export
 get_samples <- function(con = NULL) {
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(con, "vault_pipe"),
-    msg = paste(
-      "`con` must be a class of `vault_pipe`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must be a class of {.cls vault_pipe}. Use {.fn open_vault} to create a connection."
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(names(con) %in% c("data", "db_con")),
-    msg = paste(
-      "con must have `data` and `db_con`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must have {.code data} and {.code db_con}. Use {.fn open_vault} to create a connection."
   )
 
   sel_data <- con$data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_data, "tbl"),
-    msg = "data must be a class of `tbl`"
+    msg = "{.code data} must be a class of {.cls tbl}."
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "dataset_id" %in% colnames(sel_data),
-    msg = paste(
-      "The dataset does not contain `dataset_id` columns. Please add",
-      "`get_datasets()` to the pipe before this function."
-    )
+    msg = "The dataset does not contain {.code dataset_id} column. Please add {.fn get_datasets} to the pipe before this function."
   )
 
   sel_con <- con$db_con
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "db_con must be a class of `SQLiteConnection`"
+    msg = "{.code db_con} must be a class of {.cls SQLiteConnection}."
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "DatasetSample" %in% DBI::dbListTables(sel_con),
-    msg = paste(
-      "DatasetSample table does not exist in the Vault database",
-      "Make sure to connect to the correct database"
-    )
+    msg = "{.code DatasetSample} table does not exist in the Vault database. Make sure to connect to the correct database."
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "dataset_id" %in% colnames(dplyr::tbl(sel_con, "DatasetSample")),
-    msg = paste(
-      "The DatasetSample does not contain `dataset_id` column in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code DatasetSample} table does not contain {.code dataset_id} column. Make sure to connect to the correct database."
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "Samples" %in% DBI::dbListTables(sel_con),
-    msg = paste(
-      "Samples table does not exist in the Vault database",
-      "Make sure to connect to the correct database"
-    )
+    msg = "{.code Samples} table does not exist in the Vault database. Make sure to connect to the correct database."
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "sample_id" %in% colnames(dplyr::tbl(sel_con, "Samples")),
-    msg = paste(
-      "The Samples does not contain `sample_id` column in the Vault database.",
-      "Make sure to connect to the correct database"
-    )
+    msg = "The {.code Samples} table does not contain {.code sample_id} column. Make sure to connect to the correct database."
   )
 
   data_res <-

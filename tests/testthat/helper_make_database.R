@@ -1035,6 +1035,23 @@ CREATE UNIQUE INDEX idx_references_reference_id ON "References"(reference_id);
     n_refs = 5
   )
 
+  ## SampleUncertainty -----
+  # 5 age-model iterations for each sample
+  tibble::tibble(
+    sample_id = rep(1:8500, each = 5),
+    iteration = rep(1:5, times = 8500),
+    age = rep_len(
+      seq(0, 8000, by = 500),
+      length.out = 8500 * 5
+    )
+  ) %>%
+    dplyr::copy_to(
+      con_db,
+      df = .,
+      name = "SampleUncertainty",
+      append = TRUE
+    )
+
   # disconnect
   DBI::dbDisconnect(con_db)
 }

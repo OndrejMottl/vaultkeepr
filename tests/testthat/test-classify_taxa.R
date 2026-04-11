@@ -11,10 +11,12 @@ testthat::test_that("get correct class", {
 
 
   res <-
-    classify_taxa(
-      data_source = dplyr::tbl(test_con, "SampleTaxa"),
-      sel_con = test_con,
-      to = "genus"
+    suppressWarnings(
+      classify_taxa(
+        data_source = dplyr::tbl(test_con, "SampleTaxa"),
+        sel_con = test_con,
+        to = "genus"
+      )
     )
 
   testthat::expect_s3_class(res, "tbl_sql")
@@ -33,10 +35,12 @@ testthat::test_that("get correct dataset structure", {
 
 
   res <-
-    classify_taxa(
-      data_source = dplyr::tbl(test_con, "SampleTaxa"),
-      sel_con = test_con,
-      to = "genus"
+    suppressWarnings(
+      classify_taxa(
+        data_source = dplyr::tbl(test_con, "SampleTaxa"),
+        sel_con = test_con,
+        to = "genus"
+      )
     )
 
   testthat::expect_equal(
@@ -82,10 +86,12 @@ testthat::test_that("get only genera", {
 
 
   res <-
-    classify_taxa(
-      data_source = dplyr::tbl(test_con, "SampleTaxa"),
-      sel_con = test_con,
-      to = "genus"
+    suppressWarnings(
+      classify_taxa(
+        data_source = dplyr::tbl(test_con, "SampleTaxa"),
+        sel_con = test_con,
+        to = "genus"
+      )
     ) %>%
     dplyr::distinct(taxon_id) %>%
     dplyr::pull(taxon_id)
@@ -108,10 +114,12 @@ testthat::test_that("get only family", {
 
 
   res <-
-    classify_taxa(
-      data_source = dplyr::tbl(test_con, "SampleTaxa"),
-      sel_con = test_con,
-      to = "family"
+    suppressWarnings(
+      classify_taxa(
+        data_source = dplyr::tbl(test_con, "SampleTaxa"),
+        sel_con = test_con,
+        to = "family"
+      )
     ) %>%
     dplyr::distinct(taxon_id) %>%
     dplyr::pull(taxon_id)
@@ -155,11 +163,13 @@ testthat::test_that("error when sel_con is not a SQLiteConnection", {
     ) %>%
     purrr::chuck("db_con")
 
-  testthat::expect_error(
-    classify_taxa(
-      data_source = dplyr::tbl(test_con, "SampleTaxa"),
-      sel_con = "bad",
-      to = "genus"
+  suppressWarnings(
+    testthat::expect_error(
+      classify_taxa(
+        data_source = dplyr::tbl(test_con, "SampleTaxa"),
+        sel_con = "bad",
+        to = "genus"
+      )
     )
   )
 })
@@ -180,6 +190,250 @@ testthat::test_that("error when `to` is not a valid value", {
       data_source = dplyr::tbl(test_con, "SampleTaxa"),
       sel_con = test_con,
       to = "bad"
+    )
+  )
+})
+
+
+# classification_data argument ----
+testthat::test_that("classification_data local tibble gives same result", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  data_class <-
+    dplyr::tbl(test_con, "TaxonClassification") %>%
+    dplyr::collect()
+
+  res_db <-
+    suppressWarnings(
+      classify_taxa(
+        data_source = dplyr::tbl(test_con, "SampleTaxa"),
+        sel_con = test_con,
+        to = "genus"
+      )
+    ) %>%
+    dplyr::distinct(taxon_id) %>%
+    dplyr::collect() %>%
+    dplyr::arrange(taxon_id) %>%
+    dplyr::pull("taxon_id")
+
+  res_local <-
+    suppressWarnings(
+      classify_taxa(
+        data_source = dplyr::tbl(test_con, "SampleTaxa"),
+        sel_con = test_con,
+        to = "genus",
+        classification_data = data_class
+      )
+    ) %>%
+    dplyr::distinct(taxon_id) %>%
+    dplyr::collect() %>%
+    dplyr::arrange(taxon_id) %>%
+    dplyr::pull("taxon_id")
+
+  testthat::expect_equal(res_local, res_db)
+})
+
+testthat::test_that("custom classification_data overrides mapping", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  # Map every species to genus 46 instead of their real genus
+  data_class_custom <-
+    dplyr::tbl(test_con, "TaxonClassification") %>%
+    dplyr::collect() %>%
+    dplyr::mutate(taxon_genus = 46L)
+
+  res <-
+    suppressWarnings(
+      classify_taxa(
+        data_source = dplyr::tbl(test_con, "SampleTaxa"),
+        sel_con = test_con,
+        to = "genus",
+        classification_data = data_class_custom
+      )
+    ) %>%
+    dplyr::distinct(taxon_id) %>%
+    dplyr::collect() %>%
+    dplyr::pull("taxon_id")
+
+  testthat::expect_equal(res, 46L)
+})
+
+testthat::test_that("error when classification_data is not data.frame", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  suppressWarnings(
+    testthat::expect_error(
+      classify_taxa(
+        data_source = dplyr::tbl(test_con, "SampleTaxa"),
+        sel_con = test_con,
+        to = "genus",
+        classification_data = "bad"
+      )
+    )
+  )
+})
+
+testthat::test_that("error when classification_data missing taxon_id", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  data_bad <-
+    dplyr::tbl(test_con, "TaxonClassification") %>%
+    dplyr::collect() %>%
+    dplyr::select(-"taxon_id")
+
+  suppressWarnings(
+    testthat::expect_error(
+      classify_taxa(
+        data_source = dplyr::tbl(test_con, "SampleTaxa"),
+        sel_con = test_con,
+        to = "genus",
+        classification_data = data_bad
+      )
+    )
+  )
+})
+
+testthat::test_that("error when classification_data missing target col", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  data_bad <-
+    dplyr::tbl(test_con, "TaxonClassification") %>%
+    dplyr::collect() %>%
+    dplyr::select(-"taxon_genus")
+
+  suppressWarnings(
+    testthat::expect_error(
+      classify_taxa(
+        data_source = dplyr::tbl(test_con, "SampleTaxa"),
+        sel_con = test_con,
+        to = "genus",
+        classification_data = data_bad
+      )
+    )
+  )
+})
+
+
+# cli warning ----
+testthat::test_that("warning emitted when to = species", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  testthat::expect_warning(
+    classify_taxa(
+      data_source = dplyr::tbl(test_con, "SampleTaxa"),
+      sel_con = test_con,
+      to = "species"
+    ),
+    regexp = "automatic workflow"
+  )
+})
+
+testthat::test_that("warning emitted when to = genus", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  testthat::expect_warning(
+    classify_taxa(
+      data_source = dplyr::tbl(test_con, "SampleTaxa"),
+      sel_con = test_con,
+      to = "genus"
+    ),
+    regexp = "automatic workflow"
+  )
+})
+
+testthat::test_that("warning emitted when to = family", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  testthat::expect_warning(
+    classify_taxa(
+      data_source = dplyr::tbl(test_con, "SampleTaxa"),
+      sel_con = test_con,
+      to = "family"
+    ),
+    regexp = "automatic workflow"
+  )
+})
+
+testthat::test_that("no warning when to = original", {
+  test_con <-
+    open_vault(
+      path = paste(
+        tempdir(),
+        "example.sqlite",
+        sep = "/"
+      )
+    ) %>%
+    purrr::chuck("db_con")
+
+  testthat::expect_no_warning(
+    classify_taxa(
+      data_source = dplyr::tbl(test_con, "SampleTaxa"),
+      sel_con = test_con,
+      to = "original"
     )
   )
 })

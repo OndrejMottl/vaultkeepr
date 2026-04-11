@@ -21,49 +21,49 @@ extract_data <- function(
     return_raw_data = FALSE,
     check_mandatory_references = TRUE,
     verbose = TRUE) {
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(con, "vault_pipe"),
-    msg = paste(
-      "`con` must be a class of `vault_pipe`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must be a class of {.cls vault_pipe}. Use {.fn open_vault} to create a connection.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(names(con) %in% c("data", "db_con")),
-    msg = paste(
-      "con must have `data` and `db_con`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must have {.code data} and {.code db_con}. Use {.fn open_vault} to create a connection.",
+    verbose = verbose
   )
 
   sel_data <- con$data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_data, "tbl"),
-    msg = "data must be a class of `tbl`"
+    msg = "{.code data} must be a class of {.cls tbl}.",
+    verbose = verbose
   )
 
   sel_con <- con$db_con
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "path does not lead to valid SQLite database"
+    msg = "{.arg con} does not contain a valid SQLite database connection.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.logical(return_raw_data),
-    msg = "The 'return_raw_data' must be a logical"
+    msg = "{.arg return_raw_data} must be a logical value.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.logical(check_mandatory_references),
-    msg = "The 'check_mandatory_references' must be a logical"
+    msg = "{.arg check_mandatory_references} must be a logical value.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.logical(verbose),
-    msg = "The 'verbose' must be a logical"
+    msg = "{.arg verbose} must be a logical value."
   )
 
   nrow_mandatory_references <- 0
@@ -96,9 +96,8 @@ extract_data <- function(
     nrow_mandatory_references > 0 &&
       isTRUE(verbose)
   ) {
-    message(
-      "!!! The data contains mandatory references !!!",
-      "Please make sure to run `get_references()` before extracting data"
+    cli::cli_alert_warning(
+      "The data contains mandatory references. Please make sure to run {.fn get_references} before extracting data."
     )
   }
 

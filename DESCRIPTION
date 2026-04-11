@@ -1,6 +1,6 @@
 Package: vaultkeepr
 Title: Providing the Interface to Access the VegVault Database
-Version: 0.0.6
+Version: 0.0.7
 Authors@R: 
     person("Ondrej", "Mottl", , "ondrej.mottl@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9796-5081"))
@@ -10,13 +10,14 @@ Description: An R package for extracting and analyzing data from the
 License: MIT + file LICENSE
 URL: https://github.com/OndrejMottl/vaultkeepr
 Imports: 
-    assertthat,
+    cli,
     DBI,
     lifecycle,
     magrittr,
     purrr,
     rlang,
     RSQLite,
+    stringr,
     tibble
 Suggests: 
     dbplyr,
@@ -26,19 +27,21 @@ Suggests:
     knitr,
     rmarkdown,
     scales,
-    stringr,
     testthat (>= 3.0.0),
     tidyr
-VignetteBuilder: knitr
+VignetteBuilder: 
+    knitr
 Config/testthat/edition: 3
-Config/testthat/start-first: open_vault, get_datasets, 
+Config/testthat/start-first: open_vault, explore_vault, get_datasets,
     get_readable_column_names, pack_data, extract_data,
     get_common_dataset_type, select_dataset_by_type,
-    select_dataset_by_geo, get_samples, select_samples_by_age,
-    classify_taxa, get_taxa, select_taxa_by_name, select_taxa_by_id,
-    get_abiotic_data, select_abiotic_var_by_id,
-    select_abiotic_var_by_name, get_traits, select_traits_by_domain_name
+    select_dataset_by_geo, get_samples, get_age_uncertainty,
+    select_samples_by_age, classify_taxa, get_taxa,
+    get_classification_table, select_taxa_by_name,
+    get_taxon_names, select_taxa_by_id, get_abiotic_data,
+    select_abiotic_var_by_id, select_abiotic_var_by_name, get_traits,
+    select_traits_by_domain_name
 Encoding: UTF-8
 Language: en-GB
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3

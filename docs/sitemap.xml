@@ -5,6 +5,8 @@
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/articles/a03_functional_traits.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/articles/a04_extract_data.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/articles/a05_references.html</loc></url>
+<url><loc>https://hope-uib-bio.github.io/vaultkeepr/articles/a06_palaeo_uncertainty.html</loc></url>
+<url><loc>https://hope-uib-bio.github.io/vaultkeepr/articles/a07_classification_workflow.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/articles/index.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/authors.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/index.html</loc></url>
@@ -12,14 +14,18 @@
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/LICENSE.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/news/index.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/classify_taxa.html</loc></url>
+<url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/explore_vault.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/extract_data.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_abiotic_data.html</loc></url>
+<url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_age_uncertainty.html</loc></url>
+<url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_classification_table.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_common_dataset_type.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_datasets.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_readable_column_names.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_references.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_samples.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_taxa.html</loc></url>
+<url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_taxon_names.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/get_traits.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/index.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/open_vault.html</loc></url>
@@ -33,6 +39,7 @@
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/select_taxa_by_id.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/select_taxa_by_name.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/select_traits_by_domain_name.html</loc></url>
+<url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/stop_quietly.html</loc></url>
 <url><loc>https://hope-uib-bio.github.io/vaultkeepr/reference/vaultkeepr-package.html</loc></url>
 </urlset>
 

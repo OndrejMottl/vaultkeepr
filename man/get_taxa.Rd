@@ -4,18 +4,34 @@
 \alias{get_taxa}
 \title{Get taxa information}
 \usage{
-get_taxa(con = NULL, classify_to = c("original", "species", "genus", "family"))
+get_taxa(
+  con = NULL,
+  classify_to = c("original", "species", "genus", "family"),
+  classification_data = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
-\item{con}{A connection to the Vault database}
+\item{con}{A connection to the Vault database.}
 
-\item{classify_to}{A character vector specifying the taxonomic level to classify
-the taxa to. The options are \code{original}, \code{species}, \code{genus}, and \code{family}.}
+\item{classify_to}{A character vector specifying the taxonomic level to classify the taxa
+to. The options are \code{original}, \code{species}, \code{genus}, and \code{family}.}
+
+\item{classification_data}{An optional \code{data.frame} (or \code{tibble}) used instead of the
+\code{TaxonClassification} table in the database. Must contain \code{taxon_id}
+and the column matching \code{classify_to} (e.g. \code{taxon_genus} when
+\code{classify_to = "genus"}). If \code{NULL} (default), the database table
+is used. Obtain a valid table via
+\code{get_classification_table(con, return_raw_data = TRUE)}.}
+
+\item{verbose}{A logical value indicating whether to print messages.
+Default is \code{TRUE}.}
 }
 \value{
-A \code{vault_pipe} object with the data and the connection to the Vault database
+A \code{vault_pipe} object with the data and the connection to the Vault
+database.
 }
 \description{
-For each Sample, get information about Taxa and their abundances
-from the Vault database
+For each Sample, get information about Taxa and their
+abundances from the Vault database.
 }
