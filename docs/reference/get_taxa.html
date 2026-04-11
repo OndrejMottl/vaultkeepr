@@ -57,7 +57,8 @@ abundances from the Vault database.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_taxa</span><span class="op">(</span></span>
 <span>  con <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  classify_to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"original"</span>, <span class="st">"species"</span>, <span class="st">"genus"</span>, <span class="st">"family"</span><span class="op">)</span>,</span>
-<span>  classification_data <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  classification_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -81,6 +82,11 @@ and the column matching <code>classify_to</code> (e.g. <code>taxon_genus</code> 
 <code>classify_to = "genus"</code>). If <code>NULL</code> (default), the database table
 is used. Obtain a valid table via
 <code>get_classification_table(con, return_raw_data = TRUE)</code>.</p></dd>
+
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>A logical value indicating whether to print messages.
+Default is <code>TRUE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

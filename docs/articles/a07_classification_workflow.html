@@ -303,7 +303,11 @@
 <span>  <span class="fu"><a href="../reference/get_taxa.html">get_taxa</a></span><span class="op">(</span></span>
 <span>    classify_to <span class="op">=</span> <span class="st">"genus"</span>,</span>
 <span>    classification_data <span class="op">=</span> <span class="va">data_class_betulaceae</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
+<span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: The classification is being made using an automatic workflow</span></span>
+<span><span class="co">#&gt; and might contain errors.</span></span>
+<span><span class="co">#&gt; ℹ We recommend checking the classification table by calling</span></span>
+<span><span class="co">#&gt;   `get_classification_table()`.</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="step-6-compare-default-vs--custom-classification">Step 6 — Compare default vs. custom classification<a class="anchor" aria-label="anchor" href="#step-6-compare-default-vs--custom-classification"></a>
 </h2>
@@ -314,7 +318,11 @@
 <span><span class="va">data_default</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">plan_base</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/get_taxa.html">get_taxa</a></span><span class="op">(</span>classify_to <span class="op">=</span> <span class="st">"genus"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/extract_data.html">extract_data</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/extract_data.html">extract_data</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: The classification is being made using an automatic workflow</span></span>
+<span><span class="co">#&gt; and might contain errors.</span></span>
+<span><span class="co">#&gt; ℹ We recommend checking the classification table by calling</span></span>
+<span><span class="co">#&gt;   `get_classification_table()`.</span></span></code></pre></div>
 </div>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
@@ -416,7 +424,11 @@
 <span>    classify_to <span class="op">=</span> <span class="st">"genus"</span>,</span>
 <span>    classification_data <span class="op">=</span> <span class="va">data_class_corrected</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/extract_data.html">extract_data</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/extract_data.html">extract_data</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: The classification is being made using an automatic workflow</span></span>
+<span><span class="co">#&gt; and might contain errors.</span></span>
+<span><span class="co">#&gt; ℹ We recommend checking the classification table by calling</span></span>
+<span><span class="co">#&gt;   `get_classification_table()`.</span></span></code></pre></div>
 </div>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb16"><pre class="downlit sourceCode r">
