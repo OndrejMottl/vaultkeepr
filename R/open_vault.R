@@ -30,6 +30,15 @@ open_vault <- function(path, verbose = TRUE) {
     verbose = verbose
   )
 
+  vec_header <-
+    base::readBin(path, what = "raw", n = 15L)
+
+  assertthat_cli(
+    base::length(vec_header) == 15L &&
+      base::rawToChar(vec_header) == "SQLite format 3",
+    msg = "{.arg path} must point to a valid SQLite file",
+    verbose = verbose
+  )
 
   db_con <-
     DBI::dbConnect(
