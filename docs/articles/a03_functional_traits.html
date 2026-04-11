@@ -185,7 +185,11 @@
 <div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">plan</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/get_taxa.html">get_taxa</a></span><span class="op">(</span>classify_to <span class="op">=</span> <span class="st">"genus"</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/get_taxa.html">get_taxa</a></span><span class="op">(</span>classify_to <span class="op">=</span> <span class="st">"genus"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: The classification is being made using an automatic workflow</span></span>
+<span><span class="co">#&gt; and might contain errors.</span></span>
+<span><span class="co">#&gt; ℹ We recommend checking the classification table by calling</span></span>
+<span><span class="co">#&gt;   `get_classification_table()`.</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="step-8-attach-trait-data">Step 8 — Attach trait data<a class="anchor" aria-label="anchor" href="#step-8-attach-trait-data"></a>
 </h2>
@@ -201,11 +205,15 @@
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">plan</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/get_traits.html">get_traits</a></span><span class="op">(</span>classify_to <span class="op">=</span> <span class="st">"genus"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: The classification is being made using an automatic workflow</span></span>
+<span><span class="co">#&gt; and might contain errors.</span></span>
+<span><span class="co">#&gt; ℹ We recommend checking the classification table by calling</span></span>
+<span><span class="co">#&gt;   `get_classification_table()`.</span></span>
 <span></span>
 <span><span class="va">plan</span></span>
 <span><span class="co">#&gt; $data</span></span>
 <span><span class="co">#&gt; # Source:   SQL [?? x 19]</span></span>
-<span><span class="co">#&gt; # Database: sqlite 3.47.1 [D:\Temp\RtmpiGBXCJ\vaultkeepr_example.sqlite]</span></span>
+<span><span class="co">#&gt; # Database: sqlite 3.47.1 [D:\Temp\RtmpSaTIzc\vaultkeepr_example.sqlite]</span></span>
 <span><span class="co">#&gt;    dataset_id dataset_name data_source_id dataset_type_id data_source_type_id</span></span>
 <span><span class="co">#&gt;         &lt;int&gt; &lt;chr&gt;                 &lt;int&gt;           &lt;int&gt;               &lt;int&gt;</span></span>
 <span><span class="co">#&gt;  1        259 dataset_259               1               2                   3</span></span>
@@ -227,7 +235,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $db_con</span></span>
 <span><span class="co">#&gt; &lt;SQLiteConnection&gt;</span></span>
-<span><span class="co">#&gt;   Path: D:\Temp\RtmpiGBXCJ\vaultkeepr_example.sqlite</span></span>
+<span><span class="co">#&gt;   Path: D:\Temp\RtmpSaTIzc\vaultkeepr_example.sqlite</span></span>
 <span><span class="co">#&gt;   Extensions: TRUE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; attr(,"class")</span></span>

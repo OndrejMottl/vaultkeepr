@@ -36,5 +36,9 @@ A SQL table with the classified taxa.
 Classify taxa in a SQL table to a specific level based on
 the classification table in the Vault database, or a user-supplied
 override table.
+
+When \code{to} is not \code{"original"}, a cli warning is emitted to alert the
+user that the automatic classification workflow may contain errors, and
+to recommend calling \code{\link[=get_classification_table]{get_classification_table()}} to inspect it.
 }
 \keyword{internal}

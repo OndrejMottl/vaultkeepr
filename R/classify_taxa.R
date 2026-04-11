@@ -2,6 +2,10 @@
 #' @description Classify taxa in a SQL table to a specific level based on
 #' the classification table in the Vault database, or a user-supplied
 #' override table.
+#'
+#' When `to` is not `"original"`, a cli warning is emitted to alert the
+#' user that the automatic classification workflow may contain errors, and
+#' to recommend calling [get_classification_table()] to inspect it.
 #' @param data_source A SQL table that contains `taxon_id` column.
 #' @param sel_con A connection to the Vault database. Required when
 #' `classification_data` is `NULL`.
@@ -57,6 +61,17 @@ classify_taxa <- function(
   ) {
     return(data_source)
   }
+
+  cli::cli_warn(
+    c(
+      "The classification is being made using an automatic workflow",
+      "and might contain errors.",
+      "i" = paste(
+        "We recommend checking the classification table by",
+        "calling {.fn get_classification_table}."
+      )
+    )
+  )
 
   if (
     !is.null(classification_data)
