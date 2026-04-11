@@ -20,8 +20,8 @@
 #' `TaxonClassification` schema.
 #' @return
 #' When `return_raw_data = FALSE` (default): a `tibble` with eight
-#' columns — `taxon_id`, `taxon_name`, `taxon_species`, `species_name`,
-#' `taxon_genus`, `genus_name`, `taxon_family`, `family_name` —
+#' columns (`taxon_id`, `taxon_name`, `taxon_species`, `species_name`,
+#' `taxon_genus`, `genus_name`, `taxon_family`, `family_name`)
 #' restricted to taxa present in the data. Both IDs and resolved names
 #' are included, so the tibble can be inspected directly and also passed
 #' to the `classification_data` argument of [get_taxa()] or [get_traits()].
