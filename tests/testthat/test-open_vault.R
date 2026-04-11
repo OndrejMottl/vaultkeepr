@@ -165,3 +165,19 @@ testthat::test_that("error handling", {
     )
   )
 })
+
+testthat::test_that("error handling - non-sqlite file", {
+  path_non_sqlite <-
+    base::tempfile(fileext = ".db")
+
+  base::writeLines("not a sqlite file", path_non_sqlite)
+
+  testthat::expect_error(
+    open_vault(
+      path = path_non_sqlite,
+      verbose = FALSE
+    )
+  )
+
+  base::unlink(path_non_sqlite)
+})
