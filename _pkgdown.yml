@@ -38,6 +38,88 @@ navbar:
       href: http://twitter.com/OndrejMottl
       aria-label: Twitter
 
+reference:
+  - title: Connect
+    desc: Open a connection to the VegVault database and explore its contents.
+    contents:
+      - open_vault
+      - explore_vault
+
+  - title: Get data
+    desc: >
+      Retrieve data from the vault. Chain these after `open_vault()` to
+      build a query plan.
+
+  - subtitle: Datasets
+    contents:
+      - get_datasets
+      - get_common_dataset_type
+
+  - subtitle: Samples
+    contents:
+      - get_samples
+      - get_age_uncertainty
+
+  - subtitle: Taxa
+    contents:
+      - get_taxa
+
+  - subtitle: Traits
+    contents:
+      - get_traits
+
+  - subtitle: Abiotic data
+    contents:
+      - get_abiotic_data
+
+  - title: Filter
+    desc: >
+      Narrow the selection of datasets, samples, taxa, traits, and abiotic
+      variables before extracting data.
+
+  - subtitle: Datasets
+    contents:
+      - select_dataset_by_type
+      - select_dataset_by_geo
+
+  - subtitle: Samples
+    contents:
+      - select_samples_by_age
+
+  - subtitle: Taxa
+    contents:
+      - select_taxa_by_id
+      - select_taxa_by_name
+
+  - subtitle: Abiotic variables
+    contents:
+      - select_abiotic_var_by_id
+      - select_abiotic_var_by_name
+
+  - subtitle: Traits
+    contents:
+      - select_traits_by_domain_name
+
+  - title: Extract & process
+    desc: Extract and post-process the selected data.
+    contents:
+      - extract_data
+      - pack_data
+      - classify_taxa
+      - get_classification_table
+
+  - title: References & citations
+    desc: Retrieve data citations for the selected data.
+    contents:
+      - get_references
+
+  - title: Utilities
+    desc: Helper functions used in advanced workflows.
+    contents:
+      - get_taxon_names
+      - get_readable_column_names
+      - stop_quietly
+
 articles:
   - title: "Usage Examples"
     navbar: "Usage Examples"

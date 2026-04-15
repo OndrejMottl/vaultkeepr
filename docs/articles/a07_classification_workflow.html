@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">vaultkeepr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -367,7 +367,7 @@
 <p>The edit is a two-step process:</p>
 <ol type="1">
 <li>Retrieve the <strong>target genus ID</strong> from the classification table itself.</li>
-<li>Patch the affected rows with <code><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">dplyr::mutate()</a></code> and <code><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">dplyr::case_when()</a></code>.</li>
+<li>Patch the affected rows with <code><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">dplyr::mutate()</a></code> and <code><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">dplyr::case_when()</a></code>.</li>
 </ol>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
@@ -389,7 +389,7 @@
 <span><span class="va">data_class_corrected</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">data_class</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
-<span>    taxon_genus <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
+<span>    taxon_genus <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
 <span>      <span class="va">taxon_name</span> <span class="op">==</span> <span class="st">"Betula nana"</span> <span class="op">~</span> <span class="va">id_genus_alnus</span>,</span>
 <span>      .default <span class="op">=</span> <span class="va">taxon_genus</span></span>
 <span>    <span class="op">)</span></span>
@@ -462,7 +462,7 @@
 <div>
 <blockquote>
 <p><strong>Tip</strong></p>
-<p>To re-map <strong>every species of a genus</strong> rather than a single taxon, use <code>genus_name == "Betula"</code> as the <code><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">dplyr::case_when()</a></code> condition instead of <code>taxon_name == "Betula nana"</code>. The same approach works for family- level remapping via <code>taxon_family</code>.</p>
+<p>To re-map <strong>every species of a genus</strong> rather than a single taxon, use <code>genus_name == "Betula"</code> as the <code><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">dplyr::case_when()</a></code> condition instead of <code>taxon_name == "Betula nana"</code>. The same approach works for family- level remapping via <code>taxon_family</code>.</p>
 </blockquote>
 </div>
 <hr></section><section class="level2"><h2 id="using-the-raw-id-table">Using the raw-ID table<a class="anchor" aria-label="anchor" href="#using-the-raw-id-table"></a>
