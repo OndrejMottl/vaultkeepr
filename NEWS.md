@@ -1,4 +1,4 @@
-# vaultkeepr 0.0.7
+# vaultkeepr 0.1.0
 
 ## New functions
 
