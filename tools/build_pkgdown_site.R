@@ -1,6 +1,11 @@
 build_pkgdown_site <- function() {
   cnd_build_error <- NULL
 
+  # Install the current development version into the user library so that
+  # quarto's R subprocess (which doesn't inherit in-session libpaths) can
+  # find any newly added or modified functions.
+  devtools::install(quiet = TRUE, dependencies = FALSE)
+
   # Work around a Quarto 1.8.x + Windows bug inside pkgdown:::quarto_render:
   # pkgdown passes --output-dir as an absolute Windows path (e.g.
   # C:\Users\...\pkgdown-quarto-xxx) to the Quarto CLI. Quarto's Deno engine
@@ -104,6 +109,7 @@ build_pkgdown_site <- function() {
     expr = {
       pkgdown::build_site_github_pages(
         pkg = ".",
+        install = TRUE,
         new_process = FALSE
       )
     },

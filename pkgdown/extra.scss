@@ -15,11 +15,11 @@ $color-grey: #999999;
 // vaultkeepr swaps green/blue roles but keeps the warm amber background
 // so the two sites read as "same family".
 // The background is set directly on body (not via bslib 'bg') because
-// bslib cascades the colour into Bootstrap-derived values (cards, borders…)
+// bslib cascades the colour into Bootstrap-derived values (cards, borders...)
 // and non-neutral colours look wrong there.
-$color-bg: #e6b482; // warm amber — body background (same as VegVault)
-$color-navbar: #5f634f; // olive green  — navbar (was links in VegVault)
-$color-primary: #52758f; // slate blue   — links  (was navbar in VegVault)
+$color-bg: #e6b482; // warm amber - body background (same as VegVault)
+$color-navbar: #5f634f; // olive green  - navbar (was links in VegVault)
+$color-primary: #52758f; // slate blue   - links  (was navbar in VegVault)
 $color-beige-warm: #e6b482; // warm amber
 $color-beige-dark: #ae8a7b; // warm tan
 $color-brown: #8a554e; // earth brown
@@ -36,11 +36,11 @@ $margin-large: 20px;
 // ============================================================
 body {
   font-family: "Inter", "Arial", sans-serif !important;
-  background-color: $color-bg; // explicit — same pattern as VegVault
+  background-color: $color-bg; // explicit - same pattern as VegVault
   color: $color-black;
 }
 
-// Links — explicit colour so it doesn't rely on bslib primary cascade
+// Links - explicit colour so it doesn't rely on bslib primary cascade
 a {
   color: $color-primary;
   text-decoration: underline;
@@ -91,7 +91,7 @@ h2 {
 }
 
 // ============================================================
-// Navbar  (olive green — swapped from VegVault's slate blue)
+// Navbar  (olive green - swapped from VegVault's slate blue)
 // ============================================================
 .navbar {
   background-color: $color-navbar !important;
@@ -232,7 +232,7 @@ blockquote {
 // Strategy:
 //   - Set --bs-body-bg and --bs-table-bg so Bootstrap's own var() chain
 //     resolves to amber.
-//   - Use .table-prefixed selectors (specificity ≥ 0,1,1) so our
+//   - Use .table-prefixed selectors (specificity >= 0,1,1) so our
 //     background rules win when we need to override (e.g. headers, stripes).
 
 body {
@@ -240,7 +240,7 @@ body {
 }
 
 // Match Bootstrap's exact selector to be unambiguous about the amber base.
-.table > :not(caption) > * > * {
+.table> :not(caption)>*>* {
   --bs-table-bg: #{$color-bg};
   background-color: $color-bg;
 }
@@ -271,7 +271,7 @@ table,
   border: 1px solid $color-black;
 }
 
-// Body cells: specificity (0,1,1) — same as Bootstrap, but later in
+// Body cells: specificity (0,1,1) - same as Bootstrap, but later in
 // source so our value wins.
 .table td,
 .table th {
@@ -282,7 +282,7 @@ table,
   background-color: $color-bg;
 }
 
-// Striped rows: specificity (0,1,4) > Bootstrap (0,1,1) → wins cleanly.
+// Striped rows: specificity (0,1,4) > Bootstrap (0,1,1) -> wins cleanly.
 .table tbody tr:nth-child(even) td {
   background-color: darken($color-bg, 6%);
 }
@@ -336,14 +336,14 @@ figcaption,
 // ============================================================
 // Reference index cards
 // ============================================================
-// Reference pages use plain td cells — keep borderless but still amber
+// Reference pages use plain td cells - keep borderless but still amber
 .function-reference .ref-index td {
   border: none;
   background-color: transparent;
 }
 
 .ref-index h2 {
-  font-size: 0.9rem !important; // pixel font h2 — keep smaller
+  font-size: 0.9rem !important; // pixel font h2 - keep smaller
 }
 
 // ============================================================
@@ -357,6 +357,6 @@ figcaption,
 .page-body,
 main,
 .container-fluid,
-.row > [class*="col-"] {
+.row>[class*="col-"] {
   background-color: transparent !important;
 }

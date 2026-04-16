@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">vaultkeepr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,6 +25,8 @@
     <li><a class="dropdown-item" href="../articles/a03_functional_traits.html">Reconstructing functional diversity through time</a></li>
     <li><a class="dropdown-item" href="../articles/a04_extract_data.html">Exploring extract_data(): from ready-to-use output to raw data</a></li>
     <li><a class="dropdown-item" href="../articles/a05_references.html">Retrieving data citations with get_references()</a></li>
+    <li><a class="dropdown-item" href="../articles/a06_palaeo_uncertainty.html">Understanding paleoecological uncertainty</a></li>
+    <li><a class="dropdown-item" href="../articles/a07_classification_workflow.html">Inspecting and customising the taxonomic classification</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -42,9 +44,237 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="connect">Connect<a class="anchor" aria-label="anchor" href="#connect"></a></h2>
+
+      <div class="section-desc"><p>Open a connection to the VegVault database and explore its contents.</p></div>
+
+      <dl></dl></div><div class="section level2">
 
 
+
+
+      <dl><dt>
+
+          <code><a href="open_vault.html">open_vault()</a></code>
+
+        </dt>
+        <dd>Open a vault</dd>
+
+        <dt>
+
+          <code><a href="explore_vault.html">explore_vault()</a></code>
+
+        </dt>
+        <dd>Explore a vault</dd>
+      </dl></div><div class="section level2">
+      <h2 id="get-data">Get data<a class="anchor" aria-label="anchor" href="#get-data"></a></h2>
+
+      <div class="section-desc"><p>Retrieve data from the vault. Chain these after <code><a href="../reference/open_vault.html">open_vault()</a></code> to build a query plan.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+      <h3 id="datasets">Datasets<a class="anchor" aria-label="anchor" href="#datasets"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="get_datasets.html">get_datasets()</a></code>
+
+        </dt>
+        <dd>get Datasets</dd>
+
+        <dt>
+
+          <code><a href="get_common_dataset_type.html">get_common_dataset_type()</a></code>
+
+        </dt>
+        <dd>Get common dataset type</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="samples">Samples<a class="anchor" aria-label="anchor" href="#samples"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="get_samples.html">get_samples()</a></code>
+
+        </dt>
+        <dd>Get samples</dd>
+
+        <dt>
+
+          <code><a href="get_age_uncertainty.html">get_age_uncertainty()</a></code>
+
+        </dt>
+        <dd>Get age uncertainties for samples</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="taxa">Taxa<a class="anchor" aria-label="anchor" href="#taxa"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="get_taxa.html">get_taxa()</a></code>
+
+        </dt>
+        <dd>Get taxa information</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="traits">Traits<a class="anchor" aria-label="anchor" href="#traits"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="get_traits.html">get_traits()</a></code>
+
+        </dt>
+        <dd>Get trait values for the data</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="abiotic-data">Abiotic data<a class="anchor" aria-label="anchor" href="#abiotic-data"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="get_abiotic_data.html">get_abiotic_data()</a></code>
+
+        </dt>
+        <dd>Get abiotic data</dd>
+      </dl></div><div class="section level2">
+      <h2 id="filter">Filter<a class="anchor" aria-label="anchor" href="#filter"></a></h2>
+
+      <div class="section-desc"><p>Narrow the selection of datasets, samples, taxa, traits, and abiotic variables before extracting data.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+      <h3 id="datasets-1">Datasets<a class="anchor" aria-label="anchor" href="#datasets-1"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="select_dataset_by_type.html">select_dataset_by_type()</a></code>
+
+        </dt>
+        <dd>get Datasets by selected type</dd>
+
+        <dt>
+
+          <code><a href="select_dataset_by_geo.html">select_dataset_by_geo()</a></code>
+
+        </dt>
+        <dd>Select dataset by geographical location</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="samples-1">Samples<a class="anchor" aria-label="anchor" href="#samples-1"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="select_samples_by_age.html">select_samples_by_age()</a></code>
+
+        </dt>
+        <dd>Select samples by age</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="taxa-1">Taxa<a class="anchor" aria-label="anchor" href="#taxa-1"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="select_taxa_by_id.html">select_taxa_by_id()</a></code>
+
+        </dt>
+        <dd>Only select taxa by ID</dd>
+
+        <dt>
+
+          <code><a href="select_taxa_by_name.html">select_taxa_by_name()</a></code>
+
+        </dt>
+        <dd>Only select taxa by name</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="abiotic-variables">Abiotic variables<a class="anchor" aria-label="anchor" href="#abiotic-variables"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="select_abiotic_var_by_id.html">select_abiotic_var_by_id()</a></code>
+
+        </dt>
+        <dd>Select abiotic variables by id</dd>
+
+        <dt>
+
+          <code><a href="select_abiotic_var_by_name.html">select_abiotic_var_by_name()</a></code>
+
+        </dt>
+        <dd>Select abiotic variables by name</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="traits-1">Traits<a class="anchor" aria-label="anchor" href="#traits-1"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="select_traits_by_domain_name.html">select_traits_by_domain_name()</a></code>
+
+        </dt>
+        <dd>Select traits by domain name</dd>
+      </dl></div><div class="section level2">
+      <h2 id="extract-process">Extract &amp; process<a class="anchor" aria-label="anchor" href="#extract-process"></a></h2>
+
+      <div class="section-desc"><p>Extract and post-process the selected data.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -60,110 +290,73 @@
 
         <dt>
 
-          <code><a href="get_abiotic_data.html">get_abiotic_data()</a></code>
+          <code><a href="pack_data.html">pack_data()</a></code>
 
         </dt>
-        <dd>Get abiotic data</dd>
+        <dd>Pack the data into nested tibbles</dd>
 
         <dt>
 
-          <code><a href="get_datasets.html">get_datasets()</a></code>
+          <code><a href="classify_taxa.html">classify_taxa()</a></code>
 
         </dt>
-        <dd>get Datasets</dd>
+        <dd>Classify taxa</dd>
 
         <dt>
+
+          <code><a href="get_classification_table.html">get_classification_table()</a></code>
+
+        </dt>
+        <dd>Get the classification table for the data</dd>
+      </dl></div><div class="section level2">
+      <h2 id="references-citations">References &amp; citations<a class="anchor" aria-label="anchor" href="#references-citations"></a></h2>
+
+      <div class="section-desc"><p>Retrieve data citations for the selected data.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="get_references.html">get_references()</a></code>
 
         </dt>
         <dd>Get references for selected VegVault Plan</dd>
+      </dl></div><div class="section level2">
+      <h2 id="utilities">Utilities<a class="anchor" aria-label="anchor" href="#utilities"></a></h2>
+
+      <div class="section-desc"><p>Helper functions used in advanced workflows.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="get_taxon_names.html">get_taxon_names()</a></code>
+
+        </dt>
+        <dd>Get taxon names from a vault plan</dd>
 
         <dt>
 
-          <code><a href="get_samples.html">get_samples()</a></code>
+          <code><a href="get_readable_column_names.html">get_readable_column_names()</a></code>
 
         </dt>
-        <dd>Get samples</dd>
+        <dd>Get readable column names</dd>
 
         <dt>
 
-          <code><a href="get_taxa.html">get_taxa()</a></code>
+          <code><a href="stop_quietly.html">stop_quietly()</a></code>
 
         </dt>
-        <dd>Get taxa information</dd>
-
-        <dt>
-
-          <code><a href="get_traits.html">get_traits()</a></code>
-
-        </dt>
-        <dd>Get trait values for the data</dd>
-
-        <dt>
-
-          <code><a href="open_vault.html">open_vault()</a></code>
-
-        </dt>
-        <dd>Open a vault</dd>
-
-        <dt>
-
-          <code><a href="select_abiotic_var_by_id.html">select_abiotic_var_by_id()</a></code>
-
-        </dt>
-        <dd>Select abiotic variables by id</dd>
-
-        <dt>
-
-          <code><a href="select_abiotic_var_by_name.html">select_abiotic_var_by_name()</a></code>
-
-        </dt>
-        <dd>Select abiotic variables by name</dd>
-
-        <dt>
-
-          <code><a href="select_dataset_by_geo.html">select_dataset_by_geo()</a></code>
-
-        </dt>
-        <dd>Select dataset by geographical location</dd>
-
-        <dt>
-
-          <code><a href="select_dataset_by_type.html">select_dataset_by_type()</a></code>
-
-        </dt>
-        <dd>get Datasets by selected type</dd>
-
-        <dt>
-
-          <code><a href="select_samples_by_age.html">select_samples_by_age()</a></code>
-
-        </dt>
-        <dd>Select samples by age</dd>
-
-        <dt>
-
-          <code><a href="select_taxa_by_id.html">select_taxa_by_id()</a></code>
-
-        </dt>
-        <dd>Only select taxa by ID</dd>
-
-        <dt>
-
-          <code><a href="select_taxa_by_name.html">select_taxa_by_name()</a></code>
-
-        </dt>
-        <dd>Only select taxa by name</dd>
-
-        <dt>
-
-          <code><a href="select_traits_by_domain_name.html">select_traits_by_domain_name()</a></code>
-
-        </dt>
-        <dd>Select traits by domain name</dd>
+        <dd>Stop the script</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

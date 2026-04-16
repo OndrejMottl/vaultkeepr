@@ -4,10 +4,12 @@
 \alias{open_vault}
 \title{Open a vault}
 \usage{
-open_vault(path)
+open_vault(path, verbose = TRUE)
 }
 \arguments{
 \item{path}{A character string of the path to the SQLite database}
+
+\item{verbose}{A logical value indicating whether to print messages}
 }
 \value{
 A list with two elements: \code{data} and \code{db_con}

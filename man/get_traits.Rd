@@ -7,29 +7,36 @@
 get_traits(
   con = NULL,
   classify_to = c("original", "species", "genus", "family"),
-  verbose = TRUE
+  verbose = TRUE,
+  classification_data = NULL
 )
 }
 \arguments{
-\item{con}{A connection object created using \code{open_vault()}}
+\item{con}{A connection object created using \code{\link[=open_vault]{open_vault()}}.}
 
-\item{classify_to}{A character vector specifying the taxonomic level
-to classify the taxa to. Default is \code{original}}
+\item{classify_to}{A character vector specifying the taxonomic level to classify the
+taxa to. Default is \code{original}.}
 
-\item{verbose}{A logical value indicating whether to print messages.
-Default is \code{TRUE}}
+\item{verbose}{A \code{logical} indicating whether to print messages. Default is \code{TRUE}.}
+
+\item{classification_data}{An optional \code{data.frame} (or \code{tibble}) used instead of the
+\code{TaxonClassification} table in the database. Must contain \code{taxon_id}
+and the column matching \code{classify_to} (e.g. \code{taxon_genus} when
+\code{classify_to = "genus"}). If \code{NULL} (default), the database table
+is used. Obtain a valid table via
+\code{get_classification_table(con, return_raw_data = TRUE)}.}
 }
 \value{
-A connection object with the data and database connection
+A connection object with the data and database connection.
 }
 \description{
-Get trait values for the data from the Vault database
+Get trait values for the data from the Vault database.
 }
 \details{
-If the function is used after \code{get_taxa()}, the trait values will be
+If the function is used after \code{\link[=get_taxa]{get_taxa()}}, the trait values will be
 returned only for the taxa present in the data. If you prefer to
-return all trait values, we recommend using \code{get_traits()} before
-\code{get_taxa()} in the pipe.
-In addition, it is important to set \code{classify_to} to the same value as
-in \code{get_taxa()}.
+return all trait values, we recommend using \code{\link[=get_traits]{get_traits()}} before
+\code{\link[=get_taxa]{get_taxa()}} in the pipe.
+In addition, it is important to set \code{classify_to} to the same value
+as in \code{\link[=get_taxa]{get_taxa()}}.
 }

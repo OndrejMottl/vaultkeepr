@@ -16,14 +16,15 @@
 pack_data <- function(
     sel_data = NULL,
     verbose = TRUE) {
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_data, "tbl"),
-    msg = "sel_data must be a class of `tbl`"
+    msg = "{.arg sel_data} must be a class of {.cls tbl}.",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.logical(verbose),
-    msg = "The 'verbose' must be a logical"
+    msg = "{.arg verbose} must be a logical value."
   )
 
   # dataset data -----

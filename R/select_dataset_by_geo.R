@@ -18,69 +18,67 @@ select_dataset_by_geo <- function(
     verbose = TRUE) {
   .data <- rlang::.data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(con, "vault_pipe"),
-    msg = paste(
-      "`con` must be a class of `vault_pipe`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must be a {.cls vault_pipe} object. Use {.fn open_vault} to create a connection",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(names(con) %in% c("data", "db_con")),
-    msg = paste(
-      "con must have `data` and `db_con`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must have {.code data} and {.code db_con} elements. Use {.fn open_vault} to create a connection",
+    verbose = verbose
   )
 
   sel_data <- con$data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_data, "tbl"),
-    msg = "data must be a class of `tbl`"
+    msg = "{.code con$data} must be a {.cls tbl}",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(c("coord_long", "coord_lat") %in% colnames(sel_data)),
-    msg = paste(
-      "The data does not contain lat/long columns function.",
-      "Use `get_datasets()` to the pipe before this function."
-    )
+    msg = "The data does not contain {.code coord_long} and {.code coord_lat} columns. Use {.fn get_datasets} before this function",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "dataset_type" %in% colnames(sel_data),
-    msg = paste(
-      "The data does not contain `dataset_type` columns. Please add",
-      "`select_dataset_by_type()` to the pipe before this function."
-    )
+    msg = "The data does not contain the {.code dataset_type} column. Use {.fn select_dataset_by_type} before this function",
+    verbose = verbose
   )
 
   sel_con <- con$db_con
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "db_con must be a class of `SQLiteConnection`"
+    msg = "{.code con$db_con} must be a {.cls SQLiteConnection}",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.numeric(long_lim),
-    msg = "long_lim must be a numeric vector"
+    msg = "{.arg long_lim} must be a numeric vector",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.numeric(lat_lim),
-    msg = "lat_lim must be a numeric vector"
+    msg = "{.arg lat_lim} must be a numeric vector",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     length(long_lim) == 2,
-    msg = "long_lim must be a vector of length 2"
+    msg = "{.arg long_lim} must be a vector of length 2",
+    verbose = verbose
   )
-  assertthat::assert_that(
+  assertthat_cli(
     length(lat_lim) == 2,
-    msg = "lat_lim must be a vector of length 2"
+    msg = "{.arg lat_lim} must be a vector of length 2",
+    verbose = verbose
   )
 
   long_lim_min <- as.numeric(eval(min(long_lim)))
@@ -89,14 +87,16 @@ select_dataset_by_geo <- function(
   lat_lim_min <- as.numeric(eval(min(lat_lim)))
   lat_lim_max <- as.numeric(eval(max(lat_lim)))
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.character(sel_dataset_type),
-    msg = "`sel_dataset_type` must be a character vector"
+    msg = "{.arg sel_dataset_type} must be a character vector",
+    verbose = verbose
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(verbose, "logical"),
-    msg = "`verbose` must be a logical value"
+    msg = "{.arg verbose} must be a logical value",
+    verbose = verbose
   )
 
 

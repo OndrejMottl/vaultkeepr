@@ -9,55 +9,43 @@ select_dataset_by_type <- function(
     sel_dataset_type = c("vegetation_plot", "fossil_pollen_archive", "traits", "gridpoints")) {
   .data <- rlang::.data
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.character(sel_dataset_type),
-    msg = "`sel_dataset_type` must be a character vector"
+    msg = "{.arg sel_dataset_type} must be a character vector"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(sel_dataset_type %in% c("vegetation_plot", "fossil_pollen_archive", "traits", "gridpoints")),
-    msg = paste(
-      "The `sel_dataset_type` must be one of the following:",
-      "`vegetation_plot`, `fossil_pollen_archive`, `traits`, `gridpoints`"
-    )
+    msg = "{.arg sel_dataset_type} must be one of: {.code vegetation_plot}, {.code fossil_pollen_archive}, {.code traits}, {.code gridpoints}"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(con, "vault_pipe"),
-    msg = paste(
-      "`con` must be a class of `vault_pipe`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must be a {.cls vault_pipe} object. Use {.fn open_vault} to create a connection"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(names(con) %in% c("data", "db_con")),
-    msg = paste(
-      "con must have `data` and `db_con`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must have {.code data} and {.code db_con} elements. Use {.fn open_vault} to create a connection"
   )
 
   sel_data <- con$data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_data, "tbl"),
-    msg = "data must be a class of `tbl`"
+    msg = "{.code con$data} must be a {.cls tbl}"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "dataset_type" %in% colnames(sel_data),
-    msg = paste(
-      "The dataset does not contain `dataset_type` columns. Please add",
-      "`get_datasets()` to the pipe before this function."
-    )
+    msg = "The data does not contain the {.code dataset_type} column. Use {.fn get_datasets} before this function"
   )
 
   sel_con <- con$db_con
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "db_con must be a class of `SQLiteConnection`"
+    msg = "{.code con$db_con} must be a {.cls SQLiteConnection}"
   )
 
   vec_present_dataset_type <-
@@ -66,12 +54,9 @@ select_dataset_by_type <- function(
     dplyr::collect() %>%
     purrr::pluck(1)
 
-  assertthat::assert_that(
+  assertthat_cli(
     any(sel_dataset_type %in% vec_present_dataset_type),
-    msg = paste(
-      "The data does not contain the any of dataset types specified in",
-      "`sel_dataset_type`."
-    )
+    msg = "The data does not contain any of the dataset types specified in {.arg sel_dataset_type}"
   )
 
   dat_res <-

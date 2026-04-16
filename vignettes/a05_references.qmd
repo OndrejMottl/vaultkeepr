@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Retrieving data citations with get_references()"
 description: >
   Learn how to retrieve all bibliographic references associated with a

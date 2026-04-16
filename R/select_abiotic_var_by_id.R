@@ -7,66 +7,53 @@
 select_abiotic_var_by_id <- function(con = NULL, sel_var_id = NULL) {
   .data <- rlang::.data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(con, "vault_pipe"),
-    msg = paste(
-      "`con` must be a class of `vault_pipe`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must be a {.cls vault_pipe} object. Use {.fn open_vault} to create a connection"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(names(con) %in% c("data", "db_con")),
-    msg = paste(
-      "con must have `data` and `db_con`",
-      "Use `open_vault()` to create a connection"
-    )
+    msg = "{.arg con} must have {.code data} and {.code db_con} elements. Use {.fn open_vault} to create a connection"
   )
 
   sel_data <- con$data
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_data, "tbl"),
-    msg = "data must be a class of `tbl`"
+    msg = "{.code con$data} must be a {.cls tbl}"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "abiotic_variable_id" %in% colnames(sel_data),
-    msg = paste(
-      "The data does not contain `abiotic_variable_id` columns. Please add",
-      "`get_abiotic_data()` to the pipe before this function."
-    )
+    msg = "The data does not contain the {.code abiotic_variable_id} column. Use {.fn get_abiotic_data} before this function"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     "dataset_type" %in% colnames(sel_data),
-    msg = paste(
-      "The data should be filtered only for `gridpoints`.",
-      "However, the does not contain `dataset_type` columns. Please add",
-      "`select_dataset_by_type()` to the pipe before this function."
-    )
+    msg = "The data does not contain the {.code dataset_type} column. Use {.fn select_dataset_by_type} before this function"
   )
 
   sel_con <- con$db_con
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(sel_con, "SQLiteConnection"),
-    msg = "db_con must be a class of `SQLiteConnection`"
+    msg = "{.code con$db_con} must be a {.cls SQLiteConnection}"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     is.numeric(sel_var_id),
-    msg = "`sel_var_id` must be a numeric vector"
+    msg = "{.arg sel_var_id} must be a numeric vector"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     all(round(sel_var_id) == sel_var_id),
-    msg = "`sel_var_id` must be a integer vector"
+    msg = "{.arg sel_var_id} must be an integer vector"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     length(sel_var_id) > 0,
-    msg = "`sel_var_id` must have at least one taxon id"
+    msg = "{.arg sel_var_id} must have at least one variable id"
   )
 
   dat_res <-

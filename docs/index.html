@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="index.html">vaultkeepr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,6 +50,8 @@
     <li><a class="dropdown-item" href="articles/a03_functional_traits.html">Reconstructing functional diversity through time</a></li>
     <li><a class="dropdown-item" href="articles/a04_extract_data.html">Exploring extract_data(): from ready-to-use output to raw data</a></li>
     <li><a class="dropdown-item" href="articles/a05_references.html">Retrieving data citations with get_references()</a></li>
+    <li><a class="dropdown-item" href="articles/a06_palaeo_uncertainty.html">Understanding paleoecological uncertainty</a></li>
+    <li><a class="dropdown-item" href="articles/a07_classification_workflow.html">Inspecting and customising the taxonomic classification</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -79,6 +81,157 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"OndrejMottl/vaultkeepr"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h2>
+<p>vaultkeepr provides a pipe-friendly interface to the <a href="https://ondrejmottl.github.io/VegVault/" class="external-link">VegVault</a> database. Functions are designed to be chained together to build a lazy query plan that is executed in full with a single call to <code><a href="reference/extract_data.html">extract_data()</a></code>.</p>
+<div class="section level3">
+<h3 id="connection--exploration">Connection &amp; exploration<a class="anchor" aria-label="anchor" href="#connection--exploration"></a>
+</h3>
+<table class="table">
+<thead><tr>
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code><a href="reference/open_vault.html">open_vault()</a></code></td>
+<td>Open a connection to a VegVault SQLite file</td>
+</tr>
+<tr>
+<td><code><a href="reference/explore_vault.html">explore_vault()</a></code></td>
+<td>List all table names in the connected database</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="building-a-query-plan">Building a query plan<a class="anchor" aria-label="anchor" href="#building-a-query-plan"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code><a href="reference/get_datasets.html">get_datasets()</a></code></td>
+<td>Add dataset metadata to the plan</td>
+</tr>
+<tr>
+<td><code><a href="reference/select_dataset_by_type.html">select_dataset_by_type()</a></code></td>
+<td>Filter by dataset type</td>
+</tr>
+<tr>
+<td><code><a href="reference/select_dataset_by_geo.html">select_dataset_by_geo()</a></code></td>
+<td>Filter by geographic bounding box</td>
+</tr>
+<tr>
+<td><code><a href="reference/get_samples.html">get_samples()</a></code></td>
+<td>Add sample metadata</td>
+</tr>
+<tr>
+<td><code><a href="reference/select_samples_by_age.html">select_samples_by_age()</a></code></td>
+<td>Filter samples by age range</td>
+</tr>
+<tr>
+<td><code><a href="reference/get_age_uncertainty.html">get_age_uncertainty()</a></code></td>
+<td>Retrieve age uncertainty estimates for samples</td>
+</tr>
+<tr>
+<td><code><a href="reference/get_taxa.html">get_taxa()</a></code></td>
+<td>Add taxon occurrence data</td>
+</tr>
+<tr>
+<td><code><a href="reference/select_taxa_by_name.html">select_taxa_by_name()</a></code></td>
+<td>Filter taxa by name</td>
+</tr>
+<tr>
+<td><code><a href="reference/select_taxa_by_id.html">select_taxa_by_id()</a></code></td>
+<td>Filter taxa by ID</td>
+</tr>
+<tr>
+<td><code><a href="reference/get_taxon_names.html">get_taxon_names()</a></code></td>
+<td>Retrieve distinct taxon names from the current plan</td>
+</tr>
+<tr>
+<td><code><a href="reference/get_classification_table.html">get_classification_table()</a></code></td>
+<td>Retrieve the taxonomic classification table</td>
+</tr>
+<tr>
+<td><code><a href="reference/get_traits.html">get_traits()</a></code></td>
+<td>Add functional trait data</td>
+</tr>
+<tr>
+<td><code><a href="reference/select_traits_by_domain_name.html">select_traits_by_domain_name()</a></code></td>
+<td>Filter traits by domain</td>
+</tr>
+<tr>
+<td><code><a href="reference/get_abiotic_data.html">get_abiotic_data()</a></code></td>
+<td>Add spatially matched abiotic (climate/soil) data</td>
+</tr>
+<tr>
+<td><code><a href="reference/select_abiotic_var_by_name.html">select_abiotic_var_by_name()</a></code></td>
+<td>Filter abiotic variables by name</td>
+</tr>
+<tr>
+<td><code><a href="reference/select_abiotic_var_by_id.html">select_abiotic_var_by_id()</a></code></td>
+<td>Filter abiotic variables by ID</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="executing-the-plan">Executing the plan<a class="anchor" aria-label="anchor" href="#executing-the-plan"></a>
+</h3>
+<table class="table">
+<thead><tr>
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code><a href="reference/extract_data.html">extract_data()</a></code></td>
+<td>Execute the query plan and return a tibble</td>
+</tr>
+<tr>
+<td><code><a href="reference/get_references.html">get_references()</a></code></td>
+<td>Retrieve data-source references</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section level2">
+<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
+</h2>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/OndrejMottl/vaultkeepr" class="external-link">vaultkeepr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Open the database</span></span>
+<span><span class="va">con</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="reference/open_vault.html">open_vault</a></span><span class="op">(</span>path <span class="op">=</span> <span class="st">"path/to/VegVault.sqlite"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Inspect available tables</span></span>
+<span><span class="fu"><a href="reference/explore_vault.html">explore_vault</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Build and execute a query plan</span></span>
+<span><span class="va">data_betula</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">con</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/get_datasets.html">get_datasets</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/select_dataset_by_type.html">select_dataset_by_type</a></span><span class="op">(</span></span>
+<span>    sel_dataset_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vegetation_plot"</span>, <span class="st">"fossil_pollen_archive"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/get_samples.html">get_samples</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/get_taxa.html">get_taxa</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/select_taxa_by_name.html">select_taxa_by_name</a></span><span class="op">(</span>sel_taxa <span class="op">=</span> <span class="st">"Betula"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/extract_data.html">extract_data</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>For detailed worked examples, see the <a href="https://hope-uib-bio.github.io/vaultkeepr/articles/">package website</a>.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

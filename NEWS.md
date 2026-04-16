@@ -1,3 +1,22 @@
+# vaultkeepr 0.0.7
+
+## New functions
+
+* `get_taxon_names()` - retrieve distinct taxon names from the Vault database
+* `get_age_uncertainty()` - retrieve age uncertainty estimates for samples (wide and long format)
+* `explore_vault()` - retrieve table names from a connected VegVault database
+* `get_classification_table()` - retrieve classification data for inspecting and customising taxonomic classification
+
+## Improvements
+
+* `classify_taxa()` - add a `cli` warning when automatic classification is used (i.e., `to` is not `"original"`) to alert users about potential errors; add optional `classification_data` argument for user-supplied override tables
+* `open_vault()` - add validation to ensure the supplied path points to a valid SQLite file
+
+## Refactoring
+
+* `assertthat_cli` helper
+  * replace `assertthat::assert_that()` with a new `assertthat_cli()` helper using `{cli}` and `{stringr}` for clearer error and warning messages across all exported functions; `cli` and `stringr` moved to `Imports`
+
 # vaultkeepr 0.0.6
 
 * `get_readable_column_names()` - specify the link type for each table to improve the performance

@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Exploring extract_data(): from ready-to-use output to raw data"
 description: >
   A focused walkthrough of the extract_data() function. Starts with the

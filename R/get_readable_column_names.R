@@ -9,14 +9,14 @@
 #' @return A tibble with readable column names.
 #' @keywords internal
 get_readable_column_names <- function(con, data) {
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(data, "tbl"),
-    msg = "data must be a class of `tbl`"
+    msg = "{.arg data} must be a {.cls tbl}"
   )
 
-  assertthat::assert_that(
+  assertthat_cli(
     inherits(con, "SQLiteConnection"),
-    msg = "path does not lead to valid SQLite database"
+    msg = "{.arg con} does not lead to a valid {.cls SQLiteConnection}"
   )
 
   data_work <- data
