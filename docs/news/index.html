@@ -45,9 +45,9 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.0.7" id="vaultkeepr-007">vaultkeepr 0.0.7<a class="anchor" aria-label="anchor" href="#vaultkeepr-007"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0" id="vaultkeepr-010">vaultkeepr 0.1.0<a class="anchor" aria-label="anchor" href="#vaultkeepr-010"></a></h2>
 <div class="section level3">
-<h3 id="new-functions-0-0-7">New functions<a class="anchor" aria-label="anchor" href="#new-functions-0-0-7"></a></h3>
+<h3 id="new-functions-0-1-0">New functions<a class="anchor" aria-label="anchor" href="#new-functions-0-1-0"></a></h3>
 <ul><li>
 <code><a href="../reference/get_taxon_names.html">get_taxon_names()</a></code> - retrieve distinct taxon names from the Vault database</li>
 <li>
@@ -58,14 +58,14 @@
 <code><a href="../reference/get_classification_table.html">get_classification_table()</a></code> - retrieve classification data for inspecting and customising taxonomic classification</li>
 </ul></div>
 <div class="section level3">
-<h3 id="improvements-0-0-7">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-0-7"></a></h3>
+<h3 id="improvements-0-1-0">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-1-0"></a></h3>
 <ul><li>
 <code><a href="../reference/classify_taxa.html">classify_taxa()</a></code> - add a <code>cli</code> warning when automatic classification is used (i.e., <code>to</code> is not <code>"original"</code>) to alert users about potential errors; add optional <code>classification_data</code> argument for user-supplied override tables</li>
 <li>
 <code><a href="../reference/open_vault.html">open_vault()</a></code> - add validation to ensure the supplied path points to a valid SQLite file</li>
 </ul></div>
 <div class="section level3">
-<h3 id="refactoring-0-0-7">Refactoring<a class="anchor" aria-label="anchor" href="#refactoring-0-0-7"></a></h3>
+<h3 id="refactoring-0-1-0">Refactoring<a class="anchor" aria-label="anchor" href="#refactoring-0-1-0"></a></h3>
 <ul><li>
 <code>assertthat_cli</code> helper
 <ul><li>replace <code><a href="https://rdrr.io/pkg/assertthat/man/assert_that.html" class="external-link">assertthat::assert_that()</a></code> with a new <code>assertthat_cli()</code> helper using <a href="https://cli.r-lib.org" class="external-link">cli</a> and <a href="https://stringr.tidyverse.org" class="external-link">stringr</a> for clearer error and warning messages across all exported functions; <code>cli</code> and <code>stringr</code> moved to <code>Imports</code>
