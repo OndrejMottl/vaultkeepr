@@ -1,250 +1,30 @@
----
-applyTo: "**/*.R"
-description: >
-  Guidelines for writing R functions in the RRatepol package: argument style,
-  anonymous functions, error handling with assertthat, roxygen2 documentation,
-  and testthat testing.
----
+# Functions, Documentation, and Tests
 
-# Function Writing Guidelines
+Behavior changes use this sequence:
 
-For function calls, always state the arguments even though R can have anonymous
-arguments. The only exception is for functions where arguments are not known
-(i.e. `...` argument).
+1. Update the roxygen contract in the function source: purpose, parameters, return value, errors, examples, and compatibility implications.
+2. Add or update focused tests for the intended behavior and run them before implementation. Confirm they fail for the intended missing behavior, not because of broken setup.
+3. Implement the smallest coherent change.
+4. Run `devtools::document()`; inspect changes to `NAMESPACE` and `man/`.
+5. In a clean session, run `devtools::load_all()` and the focused test file, for example `testthat::test_file("tests/testthat/test-open_vault.R")`.
+6. Run `devtools::test()`.
+7. Run `devtools::check()`.
 
-## Creating Functions
+If a pure documentation correction cannot meaningfully fail first, state why and validate the rendered/generated output instead.
 
-Specific rules apply for making custom functions:
+## Function contracts
 
-- For naming of functions see the Naming Conventions section in
-  [r-coding.instructions.md](r-coding.instructions.md)
-- Each function (declaration) should be placed in a separate script in `R/`,
-  named after the function. There should be only a single exported function
-  per file (internal helpers may reside in the same file if tightly coupled)
-- Function should always return (`return(res_value)`)
-- Exported functions must have `@export` in their roxygen2 documentation
-- Internal (non-exported) helpers should be prefixed with `.` (e.g.
-  `.compute_helper()`) and must **not** have `@export`
+- Keep one exported function per source file and a matching `test-<function>.R` file where practical.
+- Validate arguments with `assertthat_cli()` and keep diagnostics specific.
+- Respect `verbose` for progress messages.
+- Return objects explicitly and document their classes and columns.
+- Preserve lazy `vault_pipe` chains and connection ownership described in `.ai/r-coding.md`.
+- Preserve existing `return_raw_data` behavior; do not add it mechanically to APIs where raw database data is not a meaningful contract.
 
-**All function creation and editing follows Test-Driven Development (TDD).**
-The mandatory cycle is:
-1. Write (or update) the roxygen2 spec stub first
-2. Write unit tests against the spec — before any implementation exists
-3. Verify every test fails against the stub
-4. Implement the function until all tests pass
-5. Run `devtools::document()` to regenerate `man/*.Rd`
-6. Run the full test suite with `devtools::test()`
-7. Run `devtools::check()` to confirm the package passes R CMD check
+## Tests
 
-See [make_test_file_for_a_function.instructions.md](make_test_file_for_a_function.instructions.md)
-for the full TDD test-writing rules.
-
-## Anonymous Functions
-
-In various instances, it might be better to not create a new function but to
-use an anonymous function (e.g. inside of `purrr::map_*()`).
-
-Use tilde (`~`) for anonymous functions in purrr:
-
-```r
-purrr::map(
-  .f = ~ {
-    mean(.x)
-  }
-)
-```
-
-For `purrr::pmap_*()`, use `..1`, `..2`, etc:
-
-```r
-purrr::pmap(
-  .l = list(
-    list_1,
-    list_2,
-    list_3
-  ),
-  .f = ~ {
-    ..1 + ..2 + ..3
-  }
-)
-```
-
-## Error Handling
-
-Use two different tools depending on what is being checked:
-
-### Argument validation — `assertthat::assert_that()`
-
-Use `assertthat::assert_that()` (from the
-[assertthat](https://github.com/hadley/assertthat) package) to validate
-function **arguments** (types, required columns, lengths, etc.). These
-checks guard against incorrect inputs supplied by the caller:
-
-```r
-# Good — argument type and structure checks
-assertthat::assert_that(
-  base::is.numeric(x),
-  msg = "'x' must be numeric."
-)
-
-assertthat::assert_that(
-  base::all(c("col_a", "col_b") %in% base::names(df)),
-  msg = paste0(
-    "'df' must contain columns 'col_a' and 'col_b'."
-  )
-)
-
-# Avoid - plain stop() gives no structured context
-if (!is.numeric(x)) stop("x must be numeric")
-```
-
-### Internal / data-content checks — `RUtilpol::check_if_integer()`
-
-For internal checks within the function body, prefer the validation helpers
-from `RUtilpol` (already a package dependency) where they exist, or use
-`assertthat::assert_that()` for custom conditions.
-
-## Function Documentation
-
-Each exported function must have roxygen2 documentation immediately before
-the function declaration. Follow the template in
-[make_roxygen2_documentation.instructions.md](make_roxygen2_documentation.instructions.md).
-
-Keep the 80-character line limit for all R code and `#'` roxygen2 comment
-lines.
-
-```r
-#' @title Title of the function
-#' @description
-#' Description of the function.
-#' @param arg1
-#' Description of the first argument.
-#' @param arg2
-#' Description of the second argument.
-#' @return
-#' Description of the return value.
-#' @details
-#' Details about the function.
-#' @seealso [related_function()]
-#' @export
-#' @examples
-#' # minimal reproducible example using package data
-#' data(example_data)
-#' result <- my_function(example_data)
-```
-
-## The `return_raw_data` Pattern
-
-Functions that query the database and return data to the user must support
-a `return_raw_data` argument (default `FALSE`):
-
-- **`return_raw_data = FALSE` (default)** — human-readable output:
-  - `sample_id` (and other internal integer IDs) are replaced with
-    their name equivalents (`sample_name`, `taxon_name`, etc.) by
-    joining with the relevant lookup tables.
-  - Where appropriate the result is also **reshaped** (e.g.
-    pivoted from long to wide) for easier downstream use.
-- **`return_raw_data = TRUE`** — raw database output:
-  - Internal IDs (`sample_id`, etc.) are preserved.
-  - Long-format structure is kept.
-  - This mode is required for join-based analyses that need to link
-    different query results at the sample level.
-
-### Rules
-
-1. Always name the argument `return_raw_data` and default it to `FALSE`.
-2. Validate with
-   `assertthat::assert_that(is.logical(return_raw_data), msg = "…")`
-   immediately after the connection/data checks.
-3. Use an early-return guard for the raw path:
-   ```r
-   if (isTRUE(return_raw_data)) {
-     res <-
-       dplyr::collect(data_res_raw)
-
-     return(res)
-   }
-   ```
-4. Document both output shapes in the `@param return_raw_data` and
-   `@return` roxygen2 blocks.
-5. Tests must cover:
-   - Default output columns and shape.
-   - `return_raw_data = TRUE` output columns (raw IDs preserved).
-   - Error when `return_raw_data` is not a `logical`.
-
-### Functions that implement this pattern
-
-| Function | Default output | `return_raw_data = TRUE` |
-|---|---|---|
-| `extract_data()` | packed nested tibble, `sample_name` | flat tibble, `sample_id` |
-| `get_age_uncertainty()` | wide tibble, `sample_name` + one col per iteration | long tibble, `sample_id`, `iteration`, `age_uncertainty` |
-
-When adding a new data-returning function, follow the same pattern and
-append a row to the table above.
-
-## The `return_raw_data` Pattern
-
-Functions that query the database and return data to the user must support
-a `return_raw_data` argument (default `FALSE`):
-
-- **`return_raw_data = FALSE` (default)** — human-readable output:
-  - `sample_id` (and other internal integer IDs) are replaced with
-    their name equivalents (`sample_name`, `taxon_name`, etc.) by
-    joining with the relevant lookup tables.
-  - Where appropriate the result is also **reshaped** (e.g. pivoted
-    from long to wide) for easier downstream use.
-- **`return_raw_data = TRUE`** — raw database output:
-  - Internal IDs (`sample_id`, etc.) are preserved.
-  - Long-format structure is kept.
-  - Required for join-based analyses that need to link different query
-    results at the sample level.
-
-### Rules
-
-1. Always name the argument `return_raw_data` and default it to `FALSE`.
-2. Validate with
-   `assertthat::assert_that(is.logical(return_raw_data), msg = "…")`
-   immediately after the connection / data checks.
-3. Use an early-return guard for the raw path:
-   ```r
-   if (isTRUE(return_raw_data)) {
-     res <-
-       dplyr::collect(data_res_raw)
-
-     return(res)
-   }
-   ```
-4. Document both output shapes in the `@param return_raw_data` and
-   `@return` roxygen2 blocks.
-5. Tests must cover:
-   - Default output columns and shape.
-   - `return_raw_data = TRUE` output columns (raw IDs preserved).
-   - Error when `return_raw_data` is not a `logical`.
-
-### Functions that implement this pattern
-
-| Function | Default output | `return_raw_data = TRUE` |
-|---|---|---|
-| `extract_data()` | packed nested tibble, `sample_name` | flat tibble, `sample_id` |
-| `get_age_uncertainty()` | wide tibble, `sample_name` + one col per iteration | long tibble, `sample_id`, `iteration`, `age_uncertainty` |
-
-When adding a new data-returning function, follow the same pattern and
-append a row to the table above.
-
-## Testing Functions
-
-All tests are done using the [testthat](https://testthat.r-lib.org/) package.
-Each function should have its own test file in `tests/testthat/`, named after
-the function (e.g., `test-<function_name>.R`). See
-[make_test_file_for_a_function.instructions.md](make_test_file_for_a_function.instructions.md)
-for the full conventions.
-
-Generally, the function should be tested for:
-
-- output of correct type
-- output of correct data
-- handling of input errors
-
-**Reproducibility:**
-- When randomness is involved, always use `set.seed(900723)` as the standard
-  seed value for this project
+- Use the SQLite fixture created by `tests/testthat/helper_make_database.R`; never use a personal or live database.
+- Test successful results, invalid inputs, messages/warnings/errors, empty results, and connection/query behavior relevant to the change.
+- Prefer structural assertions for data frames and lazy tables: classes, names, keys, row counts, and selected representative values.
+- Do not call `library(vaultkeepr)` inside individual test files; the package test bootstrap handles loading.
+- Keep test data minimal, deterministic, and free of licensed or private source records.

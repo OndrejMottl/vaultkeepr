@@ -1,408 +1,195 @@
----
-applyTo: "**/*.R"
-description: >
-  R coding conventions and style guidelines for this project, covering
-  naming conventions, syntax rules, function documentation with roxygen2,
-  and testing with testthat.
----
+# vaultkeepr R Coding Guidance
 
-# R Coding Conventions and Style Guide
+Canonical R guidance for package implementation, lazy VegVault queries, SQLite access, and package-facing helpers. For behavior changes, roxygen, and tests, also read `.ai/r-functions.md`; for schema-dependent work, read `.ai/database-contract.md`.
 
-## Coding Style
+## Scope and compatibility
 
-This coding style is a combination of various sources
-([Tidyverse](https://style.tidyverse.org/index.html),
-[Google](https://google.github.io/styleguide/Rguide.html), and others).
-Style should be consistent within a project.
+Apply these conventions to new and materially edited code under `R/`, `tests/testthat/`, vignette helpers, and package tooling. Preserve readable established idioms in untouched legacy sections; do not combine a functional change with an unrelated package-wide restyle.
 
-## Naming Conventions
+Public function names, arguments, defaults, error conditions, return classes, columns, lazy behavior, and connection ownership are compatibility contracts. Change them only when the task explicitly authorizes an API revision and its documentation, tests, NEWS, and release implications are addressed.
+
+## Clean package execution
+
+Work from a clean R session:
 
 ```r
-"There are only two hard things in Computer Science:
- cache invalidation and naming things."
+devtools::load_all()
 ```
 
-### Object Names
+Do not rely on objects, options, attached packages, connections, or environment variables left in the global session. Do not call `library(vaultkeepr)` inside package source or individual test files.
 
-Objects and functions should use `snake_style`. The `.` in names is somewhat
-popular but it causes issues with names of methods and should be therefore
-avoided. The names are preferred to be very descriptive, more expressive and
-more explicit.
+Use package-relative paths in tooling and fixtures. Never embed personal database paths, credentials, or a sibling VegVault checkout path in package code.
 
-The names should be nouns and start with the type of object:
+## File and function structure
 
-- `data_*` - for data
-  - special subcategory is `table_*` for tables (mainly as an object for
-    reference). Note that all tables can be data but not vice versa.
-- `list_` - for lists
-- `vec_` - for vectors
-- `mod_*` - for statistical model
-- `res_` - special category, which can be used within the function to name an
-  object to be returned (`return(res_*)`).
+- Keep one exported function per `R/<function_name>.R` file.
+- Keep a matching `tests/testthat/test-<function_name>.R` file where practical.
+- Private helpers may share a source file only when they are tightly coupled and not useful elsewhere.
+- Keep database orchestration readable; extract repeated validation, mapping, or query-building logic into named private helpers.
+- Source files contain functions and constants, not interactive execution.
 
-Examples of good names:
+Every exported function has a roxygen contract in its source. Follow the test-first sequence in `.ai/r-functions.md`; never hand-edit generated `NAMESPACE` or `man/` files.
+
+## Naming
+
+Use lower `snake_case` and descriptive full words. Function names are verbs; data objects are nouns.
+
+Prefer type prefixes for important objects:
+
+- `data_*`: data frames, tibbles, or lazy tables
+- `table_*`: summaries intended as tables
+- `list_*`: lists
+- `vec_*`: vectors
+- `mat_*`: matrices
+- `db_con` or `con`: documented database/pipe connections
+- `path_*`: file paths
+- `flag_*`: logical controls
+- `res_*` or `res`: returned objects
+
+Preserve established public argument names such as `con`, `verbose`, and `return_raw_data`. Do not rename API arguments merely to satisfy a new preference.
+
+Do not encode issue/PR numbers or temporary phase names in R identifiers, tests, fixtures, comments, or files.
+
+Prefer a new object for a materially transformed query or data state:
 
 ```r
-# data
-data_diversity_survey
+data_samples <-
+  dplyr::tbl(db_con, "Samples")
 
-# list
-list_diversity_individual_plots
-
-# vector
-vec_region_names
-
-# model
-mod_diversity_linear
-
-# result
-res_estimated_weight
+data_samples_selected <-
+  data_samples |>
+  dplyr::filter(.data[["dataset_id"]] %in% vec_dataset_id)
 ```
 
-### Function Names
+Reuse a name only when the operation is intentionally in-place or the alternative would create material memory pressure.
 
-Names of functions should be verbs and describe the expected functionality.
+## Formatting
 
-Examples of good function names:
-
-```r
-estimate_alpha_diversity()
-
-get_first_value()
-
-transform_into_character()
-```
-
-#### Internal Functions
-
-It is possible to start a function with a `"."` (e.g., `.get_round_value()`)
-to flag internal functions.
-
-### Column (Variable) Names in Data Frames
-
-`snake_style` is preferred for column names in both `data.frames` and
-`tibbles`. Note that the [janitor](https://sfirke.github.io/janitor/) package
-can be used to edit this automatically.
-
-## Syntax
-
-Many of the syntax issues can be checked/fixed by
-[lintr](https://lintr.r-lib.org/) and
-[styler](https://styler.r-lib.org/index.html) packages, which can be used to
-automate lots of the tedious aspects.
-
-### Spaces
-
-Space (`" "`) should always be placed:
-
-- after a comma
-- before and after infix operators (`==`, `+`, `-`, `<-`, `~`, etc.)
-
-Exceptions:
-
-- No spaces inside or outside parentheses for regular function calls
-- Operators with high precedence should not be surrounded by space:
-  `:`, `::`, `:::`, `$`, `@`, `[`, `[[`, `^`, unary `-`
-
-### Code Width
-
-No line of **R code** should be longer than 80 characters (including R
-comments).
-
-> **Note:** This 80-character limit applies to R source code only.
-> Markdown prose — such as text in `.md` files, `.Rmd` or `.qmd` files,
-> or any other documentation — is **not** subject to this limit. Let
-> markdown text wrap naturally.
-
-### New Lines
-
-Prefer code that is more vertical than horizontal. Therefore, use quite a lot
-of new lines.
-
-Usage of a semicolon (`;`) to indicate a new line is not preferred.
-
-A new line should be:
-
-#### 1. After an Object Assignment (`<-`)
-
-Whenever the right-hand side is a **function call**, place a newline after
-`<-` and indent the expression by 2 spaces:
+- Use `<-` for assignment, two-space indentation, and `TRUE`/`FALSE`.
+- Keep R and roxygen lines near 80 characters.
+- Use explicit argument names when they improve clarity.
+- Put one argument per line in multi-argument calls.
+- Place the right-hand side on the next line after `<-` for calls, indexing, calculations, collections, and pipelines.
+- Short atomic literals and direct aliases may remain on the assignment line.
 
 ```r
-data_diversity <-
-  read_data(...)
+verbose <- TRUE
 
-data_coords <-
-  tibble::tibble(x = vec_x, y = vec_y)
-
-list_params <-
-  base::list(a = 1, b = 2)
-
-res <-
-  my_function(
-    arg1 = value1,
-    arg2 = value2
+data_taxa <-
+  dplyr::tbl(
+    db_con,
+    "SampleTaxa"
   )
 ```
 
-The **only** assignments that may stay on one line are scalar literals and
-`NULL` (i.e., when the RHS is a single literal value, not a function call):
+Separate top-level executable statements within a function block with one blank line. Do not split one syntactically connected expression with decorative blank lines.
+
+Write control-flow conditions across lines:
 
 ```r
-vec_center <- 50.0   # OK: numeric literal
-name <- "triangle"   # OK: string literal
-flag <- NULL         # OK: NULL
-count <- 3L          # OK: integer literal
-flag <- TRUE         # OK: logical literal
-```
-
-The **exception** for the newline rule is function *definitions* — those keep
-`<-` on the same line as `function`:
-
-```r
-get_data <- function(...) {
-  ...
-}
-```
-
-#### 2. After a Pipe Operator
-
-Prefer the **native pipe `|>`** (R 4.1+). Note that there should be a space
-before a pipe.
-
-```r
-data_diversity <-
-  get_data() |>
-  transform_to_percentages()
-```
-
-Use the **magrittr pipe `%>%`** when the native pipe cannot be used cleanly:
-
-- Piping into a function's **non-first argument** (`.` placeholder):
-  ```r
-  data_diversity %>%
-    lm(diversity ~ region, data = .)
-  ```
-- Piping into **curly brackets** `{ }` to suppress the implicit first-argument
-  rule:
-  ```r
-  vec_diversity %>%
-    { . + 1 }
-  ```
-- Piping into `return()` or other special constructs inside a function body
-  where `|>` would be ambiguous.
-
-#### 3. After a Function Argument
-
-This should be true for both function declaration and usage. The exception is
-a single argument.
-
-```r
-get_data <- function(arg1 = foo,
-                     arg2 = here::here()) {
-  ...
-}
-
-data_diversity <-
-  get_data(
-    arg1 = foo,
-    arg2 = here::here()
-  )
-
-vec_selected_regions <-
-  get_regions(arg1 = foo)
-```
-
-#### 4. Parentheses
-
-Each type of parentheses (brackets) has its own rules:
-
-##### Round `( )`
-
-- should not be placed on separate first and last line
-- always space *before* the bracket (*unless* it's a function)
-- new line after start if it is a multi-argument function
-
-Examples:
-
-```r
-1 + (a + b)
-
-get_data(arg = foo)
-
-get_data(
-  agr1 = foo,
-  agr2 = here::here()
-)
-```
-
-##### Square `[ ]`
-
-- Never space before the bracket
-- always space instead of missing value
-
-Examples:
-
-```r
-list_diversity_for_each_plot[[1]]
-
-data_cars[, 2]
-```
-
-##### Curly `{ }`
-
-- Use only for functions and expressions
-- `{` should be the last character on a line and should never be on its own
-- `}` should be the first character on a line
-- Always new brackets after else unless followed by if
-- Not used for chunks of code
-
-Examples:
-
-```r
-get_data <- function(agr1) {
-  ...
-}
-
 if (
-  logical_test
+  isTRUE(verbose)
 ) {
-  ...
-} else {
-  ...
+  cli::cli_alert_info("Vault opened successfully")
 }
+```
 
-try(
-  expr = {
-    ...
-  }
+Keep `} else {` together. Avoid one-line conditionals, assignments inside conditions, and multiple side effects in one expression.
+
+## Namespaces and dependencies
+
+- Use `pkg::function()` for external package calls.
+- Do not call `library()` or `require()` inside package functions.
+- Use imported operators only where the package already establishes them; do not attach packages to make tests pass.
+- A new dependency requires a concrete package-level benefit and explicit user approval before installation, DESCRIPTION changes, or use in source.
+- Prefer existing Imports before adding another package for a small convenience.
+
+Base functions may remain unqualified in readable legacy code. Use `base::` when disambiguation matters or the surrounding code follows that convention; do not mechanically namespace every base call.
+
+## Validation and diagnostics
+
+Use `assertthat_cli(exp, msg, verbose)` for user-facing argument and state validation:
+
+```r
+assertthat_cli(
+  is.logical(verbose) && length(verbose) == 1L && !is.na(verbose),
+  msg = "{.arg verbose} must be one non-missing logical value"
 )
 ```
 
-For `for()`, `if()`, and `while()` loops, the iterator or condition is placed
-on its own indented line, and the closing `) {` is on its own line at the same
-indent level as the keyword. **This applies even for short, single-condition
-tests — never write `if (condition) {` on a single line.**
+- Validate cheap structural preconditions before opening connections or building queries.
+- Make messages name the function argument, required class/column/table, and corrective action where useful.
+- Use `cli` inline markup consistently with existing messages.
+- When validating `verbose` itself, do not pass the potentially invalid value as the message gate.
+- Gate informational and progress messages with `verbose`.
+- Errors protecting correctness must still occur when `verbose = FALSE`.
+- Do not emit messages from private helpers unless messaging is part of their contract.
 
-```r
-# Good
-for (
-  col_name in vec_col_names
-) {
-  ...
-}
+## Return objects and API behavior
 
-if (
-  logical_test
-) {
-  ...
-}
+- Return documented objects explicitly with `return(res)` or a descriptive result name.
+- Preserve the `vault_pipe` structure: a list containing `data` and `db_con` with class `vault_pipe`.
+- Preserve documented column names, order where contractual, classes, keys, and empty-result behavior.
+- Use `return_raw_data` only for data-returning query APIs where raw database data is meaningful.
+- When `return_raw_data = FALSE`, preserve the processed/lazy package result promised by that function.
+- Do not add `return_raw_data` mechanically to validation, connection, or selection helpers.
 
-while (
-  condition
-) {
-  ...
-}
+## Pipes, tidy data, and data masking
 
-# Avoid
-for (i in seq_len(n)) { ... }
-if (flag) { ... }
-while (condition) { ... }
-```
+Preserve established `%>%` pipelines where magrittr or dbplyr behavior is already tested. Prefer `|>` for new self-contained code when it does not change lazy-query dispatch or placeholder semantics. Do not mix pipe styles within one coherent pipeline.
 
-### Assignment
+Prefer modern explicit operations:
 
-Always use the left assignment `<-`.
+- `dplyr::filter()`, `select()`, `mutate()`, `summarise()`, and joins
+- `dplyr::join_by()` for new joins when compatible with supported dependency versions
+- `purrr::map()`, `map2()`, `imap()`, or `pmap()` followed by explicit row/column binding
+- `stringr::str_glue()` for interpolation and `stringr::str_c()` for concatenation
 
-Do **NOT** use:
+Use `{{ }}` for bare-column forwarding and `.data[[column_name]]` for names stored as character values. Avoid `eval(parse(...))`, `get()` in data masks, partial matching, and accidental use of global variables.
 
-- right assignment (`->`)
-- equals (`=`)
+After grouped summaries, use `.groups = "drop"` or `dplyr::ungroup()` unless grouped output is intentional.
 
-There should be a new line after the assignment. Note that rarely single-line
-assignment can be used:
+## Lazy query and SQL behavior
 
-```r
-data_diversity <-
-  get_data()
+`vaultkeepr` should push work to SQLite and retain lazy `vault_pipe` chains until collection is part of the documented API.
 
-preferred_shape <- "triangle"
-```
+- Build from `dplyr::tbl(db_con, "<Table>")`.
+- Filter, select, join, and aggregate lazily when dbplyr supports the operation.
+- Do not call `dplyr::collect()` merely to inspect intermediate data or use an R-only convenience.
+- Inspect generated SQL for substantial query changes.
+- Select only needed columns before expensive joins.
+- Avoid repeated `DBI::dbListTables()`, `colnames()`, or round trips inside loops when one validated lookup can be reused.
+- Check join cardinality and key domains; do not silently multiply rows.
+- Preserve behavior for empty selections and zero-row lazy results.
 
-### Logical Evaluation
+If an operation cannot remain lazy, document where collection occurs, why it is necessary, and the expected data size.
 
-Always use `TRUE` and `FALSE`, instead of `T` and `F`.
+## Connection ownership
 
-## Comments
+Also follow `.ai/database-contract.md`.
 
-### Single-line comments
+- `open_vault()` is the production connection constructor.
+- A function receiving `con` must validate it rather than silently opening a replacement.
+- Never disconnect a DBI connection supplied by the caller.
+- A function that opens a temporary/local connection owns cleanup on success and error.
+- Never test against a personal or live VegVault database; use the in-memory fixture.
+- Do not return a lazy table backed by a connection that has already been closed.
 
-Adding comments to code plays a pivotal role in ensuring reproducibility and
-preserving code knowledge for future reference. There's no need to comment
-excessively or unnecessarily, but a comment describing what a large or complex
-chunk of code does may be helpful. More importantly, it is crucial to comment
-WHY something is coded in that specific (non-standard) way. The first letter of
-a comment is capitalized and spaced away from the pound sign (`#`).
+## Performance
 
-Example of a single-line comment:
+Profile before optimizing. Prioritize SQL pushdown, reduced collection, fewer round trips, narrow column selection, and avoiding repeated schema inspection.
 
-```r
-# This is a comment.
-```
+- Do not grow vectors/data frames repeatedly in loops; preallocate or map.
+- Avoid rowwise R operations when a vectorized or SQL-translatable operation is clear.
+- Cache metadata only within a well-defined call or object; do not introduce hidden global caches.
+- Use parallel processing only for independent CPU-heavy work, never for concurrent writes to one SQLite connection.
+- Add a benchmark or representative performance test when performance is the stated behavior being changed.
 
-### Multi-line comment
+## Reproducibility and validation
 
-Multi-line comments should start with a capital letter and the new line should
-start with one tab.
-
-Example of a multi-line comment:
-
-```r
-# This is a very long comment, where I need to describe
-#    what this code is doing
-```
-
-### Inline comment
-
-Inline comments should always start with a space.
-
-Example of inline comment:
-
-```r
-function(
- agr = 1 # This is an example of an inline comment
-)
-```
-
-## Section Headers (within long R files)
-
-For longer R files (e.g. complex function implementations), sections can be
-marked with headers. Each section should begin with a header which consists of
-a name wrapped by two lines, followed by `-----` so that it is automatically
-picked up by the IDE as a section header.
-
-Headings can have various hierarchies:
-
-1. `#----------------------------------------------------------#`
-2. `#--------------------------------------------------#`
-3. `#----------------------------------------#`
-
-Example of a header:
-
-```r
-#----------------------------------------------------------#
-# Load data -----
-#----------------------------------------------------------#
-```
-
-## Related Instruction Files
-
-Detailed rules for specific topics are in separate files:
-
-- [r-coding-tidyverse.instructions.md](r-coding-tidyverse.instructions.md) —
-  Tidyverse preferences, namespace, modern dplyr/purrr patterns, data masking
-- [r-coding-functions.instructions.md](r-coding-functions.instructions.md) —
-  Creating functions, anonymous functions, error handling, documentation,
-  testing
-- [r-coding-performance.instructions.md](r-coding-performance.instructions.md) —
-  Profiling, loop performance, parallel processing
+- Keep fixtures deterministic and free of licensed/private records.
+- Set a seed explicitly when randomness is introduced.
+- Do not use environment variables as hidden API controls.
+- Run focused tests in a clean session, then `devtools::test()`, then `devtools::check()` for package behavior changes.
+- Inspect roxygen-generated diffs after `devtools::document()`.
+- Validate query classes and SQL as well as collected values when laziness is part of the contract.

@@ -1,0 +1,9 @@
+---
+description: Route function, roxygen, and test changes
+globs:
+  - "R/**/*.R"
+  - "tests/testthat/**/*.R"
+alwaysApply: false
+---
+
+Read `AGENTS.md` and follow `.ai/r-functions.md` in order.

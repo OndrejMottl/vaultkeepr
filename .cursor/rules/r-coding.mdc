@@ -1,0 +1,8 @@
+---
+description: Route vaultkeepr R implementation work
+globs:
+  - "R/**/*.R"
+alwaysApply: false
+---
+
+Read `AGENTS.md`, `.ai/r-coding.md`, and `.ai/database-contract.md`.

@@ -1,74 +1,15 @@
----
-applyTo: "**/*.R, **/*.Rmd, **/*.qmd"
-description: >
-  Visualisation conventions for the RRatepol package: ggplot2 theming,
-  ggview for interactive sizing, and saving plots in vignettes and the README.
----
+# Documentation and pkgdown
 
-# Visualisation Guidelines
+## Sources and generated files
 
-## Base Theme
+- Edit roxygen in `R/*.R`; regenerate `man/` and `NAMESPACE` with `devtools::document()`.
+- Edit `README.qmd`; treat `README.md` as generated.
+- Edit vignette sources and their helpers; do not hand-edit rendered vignette output.
+- Edit `_pkgdown.yml`, source documentation, or templates; treat `docs/` as generated.
+- Build pkgdown through `tools/build_pkgdown_site.R` when a documentation or release task requires it.
 
-Always use `ggplot2::theme_minimal()` as the base theme for all plots.
-Use `ggplot2::labs()` for all axis labels and titles — never `ggtitle()`.
+Keep code examples reproducible, use the disposable example database, and never include private database paths or licensed records.
 
-```r
-plot_roc <-
-  ggplot2::ggplot(data_roc, ggplot2::aes(x = roc, y = age)) +
-  ggplot2::geom_line() +
-  ggplot2::theme_minimal() +
-  ggplot2::labs(
-    x = "Rate of change score",
-    y = "Age (cal yr BP)"
-  )
-```
+## Validation
 
-## Canvas Dimensions (vignettes and README)
-
-When producing plots for vignettes or the README that need to be saved at
-specific dimensions, append `ggview::canvas()` to the plot pipeline:
-
-```r
-plot_example <-
-  make_plot(data = data_example) +
-  ggview::canvas(
-    width = 1600,
-    height = 800,
-    units = "px"
-  )
-```
-
-Standard canvas dimensions:
-- Full-width landscape: `width = 1600, height = 800`
-- Square inset: `width = 800, height = 800`
-
-## Saving Plots
-
-Use `ggview::save_ggplot()` (not `ggplot2::ggsave()`) to save plots built
-with `ggview::canvas()`, so that the canvas dimensions are respected:
-
-```r
-ggview::save_ggplot(
-  plot = plot_example,
-  file = here::here("man", "figures", "plot_example.png")
-)
-```
-
-For plots in vignettes that are rendered inline by knitr, no explicit save
-call is needed — just print or return the ggplot object in the chunk.
-
-## Namespace
-
-Always use fully-qualified namespaces for all ggplot2 calls:
-
-```r
-# Good
-ggplot2::ggplot(...) +
-  ggplot2::geom_point() +
-  ggplot2::theme_minimal()
-
-# Avoid
-ggplot(...) +
-  geom_point() +
-  theme_minimal()
-```
+Render only the affected source during normal documentation work and inspect warnings, links, code output, and layout. Rebuild and visually inspect the full pkgdown site for release preparation or site-wide changes. Package checks remain authoritative for examples and vignettes included in the package build.

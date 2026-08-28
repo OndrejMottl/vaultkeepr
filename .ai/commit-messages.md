@@ -1,93 +1,42 @@
 # Commit Message Instructions
 
-## Format
+Before generating, suggesting, or reviewing a commit message, inspect the actual changed or staged scope and read this file in the current turn. Do not rely on remembered conventions.
 
-One single line. No body. No period at the end. Max 72 characters.
+When the user asks only for a commit message, return exactly one plain-text line: no body, bullets, quotes, code fences, labels, explanation, or trailing period.
 
-```
+Use:
+
+```text
 <subject>: <short summary>
 ```
 
-The subject identifies *what was changed*. The summary states *what was done*.
+Keep the complete line at or below 72 characters. Describe durable package behavior without issue numbers, pull-request numbers, or temporary phase/stage labels.
 
----
+## Subject selection
 
-## Subject Rules
+Use the narrowest meaningful subject:
 
-### Single function edited
+- one function: its function name with parentheses, for example `open_vault(): validate SQLite headers before connecting`
+- several functions around one API behavior: a plain API/domain label, for example `Lazy queries: preserve database-side filtering`
+- schema fixtures or compatibility: `schema`
+- roxygen, README, vignettes, or pkgdown: `docs`
+- tests only: `tests`
+- package dependencies or lock state: `dependencies`
+- release metadata or NEWS: `release`
+- agent guidance: `agents`
+- CI/workflows: `ci`
+- editor configuration: `vscode`
 
-Use the function name with parentheses:
+## Wording
 
-```
-estimate_roc(): add chi-squared dissimilarity method
-detect_peak_points(): correct off-by-one in window index
-prepare_data(): add validation for empty community matrix
-```
+Start the summary with a specific verb such as `add`, `adjust`, `correct`, `document`, `preserve`, `remove`, `replace`, `split`, `switch`, `update`, or `validate`.
 
-### Specific topic or feature area
+Do not use vague labels or words such as `feat`, `feature`, `fix`, or `enhance`. State what changed.
 
-Use a plain descriptive label matching the topic:
+Examples:
 
-```
-Peak detection: switch default method to GAM-based approach
-Dissimilarity coefficients: add Bray-Curtis normalisation step
-Age uncertainty: correct sampling from Bchron output
-```
-
-### Tests
-
-```
-tests: add edge-case coverage for detect_peak_points
-tests: update snapshot for plot_roc after axis flip
-tests: add zero-row community matrix test for prepare_data
-```
-
-### Documentation
-
-```
-docs: update estimate_roc() @param for new method argument
-docs: add workflow-example vignette section on peak detection
-docs: regenerate man/ after roxygen2 update
-```
-
-### Package infrastructure
-
-```
-DESCRIPTION: add gratia to Imports after mgcv refactor
-NAMESPACE: regenerate after adding export for make_trend
-pkgdown: update reference index groupings
-ci: update R-CMD-check workflow to r-lib/actions@v2
-```
-
-### Non-code changes
-
-```
-renv: update lockfile after package upgrades
-chore: add .Rbuildignore entry for vscode folder
-vscode: update settings for commit message generation
-copilot: add debugging instructions and r-coding skill
-refactor: simplify peak detection logic in detect_sni
-```
-
----
-
-## Banned Words
-
-Do not use: *enhance*, *feat*, *feature*, *fix* (use a specific verb instead,
-e.g. *correct*, *remove*, *add*, *update*, *switch*, *adjust*, *replace*).
-
----
-
-## Examples
-
-```
-estimate_roc(): add chi-squared dissimilarity method
-detect_peak_points(): correct off-by-one in window index
-prepare_data(): add validation for empty community matrix
-Peak detection: switch default method to GAM-based approach
-tests: add edge-case coverage for detect_peak_points
-docs: update estimate_roc() @param for new method argument
-DESCRIPTION: add gratia to Imports after mgcv refactor
-chore: add .Rbuildignore entry for vscode folder
-copilot: add r-coding and debugging instructions
-```
+- `open_vault(): reject unsupported database versions`
+- `get_taxa(): preserve lazy filtering for empty selections`
+- `schema: align test and vignette SQLite fixtures`
+- `docs: clarify disposable example database setup`
+- `agents: expand R and commit-message guidance`
