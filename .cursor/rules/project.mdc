@@ -1,0 +1,8 @@
+---
+description: Route all vaultkeepr work to the standalone agent guide
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+Read `AGENTS.md` and the task-specific canonical files under `.ai/`.
