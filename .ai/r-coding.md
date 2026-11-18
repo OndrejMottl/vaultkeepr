@@ -50,7 +50,11 @@ Preserve established public argument names such as `con`, `verbose`, and `return
 
 Do not encode issue/PR numbers or temporary phase names in R identifiers, tests, fixtures, comments, or files.
 
-Prefer a new object for a materially transformed query or data state:
+Treat assigned R objects as immutable within their lexical scope. Once an
+object name has received a value, do not assign another value to that name and
+do not change its columns, elements, or attributes in place. Every filtered,
+validated, enriched, selected, or otherwise transformed query or data state
+gets a new, descriptive object name. Do not overwrite function arguments.
 
 ```r
 data_samples <-
@@ -59,9 +63,14 @@ data_samples <-
 data_samples_selected <-
   data_samples |>
   dplyr::filter(.data[["dataset_id"]] %in% vec_dataset_id)
+
+data_samples_named <-
+  dplyr::left_join(data_samples_selected, data_sample_names, by = "sample_id")
 ```
 
-Reuse a name only when the operation is intentionally in-place or the alternative would create material memory pressure.
+Memory or performance concerns do not silently override this rule. If measured
+constraints make reassignment necessary, obtain explicit user approval for that
+exception and document its scope and evidence.
 
 ## Formatting
 
