@@ -153,6 +153,14 @@ plan <-
 
 `get_traits()` extends the plan with the `TraitsValue`, `Traits`, and `TraitsDomain` tables linked to the taxa already in the pipeline. Harmonising to `classify_to = "genus"` here as well ensures that pollen taxa and trait observations are matched at the same taxonomic level. Multiple trait observations for the same genus and trait domain may be present; these are aggregated in the CWM calculation below.
 
+VegVault 2 stores audited canonical units and transformation provenance.
+Long output therefore includes `trait_unit`, `conversion_rule_key`, and
+`derivation_rule_key`; packed trait data retains `trait_unit`. VegVault 1
+databases remain supported, but `get_traits()` warns because unit metadata in
+those databases may be unreliable. The values themselves are left unchanged
+for backwards compatibility.
+
+
 ::: {.callout-warning}
 `classify_to` triggers a computationally expensive join against the `TaxonClassification` table. On a large query this can be very slow. In addition, the taxonomic harmonisation is produced by an automated process: misclassifications can occur, especially for ambiguous names or taxa not covered by the GBIF backbone. Always verify results for taxa that are critical to your analysis.
 :::

@@ -2,7 +2,8 @@
 #' @description Open a connection to a SQLite database
 #' @param path A character string of the path to the SQLite database
 #' @param verbose A logical value indicating whether to print messages
-#' @return A list with two elements: `data` and `db_con`
+#' @return A `vault_pipe` list with two elements, `data` and `db_con`, and a
+#'   `database_version` attribute.
 #' @export
 open_vault <- function(path, verbose = TRUE) {
   # test various things
@@ -52,7 +53,8 @@ open_vault <- function(path, verbose = TRUE) {
         data = tibble::tibble(),
         db_con = db_con
       ),
-      class = c("list", "vault_pipe")
+      class = c("list", "vault_pipe"),
+      database_version = detect_vegvault_version(db_con)
     )
 
   if (
