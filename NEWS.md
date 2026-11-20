@@ -7,6 +7,11 @@
 * VegVault 2 trait queries expose canonical `trait_unit`, `conversion_rule_key`, and `derivation_rule_key` fields while remaining lazy.
 * Packed trait data retains `trait_unit` but omits verbose record-level provenance.
 
+## Query performance
+
+* `extract_data()` checks for mandatory references with one query that stops at the first match, and only when `verbose = TRUE`, because the alert is the only effect of the check. It no longer prints the messages of `get_references()`.
+* `get_references()` sends the selected ids to SQLite as a subquery instead of a literal list, and reads the reference details in the same query.
+
 # vaultkeepr 0.1.0
 
 ## New functions
