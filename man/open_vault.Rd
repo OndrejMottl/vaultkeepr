@@ -12,7 +12,8 @@ open_vault(path, verbose = TRUE)
 \item{verbose}{A logical value indicating whether to print messages}
 }
 \value{
-A list with two elements: \code{data} and \code{db_con}
+A \code{vault_pipe} list with two elements, \code{data} and \code{db_con}, and a
+\code{database_version} attribute.
 }
 \description{
 Open a connection to a SQLite database

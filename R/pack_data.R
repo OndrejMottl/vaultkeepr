@@ -133,6 +133,11 @@ pack_data <- function(
       "sample_name",
       "trait_domain_name", "trait_name",
       "trait_value",
+      if ("trait_unit" %in% colnames(sel_data)) {
+        "trait_unit"
+      } else {
+        character(0)
+      },
       ifelse(
         "taxon_name_trait" %in% colnames(sel_data),
         "taxon_name_trait",

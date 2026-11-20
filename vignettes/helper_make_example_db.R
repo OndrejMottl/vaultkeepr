@@ -275,7 +275,14 @@ CREATE INDEX idx_abioticdatareference_sample_ref_id ON AbioticDataReference(samp
 
 # ── main builder ─────────────────────────────────────────────────────────────
 
-path_db <- paste(tempdir(), "vaultkeepr_example.sqlite", sep = "/")
+fixture_version <-
+  getOption("vaultkeepr.fixture_version", "1.0.0")
+fixture_suffix <-
+  if (base::numeric_version(fixture_version) >=
+      base::numeric_version("2.0.0")) "v2" else "v1"
+path_db <-
+  paste(tempdir(), paste0("vaultkeepr_example_", fixture_suffix, ".sqlite"),
+    sep = "/")
 
 if (!file.exists(path_db)) {
   con_db <-
@@ -912,5 +919,63 @@ if (!file.exists(path_db)) {
 
   DBI::dbDisconnect(con_db)
 }
+
+con_version <- DBI::dbConnect(RSQLite::SQLite(), path_db)
+
+if (DBI::dbGetQuery(
+  con_version,
+  "SELECT COUNT(*) AS n FROM version_control"
+)$n == 0L) {
+  DBI::dbExecute(
+    con_version,
+    "INSERT INTO version_control (version) VALUES (?)",
+    params = list(fixture_version)
+  )
+}
+
+if (
+  base::numeric_version(fixture_version) >=
+    base::numeric_version("2.0.0") &&
+    !"trait_unit" %in% DBI::dbListFields(con_version, "TraitsDomain")
+) {
+  DBI::dbExecute(con_version, "ALTER TABLE TraitsDomain ADD COLUMN trait_unit TEXT")
+  DBI::dbExecute(
+    con_version,
+    paste(
+      "UPDATE TraitsDomain SET trait_unit = CASE trait_domain_name",
+      "WHEN 'Stem specific density' THEN 'g/cm3'",
+      "WHEN 'Diaspore mass' THEN 'mg' ELSE 'm' END"
+    )
+  )
+  DBI::dbExecute(
+    con_version,
+    paste(
+      "CREATE TABLE TraitUnitConversion (trait_unit_conversion_id INTEGER",
+      "PRIMARY KEY, conversion_rule_key TEXT UNIQUE)"
+    )
+  )
+  DBI::dbExecute(
+    con_version,
+    paste(
+      "CREATE TABLE TraitDerivation (trait_derivation_id INTEGER",
+      "PRIMARY KEY, derivation_rule_key TEXT UNIQUE)"
+    )
+  )
+  DBI::dbExecute(
+    con_version,
+    "INSERT INTO TraitUnitConversion VALUES (1, 'fixture-identity')"
+  )
+  DBI::dbExecute(
+    con_version,
+    "ALTER TABLE TraitsValue ADD COLUMN trait_unit_conversion_id INTEGER"
+  )
+  DBI::dbExecute(
+    con_version,
+    "ALTER TABLE TraitsValue ADD COLUMN trait_derivation_id INTEGER"
+  )
+  DBI::dbExecute(con_version, "UPDATE TraitsValue SET trait_unit_conversion_id = 1")
+}
+
+DBI::dbDisconnect(con_version)
 
 path_db
