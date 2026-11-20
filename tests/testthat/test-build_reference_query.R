@@ -21,7 +21,7 @@ testthat::test_that("build_reference_query() returns a lazy reference table", {
   )
 })
 
-testthat::test_that("build_reference_query() sends ids as a subquery", {
+testthat::test_that("build_reference_query() sends distinct ids as subquery", {
   vault_datasets <-
     open_vault(
       path = paste(tempdir(), "example.sqlite", sep = "/"),
@@ -41,7 +41,9 @@ testthat::test_that("build_reference_query() sends ids as a subquery", {
     dbplyr::sql_render(res) |>
     as.character()
 
-  testthat::expect_match(sql_res, "IN \\(SELECT")
+  # DISTINCT lets SQLite skip the joins that do not change the ids; without
+  #   it the subquery was about twice as slow as the old literal list
+  testthat::expect_match(sql_res, "IN \\(SELECT DISTINCT")
   testthat::expect_no_match(sql_res, "IN \\(\\s*[0-9]")
 })
 

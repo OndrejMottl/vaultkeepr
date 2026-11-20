@@ -25,8 +25,9 @@ id of the link table that is missing from \code{References} keeps \code{NA} in
 \description{
 Build a lazy query that returns the references linked, through the link
 table \code{sel_table}, to the ids in the column \code{sel_column} of
-\code{data_source}. The ids are given to SQLite as a subquery of
-\code{data_source}, never as a literal list.
+\code{data_source}. The ids are given to SQLite as a subquery of the distinct
+ids of \code{data_source}, never as a literal list. \code{DISTINCT} lets SQLite skip
+the joins of \code{data_source} that do not change the ids.
 }
 \seealso{
 \code{\link[=get_references]{get_references()}}

@@ -107,6 +107,22 @@ get_references <- function(
       reference_source = character()
     )
 
+  # render the lazy selection once: every reference type below reads it as a
+  #   subquery, and rendering the nested query takes about as long as running
+  #   one reference query
+  data_selection <- sel_data
+
+  if (
+    inherits(sel_data, "tbl_sql")
+  ) {
+    data_selection <-
+      dplyr::tbl(
+        sel_con,
+        dplyr::sql(dbplyr::sql_render(sel_data)),
+        vars = colnames(sel_data)
+      )
+  }
+
   # helper function to get the references linked to the ids of one column;
   #   the ids reach SQLite as a subquery, not as a literal list
   get_uniq_refs <- function(data_source, sel_con, sel_column, sel_table) {
@@ -130,7 +146,7 @@ get_references <- function(
       data_extracted_refs %>%
       dplyr::bind_rows(
         get_uniq_refs(
-          data_source = sel_data,
+          data_source = data_selection,
           sel_con = sel_con,
           sel_column = "dataset_id",
           sel_table = "DatasetReferences"
@@ -147,7 +163,7 @@ get_references <- function(
       data_extracted_refs %>%
       dplyr::bind_rows(
         get_uniq_refs(
-          data_source = sel_data,
+          data_source = data_selection,
           sel_con = sel_con,
           sel_column = "data_source_id",
           sel_table = "DatasetSourcesReference"
@@ -164,7 +180,7 @@ get_references <- function(
       data_extracted_refs %>%
       dplyr::bind_rows(
         get_uniq_refs(
-          data_source = sel_data,
+          data_source = data_selection,
           sel_con = sel_con,
           sel_column = "data_source_type_id",
           sel_table = "DatasetSourceTypeReference"
@@ -181,7 +197,7 @@ get_references <- function(
       data_extracted_refs %>%
       dplyr::bind_rows(
         get_uniq_refs(
-          data_source = sel_data,
+          data_source = data_selection,
           sel_con = sel_con,
           sel_column = "sampling_method_id",
           sel_table = "SamplingMethodReference"
@@ -198,7 +214,7 @@ get_references <- function(
       data_extracted_refs %>%
       dplyr::bind_rows(
         get_uniq_refs(
-          data_source = sel_data,
+          data_source = data_selection,
           sel_con = sel_con,
           sel_column = "sample_id",
           sel_table = "SampleReference"
@@ -215,7 +231,7 @@ get_references <- function(
       data_extracted_refs %>%
       dplyr::bind_rows(
         get_uniq_refs(
-          data_source = sel_data,
+          data_source = data_selection,
           sel_con = sel_con,
           sel_column = "taxon_id",
           sel_table = "TaxonReference"
@@ -232,7 +248,7 @@ get_references <- function(
       data_extracted_refs %>%
       dplyr::bind_rows(
         get_uniq_refs(
-          data_source = sel_data,
+          data_source = data_selection,
           sel_con = sel_con,
           sel_column = "trait_id",
           sel_table = "TraitsReference"
@@ -249,7 +265,7 @@ get_references <- function(
       data_extracted_refs %>%
       dplyr::bind_rows(
         get_uniq_refs(
-          data_source = sel_data,
+          data_source = data_selection,
           sel_con = sel_con,
           sel_column = "abiotic_variable_id",
           sel_table = "AbioticVariableReference"
