@@ -10,8 +10,11 @@
 #' @param con A vault connection
 #' @param return_raw_data A logical indicating whether to return raw data or
 #' without any processing. Default is `FALSE`.
-#' @param check_mandatory_references A logical indicating whether to check for
-#' presentce of mandatory reference. Default is `TRUE`.
+#' @param check_mandatory_references A logical indicating whether to check
+#' if the selection holds data linked to a mandatory reference and, if so, to
+#' alert the user. The alert is the only effect of the check, so the check
+#' runs only when `verbose = TRUE`. It sends one query to the database, which
+#' stops at the first match. Default is `TRUE`.
 #' @param verbose A logical indicating whether output additional information.
 #'  Default is `TRUE`.
 #' @return A data.frame
@@ -66,35 +69,23 @@ extract_data <- function(
     msg = "{.arg verbose} must be a logical value."
   )
 
-  nrow_mandatory_references <- 0
+  # the alert is the only effect of the check, so the check runs only when
+  #   the alert can be shown
+  flag_mandatory_references <- FALSE
 
   if (
-    isTRUE(check_mandatory_references)
+    isTRUE(check_mandatory_references) &&
+      isTRUE(verbose)
   ) {
-    data_mandatory_references <-
-      get_references(
-        con = con,
-        get_source = FALSE,
-        verbose = verbose
+    flag_mandatory_references <-
+      detect_mandatory_references(
+        data_source = sel_data,
+        sel_con = sel_con
       )
-
-    if (
-      is.null(data_mandatory_references) %>%
-        isFALSE() %>%
-        isTRUE()
-    ) {
-      nrow_mandatory_references <-
-        data_mandatory_references %>%
-        dplyr::filter(
-          .data$mandatory == TRUE
-        ) %>%
-        nrow()
-    }
   }
 
   if (
-    nrow_mandatory_references > 0 &&
-      isTRUE(verbose)
+    isTRUE(flag_mandatory_references)
   ) {
     cli::cli_alert_warning(
       "The data contains mandatory references. Please make sure to run {.fn get_references} before extracting data."
