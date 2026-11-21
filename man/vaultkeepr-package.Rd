@@ -18,5 +18,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Ondrej Mottl \email{ondrej.mottl@gmail.com} (\href{https://orcid.org/0000-0002-9796-5081}{ORCID})
 
+Authors:
+\itemize{
+  \item Ondrej Mottl \email{ondrej.mottl@gmail.com} (\href{https://orcid.org/0000-0002-9796-5081}{ORCID})
+}
+
 }
 \keyword{internal}
