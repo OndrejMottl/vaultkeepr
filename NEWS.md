@@ -1,4 +1,4 @@
-# vaultkeepr 0.1.1
+# vaultkeepr 0.2.0
 
 ## VegVault 2 compatibility
 
