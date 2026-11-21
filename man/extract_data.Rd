@@ -17,11 +17,11 @@ extract_data(
 \item{return_raw_data}{A logical indicating whether to return raw data or
 without any processing. Default is \code{FALSE}.}
 
-\item{check_mandatory_references}{A logical indicating whether to check
-if the selection holds data linked to a mandatory reference and, if so, to
-alert the user. The alert is the only effect of the check, so the check
-runs only when \code{verbose = TRUE}. It sends one query to the database, which
-stops at the first match. Default is \code{TRUE}.}
+\item{check_mandatory_references}{A logical indicating whether to check if the selection holds data linked
+to a mandatory reference and, if so, to alert the user. The alert is the
+only effect of the check, so the check runs only when \code{verbose = TRUE}. It
+sends one query to the database, which stops at the first match. Default
+is \code{TRUE}.}
 
 \item{verbose}{A logical indicating whether output additional information.
 Default is \code{TRUE}.}

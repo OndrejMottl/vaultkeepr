@@ -130,13 +130,16 @@ testthat::test_that("return full data.frame", {
   DBI::dbDisconnect(con_db)
 })
 
-# mandatory references -----
+# Mandatory references -----
 testthat::test_that("alert when the data has a mandatory reference", {
   vault_datasets <-
     open_vault(
-      path = paste(tempdir(), "example.sqlite", sep = "/"),
+      path = base::file.path(
+        base::tempdir(),
+        "example.sqlite"
+      ),
       verbose = FALSE
-    ) %>%
+    ) |>
     get_datasets()
 
   testthat::expect_message(
@@ -151,43 +154,69 @@ testthat::test_that("alert when the data has a mandatory reference", {
 testthat::test_that("no alert when the data has no mandatory reference", {
   vault_datasets <-
     open_vault(
-      path = paste(tempdir(), "example.sqlite", sep = "/"),
+      path = base::file.path(
+        base::tempdir(),
+        "example.sqlite"
+      ),
       verbose = FALSE
-    ) %>%
+    ) |>
     get_datasets()
 
-  vault_datasets$data <-
-    vault_datasets$data %>%
+  data_selection <-
+    purrr::chuck(vault_datasets, "data") |>
     dplyr::filter(data_source_type_id %in% c(1L, 2L))
+
+  vault_selection <-
+    base::structure(
+      .Data = base::list(
+        data = data_selection,
+        db_con = purrr::chuck(vault_datasets, "db_con")
+      ),
+      class = c("list", "vault_pipe")
+    )
 
   testthat::expect_no_message(
     extract_data(
-      con = vault_datasets,
+      con = vault_selection,
       verbose = TRUE
     ),
     message = "mandatory references"
   )
 })
 
-testthat::test_that("the alert comes from detect_mandatory_references()", {
+testthat::test_that("the alert comes from has_mandatory_references()", {
   testthat::local_mocked_bindings(
-    detect_mandatory_references = function(...) TRUE
+    has_mandatory_references = function(...) {
+      TRUE
+    }
   )
 
   vault_datasets <-
     open_vault(
-      path = paste(tempdir(), "example.sqlite", sep = "/"),
+      path = base::file.path(
+        base::tempdir(),
+        "example.sqlite"
+      ),
       verbose = FALSE
-    ) %>%
+    ) |>
     get_datasets()
 
-  vault_datasets$data <-
-    vault_datasets$data %>%
+  data_selection <-
+    purrr::chuck(vault_datasets, "data") |>
     dplyr::filter(data_source_type_id %in% c(1L, 2L))
+
+  vault_selection <-
+    base::structure(
+      .Data = base::list(
+        data = data_selection,
+        db_con = purrr::chuck(vault_datasets, "db_con")
+      ),
+      class = c("list", "vault_pipe")
+    )
 
   testthat::expect_message(
     extract_data(
-      con = vault_datasets,
+      con = vault_selection,
       verbose = TRUE
     ),
     regexp = "mandatory references"
@@ -196,18 +225,23 @@ testthat::test_that("the alert comes from detect_mandatory_references()", {
 
 testthat::test_that("the check does not call get_references()", {
   testthat::local_mocked_bindings(
-    get_references = function(...) stop("get_references() was called")
+    get_references = function(...) {
+      base::stop("get_references() was called")
+    }
   )
 
   vault_datasets <-
     open_vault(
-      path = paste(tempdir(), "example.sqlite", sep = "/"),
+      path = base::file.path(
+        base::tempdir(),
+        "example.sqlite"
+      ),
       verbose = FALSE
-    ) %>%
+    ) |>
     get_datasets()
 
   testthat::expect_no_error(
-    suppressMessages(
+    base::suppressMessages(
       extract_data(
         con = vault_datasets,
         verbose = TRUE
@@ -218,15 +252,22 @@ testthat::test_that("the check does not call get_references()", {
 
 testthat::test_that("no reference query when `verbose = FALSE`", {
   testthat::local_mocked_bindings(
-    get_references = function(...) stop("get_references() was called"),
-    detect_mandatory_references = function(...) stop("references checked")
+    get_references = function(...) {
+      base::stop("get_references() was called")
+    },
+    has_mandatory_references = function(...) {
+      base::stop("references checked")
+    }
   )
 
   vault_datasets <-
     open_vault(
-      path = paste(tempdir(), "example.sqlite", sep = "/"),
+      path = base::file.path(
+        base::tempdir(),
+        "example.sqlite"
+      ),
       verbose = FALSE
-    ) %>%
+    ) |>
     get_datasets()
 
   testthat::expect_no_error(
@@ -239,19 +280,26 @@ testthat::test_that("no reference query when `verbose = FALSE`", {
 
 testthat::test_that("no reference query when the check is switched off", {
   testthat::local_mocked_bindings(
-    get_references = function(...) stop("get_references() was called"),
-    detect_mandatory_references = function(...) stop("references checked")
+    get_references = function(...) {
+      base::stop("get_references() was called")
+    },
+    has_mandatory_references = function(...) {
+      base::stop("references checked")
+    }
   )
 
   vault_datasets <-
     open_vault(
-      path = paste(tempdir(), "example.sqlite", sep = "/"),
+      path = base::file.path(
+        base::tempdir(),
+        "example.sqlite"
+      ),
       verbose = FALSE
-    ) %>%
+    ) |>
     get_datasets()
 
   testthat::expect_no_error(
-    suppressMessages(
+    base::suppressMessages(
       extract_data(
         con = vault_datasets,
         check_mandatory_references = FALSE,

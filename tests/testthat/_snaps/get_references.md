@@ -1,7 +1,7 @@
 # the references of all types stay the same
 
     Code
-      print(data_refs_sorted)
+      base::print(data_refs_sorted)
     Output
                   reference  reference_source mandatory
       1  abiotic_variable_2   AbioticVariable      TRUE

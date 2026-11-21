@@ -30,6 +30,6 @@ ids of \code{data_source}, never as a literal list. \code{DISTINCT} lets SQLite 
 the joins of \code{data_source} that do not change the ids.
 }
 \seealso{
-\code{\link[=get_references]{get_references()}}
+\code{\link[=get_references]{get_references()}}, \code{\link[=build_reference_link_table]{build_reference_link_table()}}
 }
 \keyword{internal}

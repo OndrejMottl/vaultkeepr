@@ -320,24 +320,29 @@ testthat::test_that("all types", {
 })
 
 testthat::test_that("the references of all types stay the same", {
-  test_refs <-
+  data_refs <-
     open_vault(
-      path = paste(tempdir(), "example.sqlite", sep = "/"),
+      path = base::file.path(
+        base::tempdir(),
+        "example.sqlite"
+      ),
       verbose = FALSE
-    ) %>%
-    get_datasets() %>%
-    get_samples() %>%
-    get_taxa() %>%
-    get_traits(verbose = FALSE) %>%
-    get_abiotic_data(verbose = FALSE) %>%
+    ) |>
+    get_datasets() |>
+    get_samples() |>
+    get_taxa() |>
+    get_traits(verbose = FALSE) |>
+    get_abiotic_data(verbose = FALSE) |>
     get_references(verbose = FALSE)
 
   data_refs_sorted <-
-    test_refs %>%
-    dplyr::arrange(reference_source, reference, mandatory) %>%
-    as.data.frame()
+    data_refs |>
+    dplyr::arrange(reference_source, reference, mandatory) |>
+    base::as.data.frame()
 
-  testthat::expect_snapshot(print(data_refs_sorted))
+  testthat::expect_snapshot(
+    base::print(data_refs_sorted)
+  )
 })
 
 # error handling ----
