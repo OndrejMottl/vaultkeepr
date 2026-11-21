@@ -45,4 +45,4 @@ Config/testthat/start-first: open_vault, explore_vault, get_datasets,
 Encoding: UTF-8
 Language: en-GB
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.1.1
