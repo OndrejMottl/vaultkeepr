@@ -99,183 +99,54 @@ get_references <- function(
     msg = "{.arg verbose} must be a logical value."
   )
 
-  data_extracted_refs <-
-    tibble::tibble(
-      reference_id = integer(),
-      reference_source = character()
+  # Render the lazy selection once: every reference type below reads it as a
+  #   subquery, and rendering the nested query takes about as long as running
+  #   one reference query
+  if (
+    inherits(sel_data, "tbl_sql")
+  ) {
+    data_selection <-
+      dplyr::tbl(
+        src = sel_con,
+        from = dplyr::sql(dbplyr::sql_render(sel_data)),
+        vars = colnames(sel_data)
+      )
+  } else {
+    data_selection <- sel_data
+  }
+
+  data_links_selected <-
+    build_reference_link_table() |>
+    dplyr::filter(
+      .data[["reference_source"]] %in% type,
+      .data[["sel_column"]] %in% colnames(sel_data)
     )
 
-  # helper function to get unique references for specific columns in a table
-  get_uniq_refs <- function(data_source, sel_con, sel_column, sel_table) {
-    vec_variable_id <-
-      data_source %>%
-      dplyr::distinct(!!dplyr::sym(sel_column)) %>%
-      dplyr::collect() %>%
-      purrr::chuck(sel_column)
+  # The ids of each type reach SQLite as a subquery, not as a literal list
+  data_extracted_refs <-
+    data_links_selected |>
+    purrr::pmap(
+      .f = ~ {
+        sel_source <- ..1
 
-    data_refs <-
-      dplyr::tbl(sel_con, sel_table) %>%
-      dplyr::filter(
-        !!dplyr::sym(sel_column) %in% vec_variable_id
-      ) %>%
-      dplyr::distinct(.data$reference_id) %>%
-      dplyr::collect() %>%
-      purrr::chuck("reference_id")
-
-    return(data_refs)
-  }
-
-  if (
-    "Dataset" %in% type &&
-      "dataset_id" %in% colnames(sel_data)
-  ) {
-    data_extracted_refs <-
-      data_extracted_refs %>%
-      dplyr::bind_rows(
-        dplyr::tibble(
-          reference_id = get_uniq_refs(
-            data_source = sel_data,
-            sel_con = sel_con,
-            sel_column = "dataset_id",
-            sel_table = "DatasetReferences"
-          ),
-          reference_source = "Dataset"
-        )
+        build_reference_query(
+          data_source = data_selection,
+          sel_con = sel_con,
+          sel_column = ..2,
+          sel_table = ..3
+        ) |>
+          dplyr::collect() |>
+          dplyr::mutate(reference_source = sel_source)
+      }
+    ) |>
+    purrr::list_rbind(
+      ptype = tibble::tibble(
+        reference_id = integer(),
+        reference_detail = character(),
+        mandatory = integer(),
+        reference_source = character()
       )
-  }
-
-  if (
-    "DatasetSource" %in% type &&
-      "data_source_id" %in% colnames(sel_data)
-  ) {
-    data_extracted_refs <-
-      data_extracted_refs %>%
-      dplyr::bind_rows(
-        dplyr::tibble(
-          reference_id = get_uniq_refs(
-            data_source = sel_data,
-            sel_con = sel_con,
-            sel_column = "data_source_id",
-            sel_table = "DatasetSourcesReference"
-          ),
-          reference_source = "DatasetSource"
-        )
-      )
-  }
-
-  if (
-    "DatasetSourceType" %in% type &&
-      "data_source_type_id" %in% colnames(sel_data)
-  ) {
-    data_extracted_refs <-
-      data_extracted_refs %>%
-      dplyr::bind_rows(
-        dplyr::tibble(
-          reference_id = get_uniq_refs(
-            data_source = sel_data,
-            sel_con = sel_con,
-            sel_column = "data_source_type_id",
-            sel_table = "DatasetSourceTypeReference"
-          ),
-          reference_source = "DatasetSourceType"
-        )
-      )
-  }
-
-  if (
-    "SamplingMethod" %in% type &&
-      "sampling_method_id" %in% colnames(sel_data)
-  ) {
-    data_extracted_refs <-
-      data_extracted_refs %>%
-      dplyr::bind_rows(
-        dplyr::tibble(
-          reference_id = get_uniq_refs(
-            data_source = sel_data,
-            sel_con = sel_con,
-            sel_column = "sampling_method_id",
-            sel_table = "SamplingMethodReference"
-          ),
-          reference_source = "SamplingMethod"
-        )
-      )
-  }
-
-  if (
-    "Sample" %in% type &&
-      "sample_id" %in% colnames(sel_data)
-  ) {
-    data_extracted_refs <-
-      data_extracted_refs %>%
-      dplyr::bind_rows(
-        dplyr::tibble(
-          reference_id = get_uniq_refs(
-            data_source = sel_data,
-            sel_con = sel_con,
-            sel_column = "sample_id",
-            sel_table = "SampleReference"
-          ),
-          reference_source = "Sample"
-        )
-      )
-  }
-
-  if (
-    "Taxon" %in% type &&
-      "taxon_id" %in% colnames(sel_data)
-  ) {
-    data_extracted_refs <-
-      data_extracted_refs %>%
-      dplyr::bind_rows(
-        dplyr::tibble(
-          reference_id = get_uniq_refs(
-            data_source = sel_data,
-            sel_con = sel_con,
-            sel_column = "taxon_id",
-            sel_table = "TaxonReference"
-          ),
-          reference_source = "Taxon"
-        )
-      )
-  }
-
-  if (
-    "Trait" %in% type &&
-      "trait_id" %in% colnames(sel_data)
-  ) {
-    data_extracted_refs <-
-      data_extracted_refs %>%
-      dplyr::bind_rows(
-        dplyr::tibble(
-          reference_id = get_uniq_refs(
-            data_source = sel_data,
-            sel_con = sel_con,
-            sel_column = "trait_id",
-            sel_table = "TraitsReference"
-          ),
-          reference_source = "Trait"
-        )
-      )
-  }
-
-  if (
-    "AbioticVariable" %in% type &&
-      "abiotic_variable_id" %in% colnames(sel_data)
-  ) {
-    data_extracted_refs <-
-      data_extracted_refs %>%
-      dplyr::bind_rows(
-        dplyr::tibble(
-          reference_id = get_uniq_refs(
-            data_source = sel_data,
-            sel_con = sel_con,
-            sel_column = "abiotic_variable_id",
-            sel_table = "AbioticVariableReference"
-          ),
-          reference_source = "AbioticVariable"
-        )
-      )
-  }
+    )
 
   if (
     nrow(data_extracted_refs) == 0
@@ -289,28 +160,8 @@ get_references <- function(
     return(NULL)
   }
 
-  # get unique references
-  vec_refs <-
-    data_extracted_refs %>%
-    dplyr::distinct(.data$reference_id) %>%
-    purrr::chuck("reference_id")
-
-  # extract selected references
-  data_ref_db <-
-    dplyr::tbl(sel_con, "References") %>%
-    dplyr::filter(
-      .data$reference_id %in% vec_refs
-    ) %>%
-    dplyr::distinct() %>%
-    dplyr::collect()
-
-
   res_full <-
     data_extracted_refs %>%
-    dplyr::left_join(
-      data_ref_db,
-      by = c("reference_id" = "reference_id")
-    ) %>%
     dplyr::mutate(
       mandatory = as.logical(.data$mandatory)
     ) %>%
@@ -346,8 +197,10 @@ get_references <- function(
     return(res_full)
   }
 
-  res_full %>%
-    dplyr::select("reference", "mandatory") %>%
-    dplyr::distinct() %>%
-    return()
+  res <-
+    res_full |>
+    dplyr::select("reference", "mandatory") |>
+    dplyr::distinct()
+
+  return(res)
 }
