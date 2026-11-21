@@ -18,9 +18,15 @@
 #' When `return_raw_data = FALSE` (default): a wide `tibble` with
 #' `sample_name` as the key column and one column per age-model
 #' iteration (e.g. `iteration_1`, `iteration_2`, ...), restricted to
-#' the samples present in the incoming pipe.
+#' the samples present in the incoming pipe, with one row per sample in
+#' the order of `sample_id`.
 #' When `return_raw_data = TRUE`: a long `tibble` with columns
-#' `sample_id`, `iteration`, and `age_uncertainty`.
+#' `sample_id`, `iteration`, and `age_uncertainty`, sorted by `sample_id`
+#' and `iteration`.
+#' @details
+#' Only the uncertainty rows of the samples in the pipe are read: SQLite
+#' receives their ids as a subquery and finds their rows through the index
+#' or the primary key on `SampleUncertainty.sample_id`.
 #' @seealso [open_vault()], [get_samples()]
 #' @export
 get_age_uncertainty <- function(con = NULL, return_raw_data = FALSE) {
@@ -74,18 +80,23 @@ get_age_uncertainty <- function(con = NULL, return_raw_data = FALSE) {
   # Rename `age` -> `age_uncertainty` to make the column's meaning
   # explicit when the caller combines this with other data.
   data_res_raw <-
-    dplyr::tbl(sel_con, "SampleUncertainty") %>%
-    dplyr::rename(age_uncertainty = "age") %>%
-    dplyr::semi_join(
-      sel_data,
-      by = "sample_id"
+    build_age_uncertainty_query(
+      data_source = sel_data,
+      sel_con = sel_con
     )
 
+  # SQLite returns rows in no fixed order without ORDER BY; the 2.0.0
+  #   primary key (sample_id, iteration) serves this order directly
   if (
     isTRUE(return_raw_data)
   ) {
     res <-
-      dplyr::collect(data_res_raw)
+      data_res_raw |>
+      dplyr::arrange(
+        .data[["sample_id"]],
+        .data[["iteration"]]
+      ) |>
+      dplyr::collect()
 
     return(res)
   }
@@ -95,12 +106,16 @@ get_age_uncertainty <- function(con = NULL, return_raw_data = FALSE) {
     dplyr::select("sample_id", "sample_name")
 
   data_res_named <-
-    data_res_raw %>%
+    data_res_raw |>
     dplyr::left_join(
-      data_samples,
-      by = "sample_id"
-    ) %>%
-    dplyr::select("sample_name", "iteration", "age_uncertainty") %>%
+      y = data_samples,
+      by = dplyr::join_by("sample_id")
+    ) |>
+    dplyr::arrange(
+      .data[["sample_id"]],
+      .data[["iteration"]]
+    ) |>
+    dplyr::select("sample_name", "iteration", "age_uncertainty") |>
     dplyr::collect()
 
   res <-
