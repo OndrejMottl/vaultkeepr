@@ -60,7 +60,7 @@ plan <-
 
 ## Step 2 — Add dataset metadata
 
-`get_datasets()` extends the plan with the central `Datasets` table. Trait datasets (`dataset_type == "traits"`) are global in scope — they are not filtered by geography in the next step because traits apply universally to a taxon regardless of where the pollen sample was collected. Only the `fossil_pollen_archive` datasets will be geographically filtered.
+`get_datasets()` extends the plan with the central `Datasets` table. In the next step, the geographic filter applies to both the `fossil_pollen_archive` and the `traits` datasets, so the trait values come from measurements taken in the same area as the pollen records.
 
 ```{r get-datasets}
 plan <-
@@ -96,7 +96,7 @@ plan <-
 
 We focus on western Amazonia (longitude −59 to −61 °W, latitude −14 to −16 °S), a biodiverse tropical region with a well-sampled Holocene pollen record.
 
-> **Note**: `traits` datasets are intentionally excluded from geographic filtering: trait values are assigned to taxa globally, not to the location where the TRY/BIEN measurement was taken. You will see a message confirming this behaviour.
+> **Note**: By default the box applies to every dataset type, `traits` included, so trait datasets outside the box, or without coordinates, are dropped. To use trait values measured anywhere, leave `traits` out of `sel_dataset_type`, for example `sel_dataset_type = "fossil_pollen_archive"`. The filter then keeps every trait dataset, wherever it lies, and a message names the dataset types it does not filter. On the full database this makes the query much larger and slower.
 
 ```{r filter-geo}
 plan <-

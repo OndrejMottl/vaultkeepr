@@ -8,7 +8,8 @@ select_dataset_by_geo(
   con = NULL,
   long_lim = c(-180, 180),
   lat_lim = c(-90, 90),
-  sel_dataset_type = c("vegetation_plot", "fossil_pollen_archive", "gridpoints"),
+  sel_dataset_type = c("vegetation_plot", "fossil_pollen_archive", "traits",
+    "gridpoints"),
   verbose = TRUE
 )
 }
@@ -19,7 +20,11 @@ select_dataset_by_geo(
 
 \item{lat_lim}{A numeric vector of length 2 specifying the latitude limits}
 
-\item{sel_dataset_type}{(optional) A character vector specifying the dataset types to filter}
+\item{sel_dataset_type}{A character vector of the dataset types the box applies to. Default is all
+four types (\code{vegetation_plot},
+\code{fossil_pollen_archive}, \code{traits}, \code{gridpoints}), so every dataset outside
+the box is dropped. Datasets of a type left out pass the filter wherever
+they lie.}
 
 \item{verbose}{A logical value specifying whether to print messages}
 }
@@ -27,9 +32,17 @@ select_dataset_by_geo(
 A class of \code{vault_pipe}
 }
 \description{
-Filter the dataset by geographical location
+Keep only the datasets that lie inside a box of longitude and latitude
+limits. The filter stays lazy: SQLite receives range conditions on
+\code{coord_long} and \code{coord_lat}, which the coordinate index of \code{Datasets} can
+serve.
 }
 \details{
-There is an option to filter only specific dataset types (as some dataset types may not have lat/long information).
-To do this, use the \code{sel_dataset_type} argument.
+The limits are inclusive and may be given in either order. A dataset of a
+type the box applies to is dropped when \code{coord_long} or \code{coord_lat} is
+missing, also with the default limits.
+
+To keep all datasets of a type, for example trait datasets from anywhere,
+leave the type out of \code{sel_dataset_type}. A message then names the types in
+the data that the box does not filter.
 }
