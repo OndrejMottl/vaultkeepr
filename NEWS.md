@@ -1,5 +1,10 @@
 # vaultkeepr 0.1.1
 
+## Changed behaviour
+
+* `select_dataset_by_geo()` applies the box to all four dataset types by default: `sel_dataset_type` now defaults to `vegetation_plot`, `fossil_pollen_archive`, `traits` and `gridpoints`. Before, trait datasets passed the box from anywhere in the world unless `traits` was named. Trait datasets outside the box, or without coordinates, are now dropped. To keep all datasets of a type, leave it out of `sel_dataset_type`; a message names the types in the data that the box does not filter.
+* `select_dataset_by_geo()` stops with an error when `sel_dataset_type` names a type other than these four, or when the data lack the `dataset_type_id` column that `get_datasets()` adds.
+
 ## VegVault 2 compatibility
 
 * `open_vault()` detects the database version without changing the two-element `vault_pipe` structure.
@@ -11,6 +16,7 @@
 
 * `extract_data()` checks for mandatory references with one query that stops at the first match, and only when `verbose = TRUE`, because the alert is the only effect of the check. It no longer prints the messages of `get_references()`.
 * `get_references()` sends the selected ids to SQLite as a subquery instead of a literal list, and reads the reference details in the same query.
+* `select_dataset_by_geo()` filters with range conditions on `coord_long` and `coord_lat` instead of a `CASE` expression, so SQLite can use the coordinate index of `Datasets`. It queries which dataset types are in the data only when some type is left out of `sel_dataset_type` and `verbose = TRUE`, to print the message.
 
 # vaultkeepr 0.1.0
 
