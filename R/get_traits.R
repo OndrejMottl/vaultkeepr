@@ -22,6 +22,11 @@
 #' [get_taxa()] in the pipe.
 #' In addition, it is important to set `classify_to` to the same value
 #' as in [get_taxa()].
+#' VegVault 1 databases remain queryable, but this function warns because their
+#' trait units may be unreliable. VegVault 2 queries additionally expose the
+#' canonical `trait_unit` and readable `conversion_rule_key` and
+#' `derivation_rule_key` fields.
+#'
 get_traits <- function(
     con = NULL,
     classify_to = c("original", "species", "genus", "family"),
@@ -116,9 +121,18 @@ get_traits <- function(
     )
   }
 
+  if (!is_vegvault_v2(sel_con)) {
+    cli::cli_warn(
+      c(
+        "VegVault 1 trait units may be unreliable.",
+        "i" = "Values remain queryable for backwards compatibility."
+      )
+    )
+  }
+
   data_traits <-
     classify_taxa(
-      data_source = dplyr::tbl(sel_con, "TraitsValue"),
+      data_source = get_trait_values_by_version(sel_con),
       sel_con = sel_con,
       to = classify_to,
       classification_data = classification_data

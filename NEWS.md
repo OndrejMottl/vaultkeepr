@@ -1,3 +1,12 @@
+# vaultkeepr 0.1.1
+
+## VegVault 2 compatibility
+
+* `open_vault()` detects the database version without changing the two-element `vault_pipe` structure.
+* `get_traits()` keeps VegVault 1 databases queryable and warns that their trait units may be unreliable.
+* VegVault 2 trait queries expose canonical `trait_unit`, `conversion_rule_key`, and `derivation_rule_key` fields while remaining lazy.
+* Packed trait data retains `trait_unit` but omits verbose record-level provenance.
+
 # vaultkeepr 0.1.0
 
 ## New functions
