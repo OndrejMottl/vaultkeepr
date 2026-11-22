@@ -486,3 +486,227 @@ testthat::test_that("error when classification_data is not data.frame", {
       )
   )
 })
+
+# Classification of the selected samples -----
+
+testthat::test_that("get_traits() narrows trait values to the selection", {
+  vault_selected <-
+    build_classification_fixture(vec_dataset_type = "traits")
+
+  withr::defer(
+    DBI::dbDisconnect(
+      conn = purrr::chuck(vault_selected, "db_con")
+    )
+  )
+
+  sql_traits <-
+    base::suppressWarnings(
+      get_traits(
+        con = vault_selected,
+        classify_to = "genus",
+        verbose = FALSE
+      )
+    ) |>
+    purrr::chuck("data") |>
+    dbplyr::sql_render() |>
+    base::as.character()
+
+  testthat::expect_match(
+    sql_traits,
+    "`sample_id` IN \\(SELECT DISTINCT `sample_id`"
+  )
+})
+
+testthat::test_that("get_traits() classifies only the selected values", {
+  vault_selected <-
+    build_classification_fixture(vec_dataset_type = "traits")
+
+  withr::defer(
+    DBI::dbDisconnect(
+      conn = purrr::chuck(vault_selected, "db_con")
+    )
+  )
+
+  sql_traits <-
+    base::suppressWarnings(
+      get_traits(
+        con = vault_selected,
+        classify_to = "genus",
+        verbose = FALSE
+      )
+    ) |>
+    purrr::chuck("data") |>
+    dbplyr::sql_render()
+
+  vec_plan_detail <-
+    DBI::dbGetQuery(
+      conn = purrr::chuck(vault_selected, "db_con"),
+      statement = stringr::str_c("EXPLAIN QUERY PLAN ", sql_traits)
+    ) |>
+    dplyr::pull(var = "detail")
+
+  # A scan of the classification table means the taxa of the whole
+  #   database are classified before the selection applies
+  testthat::expect_false(
+    base::any(
+      stringr::str_detect(
+        string = vec_plan_detail,
+        pattern = "SCAN TaxonClassification"
+      )
+    )
+  )
+  testthat::expect_true(
+    base::any(
+      stringr::str_detect(
+        string = vec_plan_detail,
+        pattern = stringr::str_c(
+          "^SEARCH TraitsValue USING (COVERING )?INDEX ",
+          "idx_traitsvalue_sample_id"
+        )
+      )
+    )
+  )
+})
+
+testthat::test_that("get_traits() keeps the plain join for original taxa", {
+  vault_selected <-
+    build_classification_fixture(vec_dataset_type = "traits")
+
+  withr::defer(
+    DBI::dbDisconnect(
+      conn = purrr::chuck(vault_selected, "db_con")
+    )
+  )
+
+  sql_traits <-
+    base::suppressWarnings(
+      get_traits(
+        con = vault_selected,
+        classify_to = "original",
+        verbose = FALSE
+      )
+    ) |>
+    purrr::chuck("data") |>
+    dbplyr::sql_render() |>
+    base::as.character()
+
+  testthat::expect_no_match(sql_traits, "IN \\(SELECT DISTINCT")
+})
+
+testthat::test_that("get_traits() classifies the selection as before", {
+  vault_selected <-
+    build_classification_fixture(vec_dataset_type = "traits")
+
+  withr::defer(
+    DBI::dbDisconnect(
+      conn = purrr::chuck(vault_selected, "db_con")
+    )
+  )
+
+  sel_con <-
+    purrr::chuck(vault_selected, "db_con")
+
+  data_selected <-
+    purrr::chuck(vault_selected, "data") |>
+    dplyr::collect()
+
+  data_trait_values <-
+    get_trait_values_by_version(db_con = sel_con) |>
+    dplyr::collect()
+
+  data_classification <-
+    dplyr::tbl(
+      src = sel_con,
+      from = "TaxonClassification"
+    ) |>
+    dplyr::collect()
+
+  vec_rank_column <-
+    c(
+      original = "taxon_id",
+      species = "taxon_species",
+      genus = "taxon_genus",
+      family = "taxon_family"
+    )
+
+  purrr::iwalk(
+    .x = vec_rank_column,
+    .f = ~ {
+      data_res <-
+        base::suppressWarnings(
+          get_traits(
+            con = vault_selected,
+            classify_to = .y,
+            verbose = FALSE
+          )
+        ) |>
+        purrr::chuck("data") |>
+        dplyr::collect() |>
+        dplyr::arrange(dplyr::across(dplyr::everything()))
+
+      data_expected <-
+        build_expected_classified_values(
+          data_selected = data_selected,
+          data_values = data_trait_values,
+          data_classification = data_classification,
+          sel_rank_column = .x,
+          vec_join_column = c("dataset_id", "sample_id"),
+          sel_suffix = "_trait"
+        ) |>
+        dplyr::arrange(dplyr::across(dplyr::everything()))
+
+      testthat::expect_equal(data_res, data_expected)
+    }
+  )
+})
+
+testthat::test_that("get_traits() classifies an empty selection", {
+  vault_selected <-
+    build_classification_fixture(vec_dataset_type = "traits")
+
+  withr::defer(
+    DBI::dbDisconnect(
+      conn = purrr::chuck(vault_selected, "db_con")
+    )
+  )
+
+  data_samples_none <-
+    purrr::chuck(vault_selected, "data") |>
+    dplyr::filter(
+      .data[["sample_id"]] < 0L
+    )
+
+  vault_empty <-
+    base::structure(
+      base::list(
+        data = data_samples_none,
+        db_con = purrr::chuck(vault_selected, "db_con")
+      ),
+      class = c("list", "vault_pipe")
+    )
+
+  data_res_empty <-
+    base::suppressWarnings(
+      get_traits(
+        con = vault_empty,
+        classify_to = "genus",
+        verbose = FALSE
+      )
+    ) |>
+    purrr::chuck("data") |>
+    dplyr::collect()
+
+  vec_column_selected <-
+    base::suppressWarnings(
+      get_traits(
+        con = vault_selected,
+        classify_to = "genus",
+        verbose = FALSE
+      )
+    ) |>
+    purrr::chuck("data") |>
+    base::colnames()
+
+  testthat::expect_equal(base::nrow(data_res_empty), 0L)
+  testthat::expect_equal(base::colnames(data_res_empty), vec_column_selected)
+})
