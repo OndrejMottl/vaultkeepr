@@ -43,4 +43,9 @@ VegVault 1 databases remain queryable, but this function warns because their
 trait units may be unreliable. VegVault 2 queries additionally expose the
 canonical \code{trait_unit} and readable \code{conversion_rule_key} and
 \code{derivation_rule_key} fields.
+
+With \code{classify_to} other than \code{original}, only the trait values of the
+samples in the pipe are classified: SQLite receives their sample ids as a
+subquery and reads their rows of \code{TraitsValue} through the index on
+\code{sample_id}, instead of classifying the taxa of the whole database first.
 }

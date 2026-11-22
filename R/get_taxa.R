@@ -17,6 +17,11 @@
 #' @return
 #' A `vault_pipe` object with the data and the connection to the Vault
 #' database.
+#' @details
+#' With `classify_to` other than `original`, only the taxa of the samples in
+#' the pipe are classified: SQLite receives their sample ids as a subquery
+#' and reads their rows of `SampleTaxa` through the index on `sample_id`,
+#' instead of classifying the taxa of the whole database first.
 #' @export
 get_taxa <- function(
     con = NULL,
@@ -88,8 +93,32 @@ get_taxa <- function(
     )
   }
 
-  data_taxa <-
-    dplyr::tbl(sel_con, "SampleTaxa")
+  data_taxa_all <-
+    dplyr::tbl(
+      src = sel_con,
+      from = "SampleTaxa"
+    )
+
+  # SQLite materialises the classified taxa in full before the join, so
+  #   they are narrowed to the selected samples first; the plain join of
+  #   original taxa already reads SampleTaxa through its sample_id index
+  if (
+    classify_to == "original"
+  ) {
+    data_taxa <- data_taxa_all
+  } else {
+    sql_selected_sample_id <-
+      build_selected_id_sql(
+        data_source = sel_data,
+        sel_column = "sample_id"
+      )
+
+    data_taxa <-
+      data_taxa_all |>
+      dplyr::filter(
+        .data[["sample_id"]] %in% !!sql_selected_sample_id
+      )
+  }
 
   data_taxa_classified <-
     classify_taxa(

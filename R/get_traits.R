@@ -27,6 +27,11 @@
 #' canonical `trait_unit` and readable `conversion_rule_key` and
 #' `derivation_rule_key` fields.
 #'
+#' With `classify_to` other than `original`, only the trait values of the
+#' samples in the pipe are classified: SQLite receives their sample ids as a
+#' subquery and reads their rows of `TraitsValue` through the index on
+#' `sample_id`, instead of classifying the taxa of the whole database first.
+#'
 get_traits <- function(
     con = NULL,
     classify_to = c("original", "species", "genus", "family"),
@@ -130,9 +135,33 @@ get_traits <- function(
     )
   }
 
+  data_trait_values_all <-
+    get_trait_values_by_version(db_con = sel_con)
+
+  # SQLite materialises the classified trait values in full before the
+  #   join, so they are narrowed to the selected samples first; the plain
+  #   join of original taxa needs no narrowing
+  if (
+    classify_to == "original"
+  ) {
+    data_trait_values <- data_trait_values_all
+  } else {
+    sql_selected_sample_id <-
+      build_selected_id_sql(
+        data_source = sel_data,
+        sel_column = "sample_id"
+      )
+
+    data_trait_values <-
+      data_trait_values_all |>
+      dplyr::filter(
+        .data[["sample_id"]] %in% !!sql_selected_sample_id
+      )
+  }
+
   data_traits <-
     classify_taxa(
-      data_source = get_trait_values_by_version(sel_con),
+      data_source = data_trait_values,
       sel_con = sel_con,
       to = classify_to,
       classification_data = classification_data

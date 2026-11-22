@@ -19,6 +19,7 @@
 * `get_references()` sends the selected ids to SQLite as a subquery instead of a literal list, and reads the reference details in the same query.
 * `select_dataset_by_geo()` filters with range conditions on `coord_long` and `coord_lat` instead of a `CASE` expression, so SQLite can use the coordinate index of `Datasets`. It queries which dataset types are in the data only when some type is left out of `sel_dataset_type` and `verbose = TRUE`, to print the message.
 * `get_age_uncertainty()` reads the uncertainty rows of the selected samples with `sample_id IN (SELECT DISTINCT sample_id ...)` instead of a correlated `EXISTS`. SQLite runs the selection once and finds the rows through the index or the primary key on `sample_id`, instead of scanning the whole `SampleUncertainty` table.
+* `get_taxa()` and `get_traits()` with `classify_to` other than `"original"` classify only the taxa of the selected samples. The rows of `SampleTaxa` or `TraitsValue` are narrowed to the sample ids of the selection before the join with the classification, instead of classifying the taxa of the whole database first. The results are unchanged.
 
 # vaultkeepr 0.1.0
 
