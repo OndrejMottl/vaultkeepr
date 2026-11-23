@@ -10,7 +10,10 @@ testthat::test_that("the test database has the schema of the schema file", {
     DBI::dbDisconnect(conn = con_expected)
   )
 
-  build_schema_fixture(db_con = con_expected)
+  build_schema_fixture(
+    db_con = con_expected,
+    file_sql = "vegvault_schema_2.0.0.sql"
+  )
 
   con_fixture <-
     DBI::dbConnect(
@@ -40,6 +43,24 @@ testthat::test_that("the test database has the schema of the schema file", {
 })
 
 
+testthat::test_that("the test database is VegVault 2.0.0", {
+  con_fixture <-
+    DBI::dbConnect(
+      drv = RSQLite::SQLite(),
+      dbname = base::file.path(base::tempdir(), "example.sqlite"),
+      flags = RSQLite::SQLITE_RO
+    )
+
+  withr::defer(
+    DBI::dbDisconnect(conn = con_fixture)
+  )
+
+  res <-
+    load_vegvault_version(db_con = con_fixture)
+
+  testthat::expect_equal(res, "2.0.0")
+})
+
 # Vignette database -----
 testthat::test_that("the vignette database has the schema of the schema file", {
   path_vignettes <-
@@ -49,8 +70,6 @@ testthat::test_that("the vignette database has the schema of the schema file", {
     base::dir.exists(path_vignettes),
     message = "The vignettes are not part of the package build"
   )
-
-  withr::local_options(vaultkeepr.fixture_version = "1.0.0")
 
   env_vignette <-
     base::new.env(parent = base::globalenv())
@@ -73,7 +92,10 @@ testthat::test_that("the vignette database has the schema of the schema file", {
     DBI::dbDisconnect(conn = con_expected)
   )
 
-  build_schema_fixture(db_con = con_expected)
+  build_schema_fixture(
+    db_con = con_expected,
+    file_sql = "vegvault_schema_2.0.0.sql"
+  )
 
   con_vignette <-
     DBI::dbConnect(
@@ -114,7 +136,9 @@ testthat::test_that("the two databases use the same helper functions", {
   vec_helper_files <-
     c(
       "helper_apply_fixture_seed.R",
-      "helper_build_reference_fixture.R"
+      "helper_build_position_link_fixture.R",
+      "helper_build_reference_fixture.R",
+      "helper_build_trait_rule_fixture.R"
     )
 
   purrr::walk(

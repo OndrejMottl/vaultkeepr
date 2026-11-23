@@ -6,7 +6,7 @@
 #   (R CMD check), because base::system.file() sees only installed packages.
 build_schema_fixture <- function(
   db_con,
-  file_sql = "vegvault_schema_1.0.0.sql"
+  file_sql = "vegvault_schema_2.0.0.sql"
 ) {
   path_sql_source <-
     testthat::test_path("..", "..", "inst", "sql", file_sql)

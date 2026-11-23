@@ -14,6 +14,7 @@
 * `get_traits()` keeps VegVault 1 databases queryable and warns that their trait units may be unreliable.
 * VegVault 2 trait queries expose canonical `trait_unit`, `conversion_rule_key`, and `derivation_rule_key` fields while remaining lazy.
 * Packed trait data retains `trait_unit` but omits verbose record-level provenance.
+* `get_readable_column_names()`, and with it `pack_data()`, works on trait data from VegVault 2. Both the trait values and `TraitsDomain` carry `trait_unit` there, and the join of `TraitsDomain` failed on the duplicated column; the column of the trait values is now kept.
 
 ## Query performance
 

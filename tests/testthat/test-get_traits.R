@@ -30,6 +30,41 @@ testthat::test_that("basic data.frame structure", {
   testthat::expect_s3_class(test_datasets$data, "tbl_sql")
 })
 
+testthat::test_that("get_traits() returns units on the test database", {
+  vault_traits <-
+    open_vault(
+      path = base::file.path(base::tempdir(), "example.sqlite"),
+      verbose = FALSE
+    ) |>
+    get_datasets() |>
+    get_samples()
+
+  testthat::expect_no_warning(
+    data_traits <-
+      get_traits(
+        con = vault_traits,
+        verbose = FALSE
+      ) |>
+      purrr::chuck("data") |>
+      # Samples without trait values are kept, without a unit
+      dplyr::filter(!base::is.na(.data[["trait_id"]])) |>
+      dplyr::collect()
+  )
+
+  testthat::expect_true(
+    base::all(
+      c("trait_unit", "conversion_rule_key", "derivation_rule_key") %in%
+        base::colnames(data_traits)
+    )
+  )
+  testthat::expect_false(
+    base::anyNA(dplyr::pull(data_traits, "trait_unit"))
+  )
+  testthat::expect_false(
+    base::anyNA(dplyr::pull(data_traits, "conversion_rule_key"))
+  )
+})
+
 testthat::test_that("number of trait ids", {
   test_datasets <-
     open_vault(
@@ -243,22 +278,20 @@ testthat::test_that("filtering the trait data by taxa-classified ", {
 })
 
 testthat::test_that("get a message when adding taxa ", {
-  test_f <- function() {
-    open_vault(
-      path = paste(
-        tempdir(),
-        "example.sqlite",
-        sep = "/"
-      )
-    ) %>%
-      get_datasets() %>%
-      get_samples() %>%
-      get_taxa() %>%
-      get_traits(verbose = TRUE)
-  }
-
   quiet_f <-
-    purrr::quietly(test_f)
+    purrr::quietly(
+      .f = ~ open_vault(
+        path = paste(
+          tempdir(),
+          "example.sqlite",
+          sep = "/"
+        )
+      ) %>%
+        get_datasets() %>%
+        get_samples() %>%
+        get_taxa() %>%
+        get_traits(verbose = TRUE)
+    )
 
   res <-
     quiet_f()
