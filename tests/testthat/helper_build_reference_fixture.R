@@ -1,6 +1,7 @@
-# Draw dummy references for the ids of one table of the test database,
-#   append them to `References` and write the table that links them to the
-#   ids. Used by helper_make_database.R while it builds the test database.
+# Draw dummy references for the ids of one table of the test or vignette
+#   database, append them to `References` and write the table that links
+#   them to the ids. The same file is in tests/testthat/ and vignettes/;
+#   test-helper_make_database.R checks that the two copies match.
 build_reference_fixture <- function(
   con_db,
   id_table_name,
