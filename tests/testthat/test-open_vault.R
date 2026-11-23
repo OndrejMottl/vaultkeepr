@@ -87,6 +87,7 @@ testthat::test_that("return corrent tables", {
       "AbioticVariable",
       "AbioticVariableReference",
       "Authors",
+      "BuildProducers",
       "DatasetReferences",
       "DatasetSample",
       "DatasetSourceTypeID",
@@ -95,7 +96,10 @@ testthat::test_that("return corrent tables", {
       "DatasetSourcesReference",
       "DatasetTypeID",
       "Datasets",
+      "PositionLink",
+      "Positions",
       "References",
+      "SamplePosition",
       "SampleReference",
       "SampleSizeID",
       "SampleTaxa",
@@ -106,6 +110,8 @@ testthat::test_that("return corrent tables", {
       "Taxa",
       "TaxonClassification",
       "TaxonReference",
+      "TraitDerivation",
+      "TraitUnitConversion",
       "Traits",
       "TraitsDomain",
       "TraitsReference",
@@ -210,10 +216,10 @@ testthat::test_that("open_vault() stores the version of the highest id", {
 
 testthat::test_that("open_vault() keeps the pipe shape for both versions", {
   path_v1 <-
-    make_trait_version_database(version = "1.0.0")
+    build_trait_version_fixture(sel_version = "1.0.0")
 
   path_v2 <-
-    make_trait_version_database(version = "2.0.0")
+    build_trait_version_fixture(sel_version = "2.0.0")
 
   withr::defer(
     base::unlink(x = c(path_v1, path_v2))
@@ -297,7 +303,7 @@ testthat::test_that("open_vault() reads a file without versions as 1.0.0", {
   list_path <-
     list(
       no_table = build_version_table_fixture(vec_version = NULL),
-      example = base::file.path(base::tempdir(), "example.sqlite")
+      empty = build_version_table_fixture(vec_version = character(0))
     )
 
   purrr::iwalk(

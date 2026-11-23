@@ -20,7 +20,11 @@ load_schema_description <- function(db_con) {
         conn = db_con,
         statement = stringr::str_glue("PRAGMA table_info(\"{.x}\")")
       ) |>
-        dplyr::mutate(table_name = .x)
+        dplyr::mutate(
+          table_name = .x,
+          # SQLite returns a column of missing defaults as logical
+          dflt_value = base::as.character(.data[["dflt_value"]])
+        )
     ) |>
     dplyr::bind_rows() |>
     dplyr::select(
@@ -41,7 +45,14 @@ load_schema_description <- function(db_con) {
         conn = db_con,
         statement = stringr::str_glue("PRAGMA index_list(\"{.x}\")")
       ) |>
-        dplyr::mutate(table_name = .x)
+        dplyr::mutate(
+          table_name = .x,
+          # A table without indexes returns columns of unknown type
+          name = base::as.character(.data[["name"]]),
+          unique = base::as.integer(.data[["unique"]]),
+          origin = base::as.character(.data[["origin"]]),
+          partial = base::as.integer(.data[["partial"]])
+        )
     ) |>
     dplyr::bind_rows() |>
     dplyr::select(

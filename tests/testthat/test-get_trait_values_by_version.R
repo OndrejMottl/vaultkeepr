@@ -11,10 +11,10 @@ testthat::test_that("get_trait_values_by_version() rejects a non-connection", {
 # Output -----
 testthat::test_that("get_trait_values_by_version() returns a lazy table", {
   path_v1 <-
-    make_trait_version_database(version = "1.0.0")
+    build_trait_version_fixture(sel_version = "1.0.0")
 
   path_v2 <-
-    make_trait_version_database(version = "2.0.0")
+    build_trait_version_fixture(sel_version = "2.0.0")
 
   withr::defer(
     base::unlink(x = c(path_v1, path_v2))
@@ -54,7 +54,7 @@ testthat::test_that("get_trait_values_by_version() returns a lazy table", {
 # Functionality -----
 testthat::test_that("get_trait_values_by_version() keeps VegVault 1 as is", {
   path_v1 <-
-    make_trait_version_database(version = "1.0.0")
+    build_trait_version_fixture(sel_version = "1.0.0")
 
   withr::defer(
     base::unlink(x = path_v1)
@@ -81,7 +81,7 @@ testthat::test_that("get_trait_values_by_version() keeps VegVault 1 as is", {
 
 testthat::test_that("get_trait_values_by_version() adds VegVault 2 units", {
   path_v2 <-
-    make_trait_version_database(version = "2.0.0")
+    build_trait_version_fixture(sel_version = "2.0.0")
 
   withr::defer(
     base::unlink(x = path_v2)
@@ -118,9 +118,9 @@ testthat::test_that("get_trait_values_by_version() adds VegVault 2 units", {
 
 
 # Edge cases -----
-testthat::test_that("get_trait_values_by_version() keeps values with no rule", {
+testthat::test_that("get_trait_values_by_version() keeps underived values", {
   path_v2 <-
-    make_trait_version_database(version = "2.0.0")
+    build_trait_version_fixture(sel_version = "2.0.0")
 
   withr::defer(
     base::unlink(x = path_v2)
@@ -138,7 +138,11 @@ testthat::test_that("get_trait_values_by_version() keeps values with no rule", {
 
   DBI::dbExecute(
     conn = con_v2,
-    statement = "INSERT INTO TraitsValue VALUES (1, 1, 2, 1, 20, NULL, NULL)"
+    statement = stringr::str_c(
+      "INSERT INTO TraitsValue (trait_id, dataset_id, sample_id, taxon_id, ",
+      "trait_value, trait_unit_conversion_id, trait_derivation_id) ",
+      "VALUES (1, 1, 2, 1, 20, 1, NULL)"
+    )
   )
 
   data_values <-
@@ -151,8 +155,9 @@ testthat::test_that("get_trait_values_by_version() keeps values with no rule", {
     dplyr::pull(data_values, "trait_unit"),
     "mm2"
   )
-  testthat::expect_true(
-    base::is.na(dplyr::pull(data_values, "conversion_rule_key"))
+  testthat::expect_equal(
+    dplyr::pull(data_values, "conversion_rule_key"),
+    "identity-mm2"
   )
   testthat::expect_true(
     base::is.na(dplyr::pull(data_values, "derivation_rule_key"))
@@ -161,7 +166,7 @@ testthat::test_that("get_trait_values_by_version() keeps values with no rule", {
 
 testthat::test_that("get_trait_values_by_version() needs the rule tables", {
   path_v2 <-
-    make_trait_version_database(version = "2.0.0")
+    build_trait_version_fixture(sel_version = "2.0.0")
 
   withr::defer(
     base::unlink(x = path_v2)

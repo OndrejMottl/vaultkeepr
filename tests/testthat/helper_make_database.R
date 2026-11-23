@@ -407,6 +407,8 @@ if (
   )
 
   ## AbioticDataReference -----
+  # The links are computed per sample, then written once per position
+  #   (VegVault 2.0.0); the view AbioticDataReference returns them per sample
 
   data_abiotic_geo <-
     dplyr::tbl(con_db, "Datasets") %>%
@@ -577,11 +579,9 @@ if (
       sample_id = sample_id_vegetation,
       sample_ref_id = sample_id_abiotic
     ) %>%
-    dplyr::copy_to(
-      con_db,
-      df = .,
-      name = "AbioticDataReference",
-      append = TRUE
+    build_position_link_fixture(
+      con_db = con_db,
+      data_sample_links = .
     )
 
   ## Traits -----
@@ -596,6 +596,11 @@ if (
       "Density of the stem",
       "The mass of a single seed or fruit",
       "The height of the plant"
+    ),
+    trait_unit = c(
+      "g/cm3",
+      "mg",
+      "m"
     )
   ) %>%
     dplyr::copy_to(
@@ -616,6 +621,8 @@ if (
       append = TRUE
     )
 
+  build_trait_rule_fixture(con_db = con_db)
+
   data_trait_dataset_sample <-
     dplyr::tbl(con_db, "Datasets") %>%
     dplyr::filter(dataset_type_id == 3) %>%
@@ -634,6 +641,13 @@ if (
     dplyr::mutate(
       taxon_id = rep_len(1:45, length.out = nrow(.)),
       trait_value = rep_len(c(0, 5, 100), length.out = nrow(.))
+    ) %>%
+    # Each value takes the unit-conversion rule of the domain of its trait
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Traits") %>%
+        dplyr::select(trait_id, trait_unit_conversion_id = trait_domain_id) %>%
+        dplyr::collect(),
+      by = "trait_id"
     ) %>%
     dplyr::copy_to(
       con_db,
@@ -668,6 +682,16 @@ if (
       name = "SampleUncertainty",
       append = TRUE
     )
+
+  ## version_control -----
+  # The current version has the highest id, as in VegVault
+  DBI::dbExecute(
+    conn = con_db,
+    statement = stringr::str_c(
+      "INSERT INTO version_control (version) ",
+      "VALUES ('1.0.0'), ('2.0.0')"
+    )
+  )
 
   # disconnect
   DBI::dbDisconnect(con_db)

@@ -81,16 +81,18 @@ testthat::test_that("returns all expected table names", {
     c(
       "AbioticData", "AbioticDataReference",
       "AbioticVariable", "AbioticVariableReference",
-      "Authors", "DatasetReferences",
+      "Authors", "BuildProducers", "DatasetReferences",
       "DatasetSample", "DatasetSourceTypeID",
       "DatasetSourceTypeReference", "DatasetSourcesID",
       "DatasetSourcesReference", "DatasetTypeID",
-      "Datasets", "References", "SampleReference",
+      "Datasets", "PositionLink", "Positions", "References",
+      "SamplePosition", "SampleReference",
       "SampleSizeID", "SampleTaxa", "SampleUncertainty",
       "Samples", "SamplingMethodID",
       "SamplingMethodReference", "Taxa",
       "TaxonClassification", "TaxonReference",
-      "Traits", "TraitsDomain", "TraitsReference",
+      "TraitDerivation", "TraitUnitConversion", "Traits",
+      "TraitsDomain", "TraitsReference",
       "TraitsValue", "sqlite_stat1", "sqlite_stat4",
       "version_control"
     )

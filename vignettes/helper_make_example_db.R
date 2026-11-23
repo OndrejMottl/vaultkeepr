@@ -23,20 +23,16 @@ requireNamespace("geosphere", quietly = TRUE)
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
-# The test database uses the same two helpers (tests/testthat/)
+# The test database uses the same helpers (tests/testthat/)
 source("helper_apply_fixture_seed.R", local = TRUE)
+source("helper_build_position_link_fixture.R", local = TRUE)
 source("helper_build_reference_fixture.R", local = TRUE)
+source("helper_build_trait_rule_fixture.R", local = TRUE)
 
 # ── main builder ─────────────────────────────────────────────────────────────
 
-fixture_version <-
-  getOption("vaultkeepr.fixture_version", "1.0.0")
-fixture_suffix <-
-  if (base::numeric_version(fixture_version) >=
-      base::numeric_version("2.0.0")) "v2" else "v1"
 path_db <-
-  paste(tempdir(), paste0("vaultkeepr_example_", fixture_suffix, ".sqlite"),
-    sep = "/")
+  paste(tempdir(), "vaultkeepr_example.sqlite", sep = "/")
 
 if (!file.exists(path_db)) {
   con_db <-
@@ -47,13 +43,13 @@ if (!file.exists(path_db)) {
   #   test database: from the source tree when the vignettes are rendered
   #   there, and from the installed package otherwise
   path_sql_source <-
-    file.path("..", "inst", "sql", "vegvault_schema_1.0.0.sql")
+    file.path("..", "inst", "sql", "vegvault_schema_2.0.0.sql")
 
   path_sql <-
     if (file.exists(path_sql_source)) {
       path_sql_source
     } else {
-      system.file("sql", "vegvault_schema_1.0.0.sql", package = "vaultkeepr")
+      system.file("sql", "vegvault_schema_2.0.0.sql", package = "vaultkeepr")
     }
 
   vec_sql_lines <-
@@ -441,7 +437,9 @@ if (!file.exists(path_db)) {
   )
 
   # AbioticDataReference: link vegetation/pollen samples to nearby gridpoint
-  # samples (within 50 km and 5000 years)
+  # samples (within 50 km and 5000 years). The links are computed per sample,
+  # then written once per position (VegVault 2.0.0); the view
+  # AbioticDataReference returns them per sample
   data_abiotic_geo <-
     dplyr::tbl(con_db, "Datasets") %>%
     dplyr::filter(dataset_type_id == 4) %>%
@@ -541,11 +539,9 @@ if (!file.exists(path_db)) {
       sample_id     = sample_id_vegetation,
       sample_ref_id = sample_id_abiotic
     ) %>%
-    dplyr::copy_to(
-      con_db,
-      df = .,
-      name = "AbioticDataReference",
-      append = TRUE
+    build_position_link_fixture(
+      con_db = con_db,
+      data_sample_links = .
     )
 
   # 7. Traits ------------------------------------------------------------------
@@ -559,7 +555,8 @@ if (!file.exists(path_db)) {
       "Stem dry mass per stem fresh volume (wood density)",
       "Dispersal unit (diaspore) dry mass",
       "Maximum whole-plant vegetative height"
-    )
+    ),
+    trait_unit = c("g/cm3", "mg", "m")
   ) %>%
     dplyr::copy_to(con_db, df = ., name = "TraitsDomain", append = TRUE)
 
@@ -581,6 +578,8 @@ if (!file.exists(path_db)) {
     )
   ) %>%
     dplyr::copy_to(con_db, df = ., name = "Traits", append = TRUE)
+
+  build_trait_rule_fixture(con_db = con_db)
 
   data_trait_dataset_sample <-
     dplyr::tbl(con_db, "Datasets") %>%
@@ -637,6 +636,13 @@ if (!file.exists(path_db)) {
           rep_len(c(0.95, 1.0, 1.05), length.out = nrow(.))
       )
   ) %>%
+    # Each value takes the unit-conversion rule of the domain of its trait
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Traits") %>%
+        dplyr::select(trait_id, trait_unit_conversion_id = trait_domain_id) %>%
+        dplyr::collect(),
+      by = "trait_id"
+    ) %>%
     dplyr::copy_to(con_db, df = ., name = "TraitsValue", append = TRUE)
 
   build_reference_fixture(
@@ -683,65 +689,17 @@ if (!file.exists(path_db)) {
       append = TRUE
     )
 
+  # 9. Versions ----------------------------------------------------------------
+  # The current version has the highest id, as in VegVault
+  DBI::dbExecute(
+    conn = con_db,
+    statement = paste(
+      "INSERT INTO version_control (version)",
+      "VALUES ('1.0.0'), ('2.0.0')"
+    )
+  )
+
   DBI::dbDisconnect(con_db)
 }
-
-con_version <- DBI::dbConnect(RSQLite::SQLite(), path_db)
-
-if (DBI::dbGetQuery(
-  con_version,
-  "SELECT COUNT(*) AS n FROM version_control"
-)$n == 0L) {
-  DBI::dbExecute(
-    con_version,
-    "INSERT INTO version_control (version) VALUES (?)",
-    params = list(fixture_version)
-  )
-}
-
-if (
-  base::numeric_version(fixture_version) >=
-    base::numeric_version("2.0.0") &&
-    !"trait_unit" %in% DBI::dbListFields(con_version, "TraitsDomain")
-) {
-  DBI::dbExecute(con_version, "ALTER TABLE TraitsDomain ADD COLUMN trait_unit TEXT")
-  DBI::dbExecute(
-    con_version,
-    paste(
-      "UPDATE TraitsDomain SET trait_unit = CASE trait_domain_name",
-      "WHEN 'Stem specific density' THEN 'g/cm3'",
-      "WHEN 'Diaspore mass' THEN 'mg' ELSE 'm' END"
-    )
-  )
-  DBI::dbExecute(
-    con_version,
-    paste(
-      "CREATE TABLE TraitUnitConversion (trait_unit_conversion_id INTEGER",
-      "PRIMARY KEY, conversion_rule_key TEXT UNIQUE)"
-    )
-  )
-  DBI::dbExecute(
-    con_version,
-    paste(
-      "CREATE TABLE TraitDerivation (trait_derivation_id INTEGER",
-      "PRIMARY KEY, derivation_rule_key TEXT UNIQUE)"
-    )
-  )
-  DBI::dbExecute(
-    con_version,
-    "INSERT INTO TraitUnitConversion VALUES (1, 'fixture-identity')"
-  )
-  DBI::dbExecute(
-    con_version,
-    "ALTER TABLE TraitsValue ADD COLUMN trait_unit_conversion_id INTEGER"
-  )
-  DBI::dbExecute(
-    con_version,
-    "ALTER TABLE TraitsValue ADD COLUMN trait_derivation_id INTEGER"
-  )
-  DBI::dbExecute(con_version, "UPDATE TraitsValue SET trait_unit_conversion_id = 1")
-}
-
-DBI::dbDisconnect(con_version)
 
 path_db
