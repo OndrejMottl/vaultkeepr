@@ -8,7 +8,8 @@ Maintainer: Ondrej Mottl <ondrej.mottl@gmail.com>
 Description: An R package for extracting and analyzing data from the
     VegVault database.
 License: MIT + file LICENSE
-URL: https://github.com/OndrejMottl/vaultkeepr
+URL: https://ondrejmottl.github.io/vaultkeepr/,
+    https://github.com/OndrejMottl/vaultkeepr
 Imports: 
     cli,
     DBI,

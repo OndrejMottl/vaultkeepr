@@ -11,6 +11,7 @@ An R package for extracting and analyzing data from the VegVault database.
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://ondrejmottl.github.io/vaultkeepr/}
   \item \url{https://github.com/OndrejMottl/vaultkeepr}
 }
 
