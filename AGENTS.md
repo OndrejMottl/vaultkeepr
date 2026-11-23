@@ -10,7 +10,7 @@ Read the canonical `.ai/` files relevant to the task:
 - exported functions, roxygen, and tests: `.ai/r-functions.md`
 - database access or schema-dependent behavior: `.ai/database-contract.md`
 - README, vignettes, or pkgdown: `.ai/documentation.md`
-- Git, branches, commits, or releases: `.ai/git-workflow.md` and `.ai/commit-messages.md`
+- Git, branches, commits, releases, or writing issues, pull requests, and GitHub comments: `.ai/git-workflow.md` and `.ai/commit-messages.md`
 - suggesting, writing, or reviewing a commit message: read `.ai/git-workflow.md`, then reload `.ai/commit-messages.md` in the current turn
 - diagnosis and temporary experiments: `.ai/debugging.md`
 - reviews and large plans: `.ai/review-checklist.md` and `.ai/agents/`
