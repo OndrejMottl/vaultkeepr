@@ -4,6 +4,14 @@
 #' @param verbose A logical value indicating whether to print messages
 #' @return A `vault_pipe` list with two elements, `data` and `db_con`, and a
 #'   `database_version` attribute.
+#' @details
+#' `open_vault()` reads the VegVault version of the database from the row
+#' of `version_control` with the highest `id` and stores it as the
+#' `database_version` attribute. vaultkeepr supports VegVault from 1.0.0 up
+#' to, but not including, 3.0.0. For an older or a newer version, or one
+#' that cannot be read as a version number, `open_vault()` closes the
+#' connection and stops with an error. A database without version rows is
+#' read as VegVault 1.0.0.
 #' @export
 open_vault <- function(path, verbose = TRUE) {
   # test various things
@@ -47,6 +55,18 @@ open_vault <- function(path, verbose = TRUE) {
       path
     )
 
+  # open_vault() owns the connection until it returns the pipe, so it
+  #   closes the connection when the version of the database is not
+  #   supported
+  database_version <-
+    base::withCallingHandlers(
+      expr = load_vegvault_version(db_con = db_con) |>
+        validate_vegvault_version(verbose = verbose),
+      error = function(cnd) {
+        DBI::dbDisconnect(conn = db_con)
+      }
+    )
+
   dummy <-
     structure(
       list(
@@ -54,7 +74,7 @@ open_vault <- function(path, verbose = TRUE) {
         db_con = db_con
       ),
       class = c("list", "vault_pipe"),
-      database_version = detect_vegvault_version(db_con)
+      database_version = database_version
     )
 
   if (

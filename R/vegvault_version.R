@@ -1,23 +1,6 @@
-detect_vegvault_version <- function(db_con) {
-  if (!"version_control" %in% DBI::dbListTables(db_con)) {
-    return("1.0.0")
-  }
-
-  data_version <-
-    dplyr::tbl(db_con, "version_control") %>%
-    dplyr::select("version") %>%
-    dplyr::collect() %>%
-    tidyr::drop_na("version")
-
-  if (nrow(data_version) == 0L) {
-    return("1.0.0")
-  }
-
-  as.character(utils::tail(data_version$version, 1L))
-}
-
 is_vegvault_v2 <- function(db_con) {
-  version <- detect_vegvault_version(db_con)
+  version <-
+    load_vegvault_version(db_con = db_con)
   tryCatch(
     base::numeric_version(version) >= base::numeric_version("2.0.0"),
     error = function(error) FALSE
