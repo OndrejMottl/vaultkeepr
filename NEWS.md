@@ -1,5 +1,7 @@
 # vaultkeepr 0.2.0
 
+vaultkeepr 0.2.0 is released together with VegVault 2.0.0. It reads VegVault databases from version 1.0.0 up to, but not including, 3.0.0, and stops with an error for any other version. It opens the database read-only, adds the units of VegVault 2 trait values to the trait data, and makes several queries faster on large selections, without changing their results. One default changes: the geographic box of `select_dataset_by_geo()` now applies to every dataset type.
+
 ## Changed behaviour
 
 * `select_dataset_by_geo()` applies the box to all four dataset types by default: `sel_dataset_type` now defaults to `vegetation_plot`, `fossil_pollen_archive`, `traits` and `gridpoints`. Before, trait datasets passed the box from anywhere in the world unless `traits` was named. Trait datasets outside the box, or without coordinates, are now dropped. To keep all datasets of a type, leave it out of `sel_dataset_type`; a message names the types in the data that the box does not filter.
@@ -16,6 +18,10 @@
 * VegVault 2 trait queries expose canonical `trait_unit`, `conversion_rule_key`, and `derivation_rule_key` fields while remaining lazy.
 * Packed trait data retains `trait_unit` but omits verbose record-level provenance.
 * `get_readable_column_names()`, and with it `pack_data()`, works on trait data from VegVault 2. Both the trait values and `TraitsDomain` carry `trait_unit` there, and the join of `TraitsDomain` failed on the duplicated column; the column of the trait values is now kept.
+
+## Documentation
+
+* The vignettes use an example database in the VegVault 2.0.0 layout. The article on functional traits (`a03_functional_traits`) shows the units of the trait values and their conversion rules, and no longer warns about VegVault 1 trait units.
 
 ## Query performance
 

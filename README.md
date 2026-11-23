@@ -2,7 +2,7 @@
 
 <!-- README.md is generated from README.qmd. Please edit that file -->
 
-# vaultkeepr <img src="man/figures/vaultkeeper_logo.png" align="right" width="200" />
+# vaultkeepr <img src="man/figures/vaultkeeper_logo.png" align="right" width="200" alt="vaultkeepr logo" />
 
 <!-- badges: start -->
 
@@ -23,6 +23,15 @@ You can install the development version of vaultkeepr from
 # install.packages("remotes")
 remotes::install_github("OndrejMottl/vaultkeepr")
 ```
+
+## Supported VegVault versions
+
+vaultkeepr 0.2.0 is released together with VegVault 2.0.0. It reads
+VegVault databases from version 1.0.0 up to, but not including, 3.0.0:
+`open_vault()` reads the version of the database and stops with an error
+for any other version. It opens the database read-only, so no query can
+change the file. On VegVault 1 databases, `get_traits()` warns that the
+trait units may be unreliable.
 
 ## Overview
 

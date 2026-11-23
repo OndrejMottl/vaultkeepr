@@ -64,6 +64,30 @@ build_pkgdown_site <- function() {
     assignInNamespace("quarto_render", patched_fn, ns = "pkgdown")
   })
 
+  # pkgdown renders every Markdown file in the package root and in .github
+  # as a page of the site, and lists it in the sitemap and the search index.
+  # Agent instructions (AGENTS.md, CLAUDE.md, GEMINI.md) and the
+  # instruction files in .github are not pages of the site, so only the
+  # pages kept below are passed on to pkgdown.
+  local({
+    fn_package_mds <-
+      getNamespace("pkgdown")[["package_mds"]]
+
+    vec_keep_md_pages <-
+      c("404", "CODE_OF_CONDUCT", "CONTRIBUTING", "SUPPORT")
+
+    assignInNamespace(
+      x = "package_mds",
+      value = function(...) {
+        vec_md <- fn_package_mds(...)
+        vec_md[
+          tools::file_path_sans_ext(basename(vec_md)) %in% vec_keep_md_pages
+        ]
+      },
+      ns = "pkgdown"
+    )
+  })
+
   on.exit(
     unlink(".pkgdown-build", recursive = TRUE, force = TRUE),
     add = TRUE
