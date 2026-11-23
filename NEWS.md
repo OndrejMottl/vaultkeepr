@@ -5,10 +5,11 @@
 * `select_dataset_by_geo()` applies the box to all four dataset types by default: `sel_dataset_type` now defaults to `vegetation_plot`, `fossil_pollen_archive`, `traits` and `gridpoints`. Before, trait datasets passed the box from anywhere in the world unless `traits` was named. Trait datasets outside the box, or without coordinates, are now dropped. To keep all datasets of a type, leave it out of `sel_dataset_type`; a message names the types in the data that the box does not filter.
 * `select_dataset_by_geo()` stops with an error when `sel_dataset_type` names a type other than these four, or when the data lack the `dataset_type_id` column that `get_datasets()` adds.
 * `get_age_uncertainty()` returns its rows in a fixed order: with `return_raw_data = TRUE` sorted by `sample_id` and `iteration`, and in the wide output one row per sample in the order of `sample_id`. Before, the order was whatever SQLite returned, which for larger selections was not by sample. The values are unchanged.
+* `open_vault()` stops with an error for a VegVault version that vaultkeepr does not support, and closes the connection it opened. vaultkeepr 0.2.0 supports VegVault from 1.0.0 up to, but not including, 3.0.0; a version that cannot be read as a version number, such as `2.0.0-dev`, is not supported either. A database without version rows is read as VegVault 1.0.0.
 
 ## VegVault 2 compatibility
 
-* `open_vault()` detects the database version without changing the two-element `vault_pipe` structure.
+* `open_vault()` detects the database version without changing the two-element `vault_pipe` structure. The version is read from the row of `version_control` with the highest `id`, because the VegVault build writes one row per version, in order. An unordered query is not enough: in VegVault 2.0.0, `version` is unique, and SQLite may return the rows in the text order of the versions, with `2.10.0` before `2.9.0`.
 * `get_traits()` keeps VegVault 1 databases queryable and warns that their trait units may be unreliable.
 * VegVault 2 trait queries expose canonical `trait_unit`, `conversion_rule_key`, and `derivation_rule_key` fields while remaining lazy.
 * Packed trait data retains `trait_unit` but omits verbose record-level provenance.

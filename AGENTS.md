@@ -10,7 +10,7 @@ Read the canonical `.ai/` files relevant to the task:
 - exported functions, roxygen, and tests: `.ai/r-functions.md`
 - database access or schema-dependent behavior: `.ai/database-contract.md`
 - README, vignettes, or pkgdown: `.ai/documentation.md`
-- Git, branches, commits, or releases: `.ai/git-workflow.md` and `.ai/commit-messages.md`
+- Git, branches, commits, releases, or writing issues, pull requests, and GitHub comments: `.ai/git-workflow.md` and `.ai/commit-messages.md`
 - suggesting, writing, or reviewing a commit message: read `.ai/git-workflow.md`, then reload `.ai/commit-messages.md` in the current turn
 - diagnosis and temporary experiments: `.ai/debugging.md`
 - reviews and large plans: `.ai/review-checklist.md` and `.ai/agents/`
@@ -19,6 +19,7 @@ Read the canonical `.ai/` files relevant to the task:
 
 - Preserve public API behavior, lazy query semantics, schema compatibility, and connection ownership unless the requested change explicitly revises them.
 - Use strict test-first development for behavior changes. Follow `.ai/r-functions.md` in order.
+- One function per file, with no exceptions: every function, exported or private, has its own file named after it and a matching test file, and every test helper has its own file named after it. A change that touches a file holding several functions splits it in the same change, never later. See `.ai/r-coding.md`.
 - Never connect tests to a live VegVault database. Use the in-memory fixture from `tests/testthat/helper_make_database.R`.
 - Do not expose credentials, private database paths, licensed source data, ignored databases, or user data.
 - Do not edit generated `NAMESPACE`, `man/`, `README.md`, or `docs/` directly.

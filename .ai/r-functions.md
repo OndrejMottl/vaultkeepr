@@ -14,7 +14,7 @@ If a pure documentation correction cannot meaningfully fail first, state why and
 
 ## Function contracts
 
-- Keep one exported function per source file and a matching `test-<function>.R` file where practical.
+- Keep exactly one function, exported or private, per source file, with a matching `test-<function>.R` file. There are no exceptions; see "File and function structure" in `.ai/r-coding.md`.
 - Validate arguments with `assertthat_cli()` and keep diagnostics specific.
 - Respect `verbose` for progress messages.
 - Return objects explicitly and document their classes and columns.
