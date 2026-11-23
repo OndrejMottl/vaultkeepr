@@ -208,6 +208,51 @@ testthat::test_that("open_vault() stores the version of the highest id", {
   testthat::expect_equal(res, "2.10.0")
 })
 
+testthat::test_that("open_vault() keeps the pipe shape for both versions", {
+  path_v1 <-
+    make_trait_version_database(version = "1.0.0")
+
+  path_v2 <-
+    make_trait_version_database(version = "2.0.0")
+
+  withr::defer(
+    base::unlink(x = c(path_v1, path_v2))
+  )
+
+  vault_v1 <-
+    open_vault(
+      path = path_v1,
+      verbose = FALSE
+    )
+
+  vault_v2 <-
+    open_vault(
+      path = path_v2,
+      verbose = FALSE
+    )
+
+  withr::defer(
+    DBI::dbDisconnect(conn = purrr::chuck(vault_v1, "db_con"))
+  )
+
+  withr::defer(
+    DBI::dbDisconnect(conn = purrr::chuck(vault_v2, "db_con"))
+  )
+
+  res_v1 <-
+    base::attributes(vault_v1) |>
+    purrr::chuck("database_version")
+
+  res_v2 <-
+    base::attributes(vault_v2) |>
+    purrr::chuck("database_version")
+
+  testthat::expect_named(vault_v1, c("data", "db_con"))
+  testthat::expect_named(vault_v2, c("data", "db_con"))
+  testthat::expect_equal(res_v1, "1.0.0")
+  testthat::expect_equal(res_v2, "2.0.0")
+})
+
 testthat::test_that("open_vault() opens the supported versions", {
   list_fixture <-
     list(
