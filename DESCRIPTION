@@ -12,23 +12,23 @@ URL: https://github.com/OndrejMottl/vaultkeepr
 Imports: 
     cli,
     DBI,
+    dbplyr,
+    dplyr,
     lifecycle,
     magrittr,
     purrr,
     rlang,
     RSQLite,
     stringr,
-    tibble
+    tibble,
+    tidyr
 Suggests: 
-    dbplyr,
-    dplyr,
     geosphere,
     ggplot2,
     knitr,
     rmarkdown,
     scales,
     testthat (>= 3.0.0),
-    tidyr,
     withr
 VignetteBuilder: 
     knitr

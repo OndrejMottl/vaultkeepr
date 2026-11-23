@@ -6,6 +6,7 @@
 * `select_dataset_by_geo()` stops with an error when `sel_dataset_type` names a type other than these four, or when the data lack the `dataset_type_id` column that `get_datasets()` adds.
 * `get_age_uncertainty()` returns its rows in a fixed order: with `return_raw_data = TRUE` sorted by `sample_id` and `iteration`, and in the wide output one row per sample in the order of `sample_id`. Before, the order was whatever SQLite returned, which for larger selections was not by sample. The values are unchanged.
 * `open_vault()` stops with an error for a VegVault version that vaultkeepr does not support, and closes the connection it opened. vaultkeepr 0.2.0 supports VegVault from 1.0.0 up to, but not including, 3.0.0; a version that cannot be read as a version number, such as `2.0.0-dev`, is not supported either. A database without version rows is read as VegVault 1.0.0.
+* `dplyr`, `dbplyr` and `tidyr` are now installed with vaultkeepr. The package calls them for every query, but they were listed only as suggested packages, so vaultkeepr failed on a computer without them.
 
 ## VegVault 2 compatibility
 
