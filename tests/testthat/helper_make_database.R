@@ -7,68 +7,6 @@ requireNamespace("magrittr", quietly = TRUE)
 .data <- rlang::.data
 `%>%` <- magrittr::`%>%`
 
-set_seed <- function(seed = c(0000 - 0002 - 9796 - 5081)) {
-  seed %>%
-    as.character() %>%
-    set.seed()
-}
-
-process_references <- function(
-    con_db,
-    id_table_name, ref_table_name,
-    name_column_id,
-    dummy_ref_name,
-    mandatory = FALSE,
-    n_refs = 5) {
-  db <-
-    dplyr::tbl(con_db, id_table_name) %>%
-    dplyr::distinct(!!dplyr::sym(name_column_id)) %>%
-    dplyr::collect()
-
-  set_seed()
-  data_references <-
-    db %>%
-    dplyr::mutate(
-      reference_dummy = sample(
-        x = c(NA_integer_, 1:n_refs),
-        size = nrow(.),
-        replace = TRUE
-      )
-    ) %>%
-    dplyr::filter(!is.na(.data$reference_dummy)) %>%
-    dplyr::mutate(
-      reference_detail = paste0(dummy_ref_name, "_", .data$reference_dummy),
-      mandatory = mandatory
-    )
-
-  data_references %>%
-    dplyr::distinct(.data$reference_detail, .data$mandatory) %>%
-    dplyr::arrange(.data$reference_detail) %>%
-    dplyr::copy_to(
-      con_db,
-      df = .,
-      name = "References",
-      append = TRUE
-    )
-
-  data_references_db <-
-    dplyr::tbl(con_db, "References") %>%
-    dplyr::collect()
-
-  data_references %>%
-    dplyr::left_join(
-      data_references_db,
-      by = "reference_detail"
-    ) %>%
-    dplyr::distinct(!!dplyr::sym(name_column_id), .data$reference_id) %>%
-    dplyr::copy_to(
-      con_db,
-      df = .,
-      name = ref_table_name,
-      append = TRUE
-    )
-}
-
 if (
   !file.exists(
     paste(
@@ -498,7 +436,7 @@ CREATE UNIQUE INDEX idx_references_reference_id ON "References"(reference_id);
       -135, -30
     )
 
-  set_seed()
+  apply_fixture_seed()
   data_datasets_gridpoints <-
     purrr::map(
       .x = 1:5,
@@ -545,7 +483,7 @@ CREATE UNIQUE INDEX idx_references_reference_id ON "References"(reference_id);
   ### Dataset References -----
 
   # DatasetSourceReference
-  process_references(
+  build_reference_fixture(
     con_db,
     id_table_name = "DatasetSourcesID",
     ref_table_name = "DatasetSourcesReference",
@@ -555,7 +493,7 @@ CREATE UNIQUE INDEX idx_references_reference_id ON "References"(reference_id);
   )
 
   # DatasetSourceTypeReference
-  process_references(
+  build_reference_fixture(
     con_db,
     id_table_name = "DatasetSourceTypeID",
     ref_table_name = "DatasetSourceTypeReference",
@@ -566,7 +504,7 @@ CREATE UNIQUE INDEX idx_references_reference_id ON "References"(reference_id);
   )
 
   # SamplingMethodReference
-  process_references(
+  build_reference_fixture(
     con_db,
     id_table_name = "SamplingMethodID",
     ref_table_name = "SamplingMethodReference",
@@ -576,7 +514,7 @@ CREATE UNIQUE INDEX idx_references_reference_id ON "References"(reference_id);
   )
 
   # DatasetReferences
-  process_references(
+  build_reference_fixture(
     con_db,
     id_table_name = "Datasets",
     ref_table_name = "DatasetReferences",
@@ -603,7 +541,7 @@ CREATE UNIQUE INDEX idx_references_reference_id ON "References"(reference_id);
     )
 
   ### Sample references -----
-  process_references(
+  build_reference_fixture(
     con_db,
     id_table_name = "Samples",
     ref_table_name = "SampleReference",
@@ -641,7 +579,7 @@ CREATE UNIQUE INDEX idx_references_reference_id ON "References"(reference_id);
     )
 
   ### Taxon references -----
-  process_references(
+  build_reference_fixture(
     con_db,
     id_table_name = "Taxa",
     ref_table_name = "TaxonReference",
@@ -779,7 +717,7 @@ CREATE UNIQUE INDEX idx_references_reference_id ON "References"(reference_id);
     )
 
   ### AbioticVariable references -----
-  process_references(
+  build_reference_fixture(
     con_db,
     id_table_name = "AbioticVariable",
     ref_table_name = "AbioticVariableReference",
@@ -1026,7 +964,7 @@ CREATE UNIQUE INDEX idx_references_reference_id ON "References"(reference_id);
     )
 
   ### Trait references -----
-  process_references(
+  build_reference_fixture(
     con_db,
     id_table_name = "Traits",
     ref_table_name = "TraitsReference",
