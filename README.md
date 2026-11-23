@@ -101,4 +101,4 @@ data_betula <-
 ```
 
 For detailed worked examples, see the [package
-website](https://hope-uib-bio.github.io/vaultkeepr/articles/).
+website](https://ondrejmottl.github.io/vaultkeepr/articles/).
