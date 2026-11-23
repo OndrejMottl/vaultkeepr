@@ -7,13 +7,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Combining vegetation data with climate variables • vaultkeepr</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="a02_vegetation_climate_files/libs/quarto-html/popper.min.js"></script><script src="a02_vegetation_climate_files/libs/quarto-html/tippy.umd.min.js"></script><link href="a02_vegetation_climate_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="a02_vegetation_climate_files/libs/quarto-html/light-border.css" rel="stylesheet">
 <!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Combining vegetation data with climate variables">
-<meta property="og:image" content="https://hope-uib-bio.github.io/vaultkeepr/reference/figures/vaultkeeper_logo.png">
+<meta property="og:image" content="https://ondrejmottl.github.io/vaultkeepr/reference/figures/vaultkeeper_logo.png">
 <meta property="og:image:alt" content="VegVault logo">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:creator" content="@OndrejMottl">
@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">vaultkeepr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -100,7 +100,7 @@
 <p><code><a href="../reference/open_vault.html">open_vault()</a></code> creates a connection to the VegVault SQLite file and returns a <code>vault_pipe</code> object. This object is the <strong>plan</strong> — it carries both the live database connection and the accumulating lazy query through every subsequent step. Nothing is loaded into memory here.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/OndrejMottl/vaultkeepr" class="external-link">vaultkeepr</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ondrejmottl.github.io/vaultkeepr/">vaultkeepr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">plan</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/open_vault.html">open_vault</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">path_to_db</span><span class="op">)</span></span>
@@ -132,7 +132,7 @@
 <hr></section><section class="level2"><h2 id="step-4-filter-by-geography">Step 4 — Filter by geography<a class="anchor" aria-label="anchor" href="#step-4-filter-by-geography"></a>
 </h2>
 <p>We restrict to a Central-European bounding box (longitude 14–16 °E, latitude 44–46 °N) centred on the Mediterranean–temperate transition zone. Filtering is pushed into the SQLite engine: only datasets whose coordinates fall within the bounding box are retained, so no unnecessary data is transferred.</p>
-<p>Note that <strong>gridpoints datasets are not filtered by geography</strong> when <code>vegetation_plot</code> or <code>fossil_pollen_archive</code> datasets are also present: <code><a href="../reference/get_abiotic_data.html">get_abiotic_data()</a></code> handles the spatial matching internally and needs all nearby gridpoints to be available.</p>
+<p>Note that <strong>the box applies to the <code>gridpoints</code> datasets as well</strong>, because the default <code>sel_dataset_type</code> covers every dataset type. <code><a href="../reference/get_abiotic_data.html">get_abiotic_data()</a></code> links each vegetation sample only to gridpoints that are still in the plan, so a plot near the edge of the box is matched with the nearest gridpoint inside the box, or with none if no gridpoint inside lies within the distance limits. Leaving <code>"gridpoints"</code> out of <code>sel_dataset_type</code> keeps the gridpoints beyond the edge, but also every other gridpoint in the database, which makes the query much larger and slower.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span></span>
@@ -140,8 +140,7 @@
 <span>  <span class="fu"><a href="../reference/select_dataset_by_geo.html">select_dataset_by_geo</a></span><span class="op">(</span></span>
 <span>    long_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">14</span>, <span class="fl">16</span><span class="op">)</span>,</span>
 <span>    lat_lim  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">44</span>, <span class="fl">46</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; ! The data does not contain all dataset types specified in `vec_dataset_type`. Changing `vec_dataset_type` to the dataset types present in the data as: vegetation_plot, gridpoints</span></span></code></pre></div>
+<span>  <span class="op">)</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="step-5-add-sample-information">Step 5 — Add sample information<a class="anchor" aria-label="anchor" href="#step-5-add-sample-information"></a>
 </h2>
@@ -242,16 +241,16 @@
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">data_eu_sdm</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 28</span></span>
 <span><span class="co">#&gt; Columns: 10</span></span>
-<span><span class="co">#&gt; $ dataset_name            &lt;chr&gt; "dataset_82", "dataset_83", "dataset_84", "dat…</span></span>
-<span><span class="co">#&gt; $ data_source_desc        &lt;chr&gt; "EVA (European Vegetation Archive)", "EVA (Eur…</span></span>
-<span><span class="co">#&gt; $ dataset_type            &lt;chr&gt; "vegetation_plot", "vegetation_plot", "vegetat…</span></span>
-<span><span class="co">#&gt; $ dataset_source_type     &lt;chr&gt; "BIEN", "BIEN", "BIEN", "sPlotOpen", "sPlotOpe…</span></span>
-<span><span class="co">#&gt; $ coord_long              &lt;dbl&gt; 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15…</span></span>
-<span><span class="co">#&gt; $ coord_lat               &lt;dbl&gt; 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45…</span></span>
-<span><span class="co">#&gt; $ sampling_method_details &lt;chr&gt; "Standardised vegetation plot survey (1–1000 m…</span></span>
-<span><span class="co">#&gt; $ data_samples            &lt;list&gt; [&lt;tbl_df[2 x 5]&gt;], [&lt;tbl_df[2 x 5]&gt;], [&lt;tbl_d…</span></span>
-<span><span class="co">#&gt; $ data_community          &lt;list&gt; [&lt;tbl_df[2 x 46]&gt;], [&lt;tbl_df[2 x 46]&gt;], [&lt;tbl…</span></span>
-<span><span class="co">#&gt; $ data_abiotic            &lt;list&gt; [&lt;tbl_df[2 x 7]&gt;], [&lt;tbl_df[2 x 7]&gt;], [&lt;tbl_d…</span></span></code></pre></div>
+<span><span class="co">#&gt; $ dataset_name            &lt;chr&gt; "dataset_506", "dataset_82", "dataset_83", "da…</span></span>
+<span><span class="co">#&gt; $ data_source_desc        &lt;chr&gt; NA, "EVA (European Vegetation Archive)", "EVA …</span></span>
+<span><span class="co">#&gt; $ dataset_type            &lt;chr&gt; "gridpoints", "vegetation_plot", "vegetation_p…</span></span>
+<span><span class="co">#&gt; $ dataset_source_type     &lt;chr&gt; "gridpoints", "BIEN", "BIEN", "BIEN", "sPlotOp…</span></span>
+<span><span class="co">#&gt; $ coord_long              &lt;dbl&gt; 15.00257, 15.00000, 15.00000, 15.00000, 15.000…</span></span>
+<span><span class="co">#&gt; $ coord_lat               &lt;dbl&gt; 44.98108, 45.00000, 45.00000, 45.00000, 45.000…</span></span>
+<span><span class="co">#&gt; $ sampling_method_details &lt;chr&gt; NA, "Standardised vegetation plot survey (1–10…</span></span>
+<span><span class="co">#&gt; $ data_samples            &lt;list&gt; [&lt;tbl_df[1 x 5]&gt;], [&lt;tbl_df[2 x 5]&gt;], [&lt;tbl_d…</span></span>
+<span><span class="co">#&gt; $ data_community          &lt;list&gt; &lt;NULL&gt;, [&lt;tbl_df[2 x 46]&gt;], [&lt;tbl_df[2 x 46]&gt;…</span></span>
+<span><span class="co">#&gt; $ data_abiotic            &lt;list&gt; &lt;NULL&gt;, [&lt;tbl_df[2 x 7]&gt;], [&lt;tbl_df[2 x 7]&gt;],…</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="full-pipeline">Full pipeline<a class="anchor" aria-label="anchor" href="#full-pipeline"></a>
 </h2>
@@ -367,7 +366,8 @@
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
       // Inspect non-navigation links and adorn them if external
-     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
       for (var i=0; i<links.length; i++) {
         const link = links[i];
         if (!isInternal(link.href)) {
@@ -376,8 +376,69 @@
           if (link.dataset.originalHref !== undefined) {
             link.href = link.dataset.originalHref;
           }
+          if (!link.classList.contains('no-external-icon')) {
+          }
         }
       }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
     function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
       const config = {
         allowHTML: true,
@@ -391,6 +452,7 @@
         interactiveBorder: 10,
         theme: 'light-border',
         placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
       };
       if (contentFn) {
         config.content = contentFn;
@@ -451,7 +513,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
