@@ -12,6 +12,12 @@
 #' that cannot be read as a version number, `open_vault()` closes the
 #' connection and stops with an error. A database without version rows is
 #' read as VegVault 1.0.0.
+#'
+#' The database is opened read-only: vaultkeepr only reads from it, and a
+#' read-only connection guarantees that no query, in vaultkeepr or in user
+#' code, changes the file. A statement that writes to the database, such as
+#' `CREATE TABLE`, fails with an error. Temporary tables, for example from
+#' `dplyr::compute()`, still work, because SQLite keeps them outside the file.
 #' @export
 open_vault <- function(path, verbose = TRUE) {
   # test various things
@@ -49,10 +55,12 @@ open_vault <- function(path, verbose = TRUE) {
     verbose = verbose
   )
 
+  # vaultkeepr only reads from the database, so it opens it read-only
   db_con <-
     DBI::dbConnect(
-      RSQLite::SQLite(),
-      path
+      drv = RSQLite::SQLite(),
+      dbname = path,
+      flags = RSQLite::SQLITE_RO
     )
 
   # open_vault() owns the connection until it returns the pipe, so it

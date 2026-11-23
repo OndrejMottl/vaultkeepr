@@ -26,4 +26,10 @@ to, but not including, 3.0.0. For an older or a newer version, or one
 that cannot be read as a version number, \code{open_vault()} closes the
 connection and stops with an error. A database without version rows is
 read as VegVault 1.0.0.
+
+The database is opened read-only: vaultkeepr only reads from it, and a
+read-only connection guarantees that no query, in vaultkeepr or in user
+code, changes the file. A statement that writes to the database, such as
+\verb{CREATE TABLE}, fails with an error. Temporary tables, for example from
+\code{dplyr::compute()}, still work, because SQLite keeps them outside the file.
 }
