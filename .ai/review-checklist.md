@@ -4,6 +4,7 @@ Report findings first, ordered by severity, with file and line references.
 
 Check:
 
+- one function per file in every touched file under `R/` and `tests/testthat/`, helpers included, each function with its matching test file (a file with several functions is a finding, never a deferral);
 - public API, documented return objects, and backward compatibility;
 - `open_vault()` connection ownership and live-database safety;
 - lazy `vault_pipe` behavior and accidental early collection;

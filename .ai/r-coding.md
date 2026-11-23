@@ -22,10 +22,15 @@ Use package-relative paths in tooling and fixtures. Never embed personal databas
 
 ## File and function structure
 
-- Keep one exported function per `R/<function_name>.R` file.
-- Keep a matching `tests/testthat/test-<function_name>.R` file where practical.
-- Private helpers may share a source file only when they are tightly coupled and not useful elsewhere.
-- Keep database orchestration readable; extract repeated validation, mapping, or query-building logic into named private helpers.
+One function per file. This rule has no exceptions.
+
+- Every function, exported or private, lives alone in `R/<function_name>.R`, and the file name equals the function name. Tightly coupled helpers, helpers with a single caller, and small predicates each get their own file as well.
+- Every function has a matching `tests/testthat/test-<function_name>.R` that tests that function directly.
+- Test helpers follow the same rule: one function per `tests/testthat/helper_<function_name>.R`.
+- Do not declare named functions inside another function.
+- The rule applies to every file a change touches, legacy files included. When a change edits, renames, or moves a function that shares its file with other functions, split that file in the same change. Never defer the split to a later issue or pull request, and never offer keeping functions together as an option in a plan.
+- Before proposing a commit, list the files that define more than one top-level function, for example with `grep -cE '^[A-Za-z_.][A-Za-z0-9_.]*[[:space:]]*<-[[:space:]]*function' R/*.R tests/testthat/*.R | grep -v ':[01]$'`. The change is not ready while a file it touches is on that list.
+- Keep database orchestration readable; extract repeated validation, mapping, or query-building logic into named private helpers, each in its own file.
 - Source files contain functions and constants, not interactive execution.
 
 Every exported function has a roxygen contract in its source. Follow the test-first sequence in `.ai/r-functions.md`; never hand-edit generated `NAMESPACE` or `man/` files.
