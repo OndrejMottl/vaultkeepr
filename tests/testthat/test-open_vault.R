@@ -395,3 +395,112 @@ testthat::test_that("open_vault() closes the connection when it stops", {
 
   testthat::expect_equal(n_disconnect, 1L)
 })
+
+
+# Read-only connection -----
+testthat::test_that("open_vault() refuses to write to the database", {
+  path_copy <-
+    withr::local_tempfile(fileext = ".sqlite")
+
+  base::file.copy(
+    from = base::file.path(base::tempdir(), "example.sqlite"),
+    to = path_copy
+  )
+
+  vault_opened <-
+    open_vault(
+      path = path_copy,
+      verbose = FALSE
+    )
+
+  con_vault <-
+    purrr::chuck(vault_opened, "db_con")
+
+  withr::defer(
+    DBI::dbDisconnect(conn = con_vault)
+  )
+
+  testthat::expect_error(
+    DBI::dbExecute(
+      conn = con_vault,
+      statement = "CREATE TABLE written_by_test (value INTEGER)"
+    ),
+    regexp = "readonly"
+  )
+  testthat::expect_false(
+    "written_by_test" %in% DBI::dbListTables(conn = con_vault)
+  )
+})
+
+testthat::test_that("open_vault() leaves the file unchanged by queries", {
+  path_copy <-
+    withr::local_tempfile(fileext = ".sqlite")
+
+  base::file.copy(
+    from = base::file.path(base::tempdir(), "example.sqlite"),
+    to = path_copy
+  )
+
+  vec_md5_before <-
+    tools::md5sum(files = path_copy)
+
+  vault_opened <-
+    open_vault(
+      path = path_copy,
+      verbose = FALSE
+    )
+
+  data_taxa <-
+    vault_opened |>
+    get_datasets() |>
+    get_samples() |>
+    get_taxa(verbose = FALSE) |>
+    purrr::chuck("data") |>
+    dplyr::collect()
+
+  DBI::dbDisconnect(conn = purrr::chuck(vault_opened, "db_con"))
+
+  vec_md5_after <-
+    tools::md5sum(files = path_copy)
+
+  testthat::expect_gt(base::nrow(data_taxa), 0L)
+  testthat::expect_equal(
+    base::unname(vec_md5_after),
+    base::unname(vec_md5_before)
+  )
+})
+
+testthat::test_that("open_vault() still allows temporary tables", {
+  path_copy <-
+    withr::local_tempfile(fileext = ".sqlite")
+
+  base::file.copy(
+    from = base::file.path(base::tempdir(), "example.sqlite"),
+    to = path_copy
+  )
+
+  vault_opened <-
+    open_vault(
+      path = path_copy,
+      verbose = FALSE
+    )
+
+  con_vault <-
+    purrr::chuck(vault_opened, "db_con")
+
+  withr::defer(
+    DBI::dbDisconnect(conn = con_vault)
+  )
+
+  data_computed <-
+    vault_opened |>
+    get_datasets() |>
+    purrr::chuck("data") |>
+    dplyr::compute(temporary = TRUE)
+
+  testthat::expect_s3_class(data_computed, "tbl_sql")
+  testthat::expect_gt(
+    dplyr::pull(dplyr::count(data_computed), "n"),
+    0L
+  )
+})
