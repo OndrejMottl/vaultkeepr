@@ -1,7 +1,7 @@
 -- VegVault 2.0.0 database schema, as shipped with vaultkeepr
 --
 -- Copied without changes, below this header, from Data/SQL/make_tables.sql
--- at commit f92caaa of the 2.0.0 branch of
+-- at commit 4907d9c of the 2.0.0 branch of
 -- https://github.com/OndrejMottl/VegVault. The functions and files named in
 -- the original header below belong to that repository. The test database
 -- (tests/testthat/helper_make_database.R) and the vignette database
@@ -52,15 +52,15 @@ CREATE TABLE "version_control"
 );
 
 -- One row per producer pin of a build: producer is the artefact id of the
---   pin manifest, tag the producer release tag and commit_sha the commit
---   of that tag. tag and commit_sha are empty in a development build that
---   reads local producer files. The release validation requires them.
+--   pin manifest and tag the producer release tag. tag is empty in a
+--   development build that reads local producer files; the release
+--   validation requires it. No commit is stored: the pin manifest records
+--   the size and SHA-256 of every file, which tie a build to its files.
 CREATE TABLE "BuildProducers"
 (
   "version_id" INTEGER NOT NULL,
   "producer" TEXT NOT NULL,
   "tag" TEXT,
-  "commit_sha" TEXT,
   PRIMARY KEY ("version_id", "producer"),
   FOREIGN KEY ("version_id") REFERENCES "version_control" ("id")
 ) WITHOUT ROWID;
@@ -201,17 +201,18 @@ CREATE TABLE "SampleSizeID"
   "description" TEXT
 );
 
--- SampleTaxa keeps its rowid and has no primary key: v1.0.0 repeats some
---   (sample_id, taxon_id) pairs, which the release validation flags until
---   the vegetation producers resolve them.
+-- One row per taxon of a sample: v1.0.0 repeated some (sample_id,
+--   taxon_id) pairs, which the vegetation producers now merge into one
+--   record per taxon, so a repeated pair stops the build.
 CREATE TABLE "SampleTaxa"
 (
-  "sample_id" INTEGER,
-  "taxon_id" INTEGER,
+  "sample_id" INTEGER NOT NULL,
+  "taxon_id" INTEGER NOT NULL,
   "value" REAL,
+  PRIMARY KEY ("sample_id", "taxon_id"),
   FOREIGN KEY ("sample_id") REFERENCES "Samples" ("sample_id"),
   FOREIGN KEY ("taxon_id") REFERENCES "Taxa" ("taxon_id")
-);
+) WITHOUT ROWID;
 
 -- Taxa
 CREATE TABLE "Taxa"
@@ -426,7 +427,6 @@ CREATE INDEX idx_samples_sample_size_id ON Samples(sample_size_id);
 CREATE INDEX idx_samplereference_reference_id ON SampleReference(reference_id);
 CREATE INDEX idx_datasetsample_sample_id ON DatasetSample(sample_id);
 CREATE INDEX idx_sampletaxa_taxon_id ON SampleTaxa(taxon_id);
-CREATE INDEX idx_sampletaxa_sample_id_taxon_id ON SampleTaxa(sample_id, taxon_id);
 
 -- Taxa
 CREATE INDEX idx_taxonclassification_taxon_species ON TaxonClassification(taxon_species);
