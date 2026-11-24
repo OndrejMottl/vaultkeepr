@@ -371,14 +371,13 @@ testthat::test_that("get_taxa() classifies only the selected taxa", {
       )
     )
   )
+  # SampleTaxa is keyed by (sample_id, taxon_id) in VegVault 2.0.0, so the
+  #   rows of the selected samples are found through the primary key
   testthat::expect_true(
     base::any(
       stringr::str_detect(
         string = vec_plan_detail,
-        pattern = stringr::str_c(
-          "^SEARCH SampleTaxa USING (COVERING )?INDEX ",
-          "idx_sampletaxa_sample_id"
-        )
+        pattern = "^SEARCH SampleTaxa USING PRIMARY KEY \\(sample_id=\\?\\)"
       )
     )
   )
