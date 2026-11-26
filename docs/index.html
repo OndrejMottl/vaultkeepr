@@ -85,7 +85,7 @@
 <div class="section level2">
 <h2 id="supported-vegvault-versions">Supported VegVault versions<a class="anchor" aria-label="anchor" href="#supported-vegvault-versions"></a>
 </h2>
-<p>vaultkeepr 0.2.0 is released together with VegVault 2.0.0. It reads VegVault databases from version 1.0.0 up to, but not including, 3.0.0: <code><a href="reference/open_vault.html">open_vault()</a></code> reads the version of the database and stops with an error for any other version. It opens the database read-only, so no query can change the file. On VegVault 1 databases, <code><a href="reference/get_traits.html">get_traits()</a></code> warns that the trait units may be unreliable.</p>
+<p>vaultkeepr 0.2.0 is released for VegVault 2.0.0. It reads both VegVault 1.0.0 and 2.0.0: <code><a href="reference/open_vault.html">open_vault()</a></code> reads the version of the database and stops with an error for a database that is not VegVault 1 or 2. It opens the database read-only, so no query can change the file. On VegVault 1 databases, <code><a href="reference/get_traits.html">get_traits()</a></code> warns that the trait units may be unreliable.</p>
 </div>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
