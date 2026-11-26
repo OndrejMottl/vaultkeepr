@@ -46,7 +46,7 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="vaultkeepr-020">vaultkeepr 0.2.0<a class="anchor" aria-label="anchor" href="#vaultkeepr-020"></a></h2>
-<p>vaultkeepr 0.2.0 is released together with VegVault 2.0.0. It reads VegVault databases from version 1.0.0 up to, but not including, 3.0.0, and stops with an error for any other version. It opens the database read-only, adds the units of VegVault 2 trait values to the trait data, and makes several queries faster on large selections, without changing their results. One default changes: the geographic box of <code><a href="../reference/select_dataset_by_geo.html">select_dataset_by_geo()</a></code> now applies to every dataset type.</p>
+<p>vaultkeepr 0.2.0 is released for VegVault 2.0.0. It reads both VegVault 1.0.0 and 2.0.0, and stops with an error for a database of any other major version. It opens the database read-only, adds the units of VegVault 2 trait values to the trait data, and makes several queries faster on large selections, without changing their results. One default changes: the geographic box of <code><a href="../reference/select_dataset_by_geo.html">select_dataset_by_geo()</a></code> now applies to every dataset type.</p>
 <div class="section level3">
 <h3 id="changed-behaviour-0-2-0">Changed behaviour<a class="anchor" aria-label="anchor" href="#changed-behaviour-0-2-0"></a></h3>
 <ul><li>
@@ -56,7 +56,7 @@
 <li>
 <code><a href="../reference/get_age_uncertainty.html">get_age_uncertainty()</a></code> returns its rows in a fixed order: with <code>return_raw_data = TRUE</code> sorted by <code>sample_id</code> and <code>iteration</code>, and in the wide output one row per sample in the order of <code>sample_id</code>. Before, the order was whatever SQLite returned, which for larger selections was not by sample. The values are unchanged.</li>
 <li>
-<code><a href="../reference/open_vault.html">open_vault()</a></code> stops with an error for a VegVault version that vaultkeepr does not support, and closes the connection it opened. vaultkeepr 0.2.0 supports VegVault from 1.0.0 up to, but not including, 3.0.0; a version that cannot be read as a version number, such as <code>2.0.0-dev</code>, is not supported either. A database without version rows is read as VegVault 1.0.0.</li>
+<code><a href="../reference/open_vault.html">open_vault()</a></code> stops with an error for a VegVault version that vaultkeepr does not support, and closes the connection it opened. vaultkeepr 0.2.0 supports VegVault 1 and 2 (so far, the releases 1.0.0 and 2.0.0); a version that cannot be read as a version number, such as <code>2.0.0-dev</code>, is not supported either. A database without version rows is read as VegVault 1.0.0.</li>
 <li>
 <code><a href="../reference/open_vault.html">open_vault()</a></code> opens the database read-only. vaultkeepr only reads from it, and a read-only connection guarantees that no query changes the file. A statement that writes through the connection of a <code>vault_pipe</code>, such as <code>CREATE TABLE</code>, now fails with an error; temporary tables, for example from <code><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">dplyr::compute()</a></code>, still work.</li>
 <li>

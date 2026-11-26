@@ -7,9 +7,9 @@
 #' @details
 #' `open_vault()` reads the VegVault version of the database from the row
 #' of `version_control` with the highest `id` and stores it as the
-#' `database_version` attribute. vaultkeepr supports VegVault from 1.0.0 up
-#' to, but not including, 3.0.0. For an older or a newer version, or one
-#' that cannot be read as a version number, `open_vault()` closes the
+#' `database_version` attribute. vaultkeepr supports VegVault 1 and 2 (so
+#' far, the releases 1.0.0 and 2.0.0). For an older or a newer version, or
+#' one that cannot be read as a version number, `open_vault()` closes the
 #' connection and stops with an error. A database without version rows is
 #' read as VegVault 1.0.0.
 #'

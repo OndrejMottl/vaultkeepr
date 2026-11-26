@@ -75,9 +75,9 @@
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><code>open_vault()</code> reads the VegVault version of the database from the row
 of <code>version_control</code> with the highest <code>id</code> and stores it as the
-<code>database_version</code> attribute. vaultkeepr supports VegVault from 1.0.0 up
-to, but not including, 3.0.0. For an older or a newer version, or one
-that cannot be read as a version number, <code>open_vault()</code> closes the
+<code>database_version</code> attribute. vaultkeepr supports VegVault 1 and 2 (so
+far, the releases 1.0.0 and 2.0.0). For an older or a newer version, or
+one that cannot be read as a version number, <code>open_vault()</code> closes the
 connection and stops with an error. A database without version rows is
 read as VegVault 1.0.0.</p>
 <p>The database is opened read-only: vaultkeepr only reads from it, and a

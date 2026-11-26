@@ -21,9 +21,10 @@ Stop with an error when vaultkeepr does not support the VegVault version
 of a database.
 }
 \details{
-vaultkeepr supports the VegVault versions from 1.0.0 up to, but not
-including, 3.0.0. VegVault 1.0.0 is the first release of the database,
-and a new major version may change the tables that vaultkeepr reads.
+vaultkeepr supports the major versions 1 and 2 of VegVault (so far, the
+releases 1.0.0 and 2.0.0). VegVault 1.0.0 is the first release of the
+database, and a new major version may change the tables that vaultkeepr
+reads.
 The function stops for an older or a newer version, and for a version
 that cannot be read as a version number, such as \code{"2.0.0-dev"}.
 }
