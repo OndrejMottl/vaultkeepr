@@ -47,75 +47,7 @@ get_readable_column_names <- function(con, data) {
   }
 
   # Add column names to data_source -----
-  add_column_from_db <- function(data_to_rename = NULL,
-                                 sel_column_id = NA_character_,
-                                 join_type = "left_join",
-                                 sel_join_by = sel_column_id,
-                                 sel_suffix = c("", ""),
-                                 sel_column_name = NA_character_,
-                                 table_name = NA_character_,
-                                 sel_table = NULL,
-                                 overwrite = FALSE) {
-    if (
-      isFALSE(sel_column_id %in% colnames(data_to_rename))
-    ) {
-      return(data_to_rename)
-    }
-
-    if (
-      sel_column_name %in% colnames(data_to_rename) && isFALSE(overwrite)
-    ) {
-      res <-
-        data_to_rename %>%
-        dplyr::relocate(
-          dplyr::all_of(sel_column_name),
-          .after = dplyr::all_of(sel_column_id)
-        ) %>%
-        dplyr::select(-dplyr::all_of(sel_column_id))
-
-      # pipe to return does not work, need to assign to res first
-      return(res)
-    }
-
-    data_db <- sel_table
-    if (
-      isTRUE(is.null(sel_table))
-    ) {
-      data_db <-
-        dplyr::tbl(con, table_name)
-    }
-
-    if (
-      join_type == "left_join"
-    ) {
-      data_joined <-
-        data_to_rename %>%
-        dplyr::left_join(
-          data_db,
-          by = sel_join_by,
-          suffix = sel_suffix
-        )
-    } else {
-      data_joined <-
-        data_to_rename %>%
-        dplyr::inner_join(
-          data_db,
-          by = sel_join_by,
-          suffix = sel_suffix
-        )
-    }
-
-    res <-
-      data_joined %>%
-      dplyr::relocate(
-        dplyr::all_of(sel_column_name),
-        .after = dplyr::all_of(sel_column_id)
-      ) %>%
-      dplyr::select(-dplyr::all_of(sel_column_id))
-
-    # pipe to return does not work, need to assign to res first
-    return(res)
-  }
+  # add_column_from_db() replaces each id column with its readable column
 
   # create a reference table for all column names, which will be called to apply
   # the add_column_from_db function
@@ -180,6 +112,7 @@ get_readable_column_names <- function(con, data) {
 
     data_work <-
       add_column_from_db(
+        con = con,
         data_to_rename = data_work,
         sel_column_id = vec_column_id[i],
         sel_column_name = data_ref_sub %>%
@@ -200,6 +133,7 @@ get_readable_column_names <- function(con, data) {
 
   data_work <-
     add_column_from_db(
+      con = con,
       data_to_rename = data_work,
       sel_column_id = "taxon_id_trait",
       sel_column_name = "taxon_name",
@@ -212,6 +146,7 @@ get_readable_column_names <- function(con, data) {
 
   data_work <-
     add_column_from_db(
+      con = con,
       data_to_rename = data_work,
       sel_column_id = "sample_id_link",
       sel_column_name = "sample_name",

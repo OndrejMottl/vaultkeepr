@@ -22,14 +22,21 @@ If \code{TRUE}, returns the raw long-format \code{tibble} with columns
 When \code{return_raw_data = FALSE} (default): a wide \code{tibble} with
 \code{sample_name} as the key column and one column per age-model
 iteration (e.g. \code{iteration_1}, \code{iteration_2}, ...), restricted to
-the samples present in the incoming pipe.
+the samples present in the incoming pipe, with one row per sample in
+the order of \code{sample_id}.
 When \code{return_raw_data = TRUE}: a long \code{tibble} with columns
-\code{sample_id}, \code{iteration}, and \code{age_uncertainty}.
+\code{sample_id}, \code{iteration}, and \code{age_uncertainty}, sorted by \code{sample_id}
+and \code{iteration}.
 }
 \description{
 For each Sample, get age uncertainty estimates from the Vault database.
 Age uncertainties represent multiple iterations of age-depth modelling
 and are stored in the \code{SampleUncertainty} table.
+}
+\details{
+Only the uncertainty rows of the samples in the pipe are read: SQLite
+receives their ids as a subquery and finds their rows through the index
+or the primary key on \code{SampleUncertainty.sample_id}.
 }
 \seealso{
 \code{\link[=open_vault]{open_vault()}}, \code{\link[=get_samples]{get_samples()}}

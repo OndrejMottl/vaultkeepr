@@ -158,3 +158,91 @@ testthat::test_that("error when get_taxa() was not called upstream", {
     get_taxon_names(con = plan)
   )
 })
+
+# Classified taxa of a selection -----
+
+testthat::test_that("get_taxon_names() lists classified taxa as before", {
+  vault_selected <-
+    build_classification_fixture()
+
+  withr::defer(
+    DBI::dbDisconnect(
+      conn = purrr::chuck(vault_selected, "db_con")
+    )
+  )
+
+  sel_con <-
+    purrr::chuck(vault_selected, "db_con")
+
+  data_selected <-
+    purrr::chuck(vault_selected, "data") |>
+    dplyr::collect()
+
+  data_sample_taxa <-
+    dplyr::tbl(
+      src = sel_con,
+      from = "SampleTaxa"
+    ) |>
+    dplyr::collect()
+
+  data_classification <-
+    dplyr::tbl(
+      src = sel_con,
+      from = "TaxonClassification"
+    ) |>
+    dplyr::collect()
+
+  data_taxa <-
+    dplyr::tbl(
+      src = sel_con,
+      from = "Taxa"
+    ) |>
+    dplyr::collect()
+
+  data_expected_taxa <-
+    build_expected_classified_values(
+      data_selected = data_selected,
+      data_values = data_sample_taxa,
+      data_classification = data_classification,
+      sel_rank_column = "taxon_genus",
+      vec_join_column = "sample_id",
+      sel_suffix = "_vegetation"
+    )
+
+  data_expected <-
+    data_expected_taxa |>
+    dplyr::filter(
+      !base::is.na(.data[["taxon_id"]])
+    ) |>
+    dplyr::distinct(
+      dplyr::across(
+        dplyr::all_of("taxon_id")
+      )
+    ) |>
+    dplyr::left_join(
+      y = data_taxa,
+      by = dplyr::join_by("taxon_id"),
+      na_matches = "never"
+    ) |>
+    dplyr::distinct(
+      dplyr::across(
+        dplyr::all_of("taxon_name")
+      )
+    ) |>
+    dplyr::filter(
+      !base::is.na(.data[["taxon_name"]])
+    ) |>
+    dplyr::arrange(.data[["taxon_name"]])
+
+  res <-
+    base::suppressWarnings(
+      get_taxa(
+        con = vault_selected,
+        classify_to = "genus",
+        verbose = FALSE
+      )
+    ) |>
+    get_taxon_names()
+
+  testthat::expect_equal(res, data_expected)
+})

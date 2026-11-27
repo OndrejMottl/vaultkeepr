@@ -39,7 +39,8 @@ VegVault stores references at eight distinct levels:
 
 These levels map directly to the tables described in the [VegVault Database Structure](https://ondrejmottl.github.io/VegVault/website/database_structure.html). VegVault is released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); for the full citation requirements, see [Guidelines for Data Reuse and Citation](https://ondrejmottl.github.io/VegVault/website/database_access.html#guidelines-for-data-reuse-and-citation).
 
-The `mandatory` field flags references that **must** be cited when the corresponding data are used. `extract_data()` checks for mandatory references automatically and issues a reminder if any are present.
+The `mandatory` field flags references that **must** be cited when the corresponding data are used.
+`extract_data()` checks for mandatory references automatically when `verbose = TRUE` and issues a reminder if any are present.
 
 We use a small **example database** (built automatically below) that mirrors the naming conventions of a real VegVault file. You can swap the path for your own VegVault download to run the same code on real data.
 
@@ -258,7 +259,9 @@ The row count is often smaller than with `get_source = TRUE` because the same pu
 
 ## Integration with `extract_data()`
 
-`extract_data()` calls `get_references()` internally and issues an informational message if any mandatory references are detected. This serves as an automatic reminder to check citations before using the data.
+`extract_data()` checks whether the selected data are linked to any mandatory reference and, if so, issues an informational message.
+The check is a single database query that stops at the first match; it does not call `get_references()`, so it neither lists the references nor prints the messages of `get_references()`.
+This serves as an automatic reminder to check citations before using the data.
 
 ```{r extract-data-warning}
 data_veg <-
@@ -271,7 +274,8 @@ data_veg <-
 
 The message is informational only — extraction always proceeds regardless, but it signals that `get_references()` should be run before publication.
 
-To silence the check entirely, set `check_mandatory_references = FALSE`:
+To skip the check, set `check_mandatory_references = FALSE`.
+Setting `verbose = FALSE`, as in this example, skips it as well, because the reminder is its only effect:
 
 ```{r extract-data-no-warn}
 data_veg_quiet <-

@@ -1,20 +1,39 @@
 #' @title Select dataset by geographical location
-#' @description Filter the dataset by geographical location
+#' @description
+#' Keep only the datasets that lie inside a box of longitude and latitude
+#' limits. The filter stays lazy: SQLite receives range conditions on
+#' `coord_long` and `coord_lat`, which the coordinate index of `Datasets` can
+#' serve.
 #' @param con A class of `vault_pipe`
 #' @param long_lim A numeric vector of length 2 specifying the longitude limits
 #' @param lat_lim A numeric vector of length 2 specifying the latitude limits
-#' @param sel_dataset_type (optional) A character vector specifying the dataset types to filter
+#' @param sel_dataset_type
+#' A character vector of the dataset types the box applies to. Default is all
+#' four types (`vegetation_plot`,
+#' `fossil_pollen_archive`, `traits`, `gridpoints`), so every dataset outside
+#' the box is dropped. Datasets of a type left out pass the filter wherever
+#' they lie.
 #' @param verbose A logical value specifying whether to print messages
 #' @return A class of `vault_pipe`
 #' @export
 #' @details
-#' There is an option to filter only specific dataset types (as some dataset types may not have lat/long information).
-#' To do this, use the `sel_dataset_type` argument.
+#' The limits are inclusive and may be given in either order. A dataset of a
+#' type the box applies to is dropped when `coord_long` or `coord_lat` is
+#' missing, also with the default limits.
+#'
+#' To keep all datasets of a type, for example trait datasets from anywhere,
+#' leave the type out of `sel_dataset_type`. A message then names the types in
+#' the data that the box does not filter.
 select_dataset_by_geo <- function(
     con = NULL,
     long_lim = c(-180, 180),
     lat_lim = c(-90, 90),
-    sel_dataset_type = c("vegetation_plot", "fossil_pollen_archive", "gridpoints"),
+    sel_dataset_type = c(
+      "vegetation_plot",
+      "fossil_pollen_archive",
+      "traits",
+      "gridpoints"
+    ),
     verbose = TRUE) {
   .data <- rlang::.data
 
@@ -47,6 +66,15 @@ select_dataset_by_geo <- function(
   assertthat_cli(
     "dataset_type" %in% colnames(sel_data),
     msg = "The data does not contain the {.code dataset_type} column. Use {.fn select_dataset_by_type} before this function",
+    verbose = verbose
+  )
+
+  assertthat_cli(
+    exp = "dataset_type_id" %in% colnames(sel_data),
+    msg = stringr::str_c(
+      "The data does not contain the {.code dataset_type_id} column. ",
+      "Use {.fn get_datasets} before this function"
+    ),
     verbose = verbose
   )
 
@@ -93,55 +121,90 @@ select_dataset_by_geo <- function(
     verbose = verbose
   )
 
+  vec_dataset_type_all <-
+    c(
+      "vegetation_plot",
+      "fossil_pollen_archive",
+      "traits",
+      "gridpoints"
+    )
+
+  assertthat_cli(
+    exp = all(sel_dataset_type %in% vec_dataset_type_all),
+    msg = stringr::str_c(
+      "{.arg sel_dataset_type} must be one of {.code vegetation_plot}, ",
+      "{.code fossil_pollen_archive}, {.code traits}, or {.code gridpoints}"
+    ),
+    verbose = verbose
+  )
+
   assertthat_cli(
     inherits(verbose, "logical"),
     msg = "{.arg verbose} must be a logical value",
     verbose = verbose
   )
 
+  vec_dataset_type_pass <-
+    setdiff(
+      x = vec_dataset_type_all,
+      y = sel_dataset_type
+    )
 
-  sel_dataset_type <-
+  # The message naming the types that pass is the only effect of this call
+  if (
+    length(vec_dataset_type_pass) > 0 &&
+      isTRUE(verbose)
+  ) {
     get_common_dataset_type(
       data_source = sel_data,
       vec_dataset_type = sel_dataset_type,
       verbose = verbose
     )
+  }
 
-  data_res <-
-    sel_data %>%
-    dplyr::mutate(
-      keep = dplyr::case_when(
-        .default = TRUE,
-        is.na(.data$coord_long) &
-          (.data$dataset_type %in% c(
-            sel_dataset_type
-          )) ~ FALSE,
-        is.na(.data$coord_lat) &
-          (.data$dataset_type %in% c(
-            sel_dataset_type
-          )) ~ FALSE,
-        (.data$coord_long < long_lim_min) &
-          (.data$dataset_type %in% c(
-            sel_dataset_type
-          )) ~ FALSE,
-        (.data$coord_long > long_lim_max) &
-          (.data$dataset_type %in% c(
-            sel_dataset_type
-          )) ~ FALSE,
-        (.data$coord_lat < lat_lim_min) &
-          (.data$dataset_type %in% c(
-            sel_dataset_type
-          )) ~ FALSE,
-        (.data$coord_lat > lat_lim_max) &
-          (.data$dataset_type %in% c(
-            sel_dataset_type
-          )) ~ FALSE
+  # Literal ids (at most four, from the lookup table) let SQLite combine
+  #   the coordinate index with the type index; a subquery makes it scan
+  if (
+    length(vec_dataset_type_pass) > 0
+  ) {
+    vec_dataset_type_id_pass <-
+      dplyr::tbl(
+        src = sel_con,
+        from = "DatasetTypeID"
+      ) |>
+      dplyr::filter(
+        .data[["dataset_type"]] %in% vec_dataset_type_pass
+      ) |>
+      dplyr::pull(var = "dataset_type_id")
+  } else {
+    vec_dataset_type_id_pass <-
+      integer(0)
+  }
+
+  if (
+    length(vec_dataset_type_id_pass) == 0
+  ) {
+    data_res <-
+      sel_data |>
+      dplyr::filter(
+        .data[["coord_long"]] >= !!long_lim_min,
+        .data[["coord_long"]] <= !!long_lim_max,
+        .data[["coord_lat"]] >= !!lat_lim_min,
+        .data[["coord_lat"]] <= !!lat_lim_max
       )
-    ) %>%
-    dplyr::filter(
-      .data$keep == TRUE
-    ) %>%
-    dplyr::select(-"keep")
+  } else {
+    data_res <-
+      sel_data |>
+      dplyr::filter(
+        (
+          .data[["coord_long"]] >= !!long_lim_min &
+            .data[["coord_long"]] <= !!long_lim_max &
+            .data[["coord_lat"]] >= !!lat_lim_min &
+            .data[["coord_lat"]] <= !!lat_lim_max
+        ) |
+          .data[["dataset_type_id"]] %in% !!vec_dataset_type_id_pass
+      )
+  }
 
   res <-
     structure(

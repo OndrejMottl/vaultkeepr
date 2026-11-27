@@ -78,7 +78,7 @@ plan <-
 
 We restrict to a Central-European bounding box (longitude 14–16 °E, latitude 44–46 °N) centred on the Mediterranean–temperate transition zone. Filtering is pushed into the SQLite engine: only datasets whose coordinates fall within the bounding box are retained, so no unnecessary data is transferred.
 
-Note that **gridpoints datasets are not filtered by geography** when `vegetation_plot` or `fossil_pollen_archive` datasets are also present: `get_abiotic_data()` handles the spatial matching internally and needs all nearby gridpoints to be available.
+Note that **the box applies to the `gridpoints` datasets as well**, because the default `sel_dataset_type` covers every dataset type. `get_abiotic_data()` links each vegetation sample only to gridpoints that are still in the plan, so a plot near the edge of the box is matched with the nearest gridpoint inside the box, or with none if no gridpoint inside lies within the distance limits. Leaving `"gridpoints"` out of `sel_dataset_type` keeps the gridpoints beyond the edge, but also every other gridpoint in the database, which makes the query much larger and slower.
 
 ```{r filter-geo}
 plan <-

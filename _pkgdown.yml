@@ -1,8 +1,8 @@
 home:
-  title: "vegvault: Providing the interface to access the VegVault database"
+  title: "vaultkeepr: Providing the interface to access the VegVault database"
   description: "An R package for extracting and analyzing data from the VegVault database"
 
-url: https://hope-uib-bio.github.io/vaultkeepr/
+url: https://ondrejmottl.github.io/vaultkeepr/
 template:
   bootstrap: 5
   bslib:

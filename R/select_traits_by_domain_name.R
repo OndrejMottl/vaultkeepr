@@ -2,7 +2,15 @@
 #' @description Filters the data for the selected Trait Domain name.
 #' @param con A connection object created by `open_vault()`.
 #' @param sel_domain A character vector of the selected Trait Domain name.
-#' @return A list of class `vault_pipe
+#' @return A list of class `vault_pipe`. Its data keep the trait values of
+#'   the selected domains and gain the columns of their trait domain and
+#'   trait: `trait_domain_id`, `trait_domain_name`,
+#'   `trait_domanin_description` and `trait_name`.
+#' @details
+#' In VegVault 2, [get_traits()] adds the unit of each trait value as
+#' `trait_unit`, taken from the `TraitsDomain` table. The function does not
+#' add this unit a second time, so the data keep one `trait_unit` column.
+#' In VegVault 1, `TraitsDomain` has no unit column.
 #' @export
 select_traits_by_domain_name <- function(
     con = NULL,
@@ -68,9 +76,17 @@ select_traits_by_domain_name <- function(
     msg = "{.arg sel_domain} must be a character vector"
   )
 
+  # In VegVault 2, get_traits() has already added trait_unit from
+  #   TraitsDomain, so it is left out here; otherwise the join splits the
+  #   unit into trait_unit.x and trait_unit.y. VegVault 1 has no such
+  #   column, hence any_of()
+  data_traits_domain <-
+    dplyr::tbl(sel_con, "TraitsDomain") |>
+    dplyr::select(-dplyr::any_of("trait_unit"))
+
   data_traits <-
     dplyr::inner_join(
-      dplyr::tbl(sel_con, "TraitsDomain"),
+      data_traits_domain,
       dplyr::tbl(sel_con, "Traits"),
       by = "trait_domain_id"
     )

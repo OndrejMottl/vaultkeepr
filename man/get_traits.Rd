@@ -39,4 +39,13 @@ return all trait values, we recommend using \code{\link[=get_traits]{get_traits(
 \code{\link[=get_taxa]{get_taxa()}} in the pipe.
 In addition, it is important to set \code{classify_to} to the same value
 as in \code{\link[=get_taxa]{get_taxa()}}.
+VegVault 1 databases remain queryable, but this function warns because their
+trait units may be unreliable. VegVault 2 queries additionally expose the
+canonical \code{trait_unit} and readable \code{conversion_rule_key} and
+\code{derivation_rule_key} fields.
+
+With \code{classify_to} other than \code{original}, only the trait values of the
+samples in the pipe are classified: SQLite receives their sample ids as a
+subquery and reads their rows of \code{TraitsValue} through the index on
+\code{sample_id}, instead of classifying the taxa of the whole database first.
 }

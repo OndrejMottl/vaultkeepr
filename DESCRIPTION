@@ -1,6 +1,6 @@
 Package: vaultkeepr
 Title: Providing the Interface to Access the VegVault Database
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
     person("Ondrej", "Mottl", , "ondrej.mottl@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9796-5081"))
@@ -8,27 +8,29 @@ Maintainer: Ondrej Mottl <ondrej.mottl@gmail.com>
 Description: An R package for extracting and analyzing data from the
     VegVault database.
 License: MIT + file LICENSE
-URL: https://github.com/OndrejMottl/vaultkeepr
+URL: https://ondrejmottl.github.io/vaultkeepr/,
+    https://github.com/OndrejMottl/vaultkeepr
 Imports: 
     cli,
     DBI,
+    dbplyr (>= 2.6.0),
+    dplyr,
     lifecycle,
     magrittr,
     purrr,
     rlang,
     RSQLite,
     stringr,
-    tibble
+    tibble,
+    tidyr
 Suggests: 
-    dbplyr,
-    dplyr,
     geosphere,
     ggplot2,
     knitr,
     rmarkdown,
     scales,
     testthat (>= 3.0.0),
-    tidyr
+    withr
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
@@ -44,4 +46,4 @@ Config/testthat/start-first: open_vault, explore_vault, get_datasets,
 Encoding: UTF-8
 Language: en-GB
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.1.1

@@ -23,275 +23,44 @@ requireNamespace("geosphere", quietly = TRUE)
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
-.set_seed <- function() {
-  set.seed(as.character(0000 - 0002 - 9796 - 5081))
-}
-
-# Insert rows into a reference table for every entity in id_table_name.
-# Creates rows in "References" then links them via ref_table_name.
-.add_references <- function(
-  con_db,
-  id_table_name,
-  ref_table_name,
-  id_col,
-  prefix,
-  mandatory = FALSE,
-  n_refs = 5
-) {
-  .set_seed()
-
-  data_ids <-
-    dplyr::tbl(con_db, id_table_name) %>%
-    dplyr::distinct(!!dplyr::sym(id_col)) %>%
-    dplyr::collect()
-
-  data_refs <-
-    data_ids %>%
-    dplyr::mutate(
-      ref_num = sample(
-        x = c(NA_integer_, seq_len(n_refs)),
-        size = nrow(.),
-        replace = TRUE
-      )
-    ) %>%
-    dplyr::filter(!is.na(.data$ref_num)) %>%
-    dplyr::mutate(
-      reference_detail = paste0(prefix, "_", .data$ref_num),
-      mandatory = mandatory
-    )
-
-  data_refs %>%
-    dplyr::distinct(.data$reference_detail, .data$mandatory) %>%
-    dplyr::arrange(.data$reference_detail) %>%
-    dplyr::copy_to(
-      con_db,
-      df = .,
-      name = "References",
-      append = TRUE
-    )
-
-  data_refs_db <-
-    dplyr::tbl(con_db, "References") %>%
-    dplyr::collect()
-
-  data_refs %>%
-    dplyr::left_join(data_refs_db, by = "reference_detail") %>%
-    dplyr::distinct(!!dplyr::sym(id_col), .data$reference_id) %>%
-    dplyr::copy_to(
-      con_db,
-      df = .,
-      name = ref_table_name,
-      append = TRUE
-    )
-}
-
-# ── SQL schema ────────────────────────────────────────────────────────────────
-
-.sql_schema <- '
-CREATE TABLE "version_control"
-("id" INTEGER PRIMARY KEY,"version" TEXT,"update_timestamp" DATETIME DEFAULT CURRENT_TIMESTAMP,"changelog" TEXT);
-CREATE UNIQUE INDEX idx_version_control_id ON version_control(id);
-
-CREATE TABLE "Authors"
-("author_id" INTEGER PRIMARY KEY,"author_fullname" TEXT,"author_email" TEXT,"author_orcid" TEXT);
-CREATE UNIQUE INDEX idx_authors_author_id ON Authors(author_id);
-
-CREATE TABLE "References"
-("reference_id" INTEGER PRIMARY KEY,"reference_detail" TEXT,"mandatory" BOOLEAN NOT NULL DEFAULT FALSE);
-CREATE UNIQUE INDEX idx_references_reference_id ON "References"(reference_id);
-
-CREATE TABLE "DatasetTypeID"
-("dataset_type_id" INTEGER PRIMARY KEY,"dataset_type" TEXT);
-CREATE UNIQUE INDEX idx_datasettypeid_dataset_type_id ON DatasetTypeID(dataset_type_id);
-
-CREATE TABLE "DatasetSourceTypeID"
-("data_source_type_id" INTEGER PRIMARY KEY,"dataset_source_type" TEXT);
-CREATE UNIQUE INDEX idx_datasetsourcetypeid_data_source_type_id ON DatasetSourceTypeID(data_source_type_id);
-
-CREATE TABLE "DatasetSourceTypeReference"
-("data_source_type_id" INTEGER,"reference_id" INTEGER,
- FOREIGN KEY ("data_source_type_id") REFERENCES "DatasetSourceTypeID" ("data_source_type_id"),
- FOREIGN KEY ("reference_id") REFERENCES "References" ("reference_id"));
-CREATE INDEX idx_datasetsourcetypereference_data_source_type_id ON DatasetSourceTypeReference(data_source_type_id);
-CREATE INDEX idx_datasetsourcetypereference_reference_id ON DatasetSourceTypeReference(reference_id);
-
-CREATE TABLE "DatasetSourcesID"
-("data_source_id" INTEGER PRIMARY KEY,"data_source_desc" TEXT);
-CREATE UNIQUE INDEX idx_datasetsourcesid_data_source_id ON DatasetSourcesID(data_source_id);
-
-CREATE TABLE "DatasetSourcesReference"
-("data_source_id" INTEGER,"reference_id" INTEGER,
- FOREIGN KEY ("data_source_id") REFERENCES "DatasetSourcesID" ("data_source_id"),
- FOREIGN KEY ("reference_id") REFERENCES "References" ("reference_id"));
-CREATE INDEX idx_datasetsourcesreference_data_source_id ON DatasetSourcesReference(data_source_id);
-CREATE INDEX idx_datasetsourcesreference_reference_id ON DatasetSourcesReference(reference_id);
-
-CREATE TABLE "SamplingMethodID"
-("sampling_method_id" INTEGER PRIMARY KEY,"sampling_method_details" TEXT);
-CREATE UNIQUE INDEX idx_samplingmethodid_sampling_method_id ON SamplingMethodID(sampling_method_id);
-
-CREATE TABLE "SamplingMethodReference"
-("sampling_method_id" INTEGER,"reference_id" INTEGER,
- FOREIGN KEY ("sampling_method_id") REFERENCES "SamplingMethodID" ("sampling_method_id"),
- FOREIGN KEY ("reference_id") REFERENCES "References" ("reference_id"));
-CREATE INDEX idx_samplingmethodreference_sampling_method_id ON SamplingMethodReference(sampling_method_id);
-CREATE INDEX idx_samplingmethodreference_reference_id ON SamplingMethodReference(reference_id);
-
-CREATE TABLE "Datasets"
-("dataset_id" INTEGER PRIMARY KEY,"dataset_name" TEXT,"data_source_id" INTEGER,"dataset_type_id" INTEGER,
- "data_source_type_id" INTEGER,"coord_long" REAL,"coord_lat" REAL,"sampling_method_id" INTEGER,
- FOREIGN KEY ("dataset_type_id") REFERENCES "DatasetTypeID" ("dataset_type_id"),
- FOREIGN KEY ("sampling_method_id") REFERENCES "SamplingMethodID" ("sampling_method_id"),
- FOREIGN KEY ("data_source_id") REFERENCES "DatasetSourcesID" ("data_source_id"),
- FOREIGN KEY ("data_source_type_id") REFERENCES "DatasetSourceTypeID" ("data_source_type_id"));
-CREATE UNIQUE INDEX idx_datasets_dataset_id ON Datasets(dataset_id);
-CREATE INDEX idx_datasets_dataset_type_id ON Datasets(dataset_type_id);
-CREATE INDEX idx_datasets_data_source_id ON Datasets(data_source_id);
-CREATE INDEX idx_datasets_data_source_type_id ON Datasets(data_source_type_id);
-CREATE INDEX idx_datasets_coord_long_lat ON Datasets(coord_long, coord_lat);
-CREATE INDEX idx_datasets_sampling_method_id ON Datasets(sampling_method_id);
-
-CREATE TABLE "DatasetReferences"
-("dataset_id" INTEGER,"reference_id" INTEGER,
- FOREIGN KEY ("dataset_id") REFERENCES "Datasets" ("dataset_id"),
- FOREIGN KEY ("reference_id") REFERENCES "References" ("reference_id"));
-CREATE INDEX idx_datasetreferences_dataset_id ON DatasetReferences(dataset_id);
-CREATE INDEX idx_datasetreferences_reference_id ON DatasetReferences(reference_id);
-
-CREATE TABLE "SampleSizeID"
-("sample_size_id" INTEGER PRIMARY KEY,"sample_size" REAL,"description" TEXT);
-CREATE UNIQUE INDEX idx_samplesizeid_sample_size_id ON SampleSizeID(sample_size_id);
-
-CREATE TABLE "Samples"
-("sample_id" INTEGER PRIMARY KEY,"sample_name" TEXT,"sample_details" TEXT,"age" REAL,"sample_size_id" INTEGER,
- FOREIGN KEY ("sample_size_id") REFERENCES "SampleSizeID" ("sample_size_id"));
-CREATE UNIQUE INDEX idx_samples_sample_id ON Samples(sample_id);
-CREATE INDEX idx_samples_sample_size_id ON Samples(sample_size_id);
-
-CREATE TABLE "SampleReference"
-("sample_id" INTEGER,"reference_id" INTEGER,
- FOREIGN KEY ("sample_id") REFERENCES "Samples" ("sample_id"),
- FOREIGN KEY ("reference_id") REFERENCES "References" ("reference_id"));
-CREATE INDEX idx_samplereference_sample_id ON SampleReference(sample_id);
-CREATE INDEX idx_samplereference_reference_id ON SampleReference(reference_id);
-
-CREATE TABLE "DatasetSample"
-("dataset_id" INTEGER,"sample_id" INTEGER,
- FOREIGN KEY ("dataset_id") REFERENCES "Datasets" ("dataset_id"),
- FOREIGN KEY ("sample_id") REFERENCES "Samples" ("sample_id"));
-CREATE INDEX idx_datasetsample_dataset_id ON DatasetSample(dataset_id);
-CREATE INDEX idx_datasetsample_sample_id ON DatasetSample(sample_id);
-
-CREATE TABLE "SampleUncertainty"
-("sample_id" INTEGER,"iteration" INTEGER,"age" INTEGER,
- FOREIGN KEY ("sample_id") REFERENCES "Samples" ("sample_id"));
-CREATE INDEX idx_sampleuncertainty_sample_id ON SampleUncertainty(sample_id);
-
-CREATE TABLE "Taxa"
-("taxon_id" INTEGER PRIMARY KEY,"taxon_name" TEXT);
-CREATE UNIQUE INDEX idx_taxa_taxon_id ON Taxa(taxon_id);
-
-CREATE TABLE "TaxonClassification"
-("taxon_id" INTEGER,"taxon_species" INTEGER,"taxon_genus" INTEGER,"taxon_family" INTEGER,
- FOREIGN KEY ("taxon_id") REFERENCES "Taxa" ("taxon_id"),
- FOREIGN KEY ("taxon_species") REFERENCES "Taxa" ("taxon_id"),
- FOREIGN KEY ("taxon_genus") REFERENCES "Taxa" ("taxon_id"),
- FOREIGN KEY ("taxon_family") REFERENCES "Taxa" ("taxon_id"));
-CREATE INDEX idx_taxonclassification_taxon_id ON TaxonClassification(taxon_id);
-CREATE INDEX idx_taxonclassification_taxon_species ON TaxonClassification(taxon_species);
-CREATE INDEX idx_taxonclassification_taxon_genus ON TaxonClassification(taxon_genus);
-CREATE INDEX idx_taxonclassification_taxon_family ON TaxonClassification(taxon_family);
-
-CREATE TABLE "TaxonReference"
-("taxon_id" INTEGER,"reference_id" INTEGER,
- FOREIGN KEY ("taxon_id") REFERENCES "Taxa" ("taxon_id"),
- FOREIGN KEY ("reference_id") REFERENCES "References" ("reference_id"));
-CREATE INDEX idx_taxonreference_taxon_id ON TaxonReference(taxon_id);
-CREATE INDEX idx_taxonreference_reference_id ON TaxonReference(reference_id);
-
-CREATE TABLE "SampleTaxa"
-("sample_id" INTEGER,"taxon_id" INTEGER,"value" REAL,
- FOREIGN KEY ("sample_id") REFERENCES "Samples" ("sample_id"),
- FOREIGN KEY ("taxon_id") REFERENCES "Taxa" ("taxon_id"));
-CREATE INDEX idx_sampletaxa_sample_id ON SampleTaxa(sample_id);
-CREATE INDEX idx_sampletaxa_taxon_id ON SampleTaxa(taxon_id);
-CREATE INDEX idx_sampletaxa_sample_id_taxon_id ON SampleTaxa(sample_id, taxon_id);
-
-CREATE TABLE "TraitsDomain"
-("trait_domain_id" INTEGER PRIMARY KEY,"trait_domain_name" TEXT,"trait_domanin_description" TEXT);
-CREATE UNIQUE INDEX idx_traitsdomain_trait_domain_id ON TraitsDomain(trait_domain_id);
-
-CREATE TABLE "Traits"
-("trait_id" INTEGER PRIMARY KEY,"trait_domain_id" INTEGER,"trait_name" TEXT,
- FOREIGN KEY ("trait_domain_id") REFERENCES "TraitsDomain" ("trait_domain_id"));
-CREATE UNIQUE INDEX idx_traits_trait_id ON Traits(trait_id);
-CREATE INDEX idx_traits_trait_domain_id ON Traits(trait_domain_id);
-
-CREATE TABLE "TraitsValue"
-("trait_id" INTEGER,"dataset_id" INTEGER,"sample_id" INTEGER,"taxon_id" INTEGER,"trait_value" REAL,
- FOREIGN KEY ("trait_id") REFERENCES "Traits" ("trait_id"),
- FOREIGN KEY ("dataset_id") REFERENCES "Datasets" ("dataset_id"),
- FOREIGN KEY ("sample_id") REFERENCES "Samples" ("sample_id"),
- FOREIGN KEY ("taxon_id") REFERENCES "Taxa" ("taxon_id"));
-CREATE INDEX idx_traitsvalue_trait_id ON TraitsValue(trait_id);
-CREATE INDEX idx_traitsvalue_dataset_id ON TraitsValue(dataset_id);
-CREATE INDEX idx_traitsvalue_sample_id ON TraitsValue(sample_id);
-CREATE INDEX idx_traitsvalue_taxon_id ON TraitsValue(taxon_id);
-CREATE INDEX idx_traitsvalue_dataset_id_sample_id_taxon_id ON TraitsValue(dataset_id, sample_id, taxon_id);
-
-CREATE TABLE "TraitsReference"
-("trait_id" INTEGER,"reference_id" INTEGER,
- FOREIGN KEY ("trait_id") REFERENCES "Traits" ("trait_id"),
- FOREIGN KEY ("reference_id") REFERENCES "References" ("reference_id"));
-CREATE INDEX idx_traitsreference_trait_id ON TraitsReference(trait_id);
-CREATE INDEX idx_traitsreference_reference_id ON TraitsReference(reference_id);
-
-CREATE TABLE "AbioticVariable"
-("abiotic_variable_id" INTEGER PRIMARY KEY,"abiotic_variable_name" TEXT,
- "abiotic_variable_unit" TEXT,"measure_details" TEXT);
-CREATE UNIQUE INDEX idx_abioticvariable_abiotic_variable_id ON AbioticVariable(abiotic_variable_id);
-
-CREATE TABLE "AbioticVariableReference"
-("abiotic_variable_id" INTEGER,"reference_id" INTEGER,
- FOREIGN KEY ("abiotic_variable_id") REFERENCES "AbioticVariable" ("abiotic_variable_id"),
- FOREIGN KEY ("reference_id") REFERENCES "References" ("reference_id"));
-CREATE INDEX idx_abioticvariablereference_abiotic_variable_id ON AbioticVariableReference(abiotic_variable_id);
-CREATE INDEX idx_abioticvariablereference_reference_id ON AbioticVariableReference(reference_id);
-
-CREATE TABLE "AbioticData"
-("sample_id" INTEGER,"abiotic_variable_id" INTEGER,"abiotic_value" REAL,
- FOREIGN KEY ("sample_id") REFERENCES "Samples" ("sample_id"),
- FOREIGN KEY ("abiotic_variable_id") REFERENCES "AbioticVariable" ("abiotic_variable_id"));
-CREATE INDEX idx_abioticdata_sample_id ON AbioticData(sample_id);
-CREATE INDEX idx_abioticdata_abiotic_variable_id ON AbioticData(abiotic_variable_id);
-
-CREATE TABLE "AbioticDataReference"
-("sample_id" INTEGER,"sample_ref_id" INTEGER,"distance_in_km" INTEGER,"distance_in_years" INTEGER,
- FOREIGN KEY ("sample_id") REFERENCES "Samples" ("sample_id"),
- FOREIGN KEY ("sample_ref_id") REFERENCES "Samples" ("sample_id"));
-CREATE INDEX idx_abioticdatareference_sample_id ON AbioticDataReference(sample_id);
-CREATE INDEX idx_abioticdatareference_sample_ref_id ON AbioticDataReference(sample_ref_id);
-'
+# The test database uses the same helpers (tests/testthat/)
+source("helper_apply_fixture_seed.R", local = TRUE)
+source("helper_build_position_link_fixture.R", local = TRUE)
+source("helper_build_reference_fixture.R", local = TRUE)
+source("helper_build_trait_rule_fixture.R", local = TRUE)
 
 # ── main builder ─────────────────────────────────────────────────────────────
 
-path_db <- paste(tempdir(), "vaultkeepr_example.sqlite", sep = "/")
+path_db <-
+  paste(tempdir(), "vaultkeepr_example.sqlite", sep = "/")
 
 if (!file.exists(path_db)) {
   con_db <-
     DBI::dbConnect(RSQLite::SQLite(), path_db)
 
   # 1. Create schema -----------------------------------------------------------
-  .sql_schema %>%
-    stringr::str_remove_all("\\n") %>%
-    stringr::str_split(pattern = "\\;") %>%
-    unlist() %>%
-    purrr::walk(
-      ~ try(
-        DBI::dbExecute(conn = con_db, statement = .x),
-        silent = TRUE
-      )
-    )
+  # The tables and indexes come from the VegVault schema file shared with the
+  #   test database: from the source tree when the vignettes are rendered
+  #   there, and from the installed package otherwise
+  path_sql_source <-
+    file.path("..", "inst", "sql", "vegvault_schema_2.0.0.sql")
+
+  path_sql <-
+    if (file.exists(path_sql_source)) {
+      path_sql_source
+    } else {
+      system.file("sql", "vegvault_schema_2.0.0.sql", package = "vaultkeepr")
+    }
+
+  vec_sql_lines <-
+    readLines(path_sql, warn = FALSE)
+
+  vec_sql_lines[!stringr::str_detect(vec_sql_lines, "^\\s*--")] %>%
+    stringr::str_c(collapse = "\n") %>%
+    stringr::str_split_1(pattern = ";") %>%
+    stringr::str_trim() %>%
+    purrr::discard(~ !nzchar(.x)) %>%
+    purrr::walk(~ DBI::dbExecute(conn = con_db, statement = .x))
 
   # 2. Lookup tables -----------------------------------------------------------
 
@@ -362,7 +131,7 @@ if (!file.exists(path_db)) {
     )
 
   # gridpoints: 5 slight jitters per cluster, dataset_type_id = 4
-  .set_seed()
+  apply_fixture_seed()
   data_datasets_gridpoints <-
     purrr::map(
       .x = seq_len(5),
@@ -398,25 +167,25 @@ if (!file.exists(path_db)) {
   dplyr::copy_to(con_db, data_datasets, name = "Datasets", append = TRUE)
 
   # Dataset reference tables
-  .add_references(
+  build_reference_fixture(
     con_db,
     "DatasetSourcesID", "DatasetSourcesReference",
     "data_source_id", "data_source",
     n_refs = 3
   )
-  .add_references(
+  build_reference_fixture(
     con_db,
     "DatasetSourceTypeID", "DatasetSourceTypeReference",
     "data_source_type_id", "data_source_type",
     mandatory = TRUE, n_refs = 3
   )
-  .add_references(
+  build_reference_fixture(
     con_db,
     "SamplingMethodID", "SamplingMethodReference",
     "sampling_method_id", "sampling_method",
     n_refs = 3
   )
-  .add_references(
+  build_reference_fixture(
     con_db,
     "Datasets", "DatasetReferences",
     "dataset_id", "dataset",
@@ -434,7 +203,7 @@ if (!file.exists(path_db)) {
     dplyr::select(-"init") %>%
     dplyr::copy_to(con_db, df = ., name = "Samples", append = TRUE)
 
-  .add_references(
+  build_reference_fixture(
     con_db,
     "Samples", "SampleReference",
     "sample_id", "sample",
@@ -531,7 +300,7 @@ if (!file.exists(path_db)) {
   ) %>%
     dplyr::copy_to(con_db, df = ., name = "Taxa", append = TRUE)
 
-  .add_references(
+  build_reference_fixture(
     con_db,
     "Taxa", "TaxonReference",
     "taxon_id", "taxon",
@@ -582,7 +351,7 @@ if (!file.exists(path_db)) {
     ) %>%
     dplyr::collect()
 
-  .set_seed()
+  apply_fixture_seed()
   data_veg_sample_ages %>%
     tidyr::expand_grid(taxon_id = seq_len(45L)) %>%
     dplyr::filter(
@@ -660,7 +429,7 @@ if (!file.exists(path_db)) {
   ) %>%
     dplyr::copy_to(con_db, df = ., name = "AbioticData", append = TRUE)
 
-  .add_references(
+  build_reference_fixture(
     con_db,
     "AbioticVariable", "AbioticVariableReference",
     "abiotic_variable_id", "abiotic_variable",
@@ -668,7 +437,9 @@ if (!file.exists(path_db)) {
   )
 
   # AbioticDataReference: link vegetation/pollen samples to nearby gridpoint
-  # samples (within 50 km and 5000 years)
+  # samples (within 50 km and 5000 years). The links are computed per sample,
+  # then written once per position (VegVault 2.0.0); the view
+  # AbioticDataReference returns them per sample
   data_abiotic_geo <-
     dplyr::tbl(con_db, "Datasets") %>%
     dplyr::filter(dataset_type_id == 4) %>%
@@ -768,11 +539,9 @@ if (!file.exists(path_db)) {
       sample_id     = sample_id_vegetation,
       sample_ref_id = sample_id_abiotic
     ) %>%
-    dplyr::copy_to(
-      con_db,
-      df = .,
-      name = "AbioticDataReference",
-      append = TRUE
+    build_position_link_fixture(
+      con_db = con_db,
+      data_sample_links = .
     )
 
   # 7. Traits ------------------------------------------------------------------
@@ -786,7 +555,8 @@ if (!file.exists(path_db)) {
       "Stem dry mass per stem fresh volume (wood density)",
       "Dispersal unit (diaspore) dry mass",
       "Maximum whole-plant vegetative height"
-    )
+    ),
+    trait_unit = c("g/cm3", "mg", "m")
   ) %>%
     dplyr::copy_to(con_db, df = ., name = "TraitsDomain", append = TRUE)
 
@@ -808,6 +578,8 @@ if (!file.exists(path_db)) {
     )
   ) %>%
     dplyr::copy_to(con_db, df = ., name = "Traits", append = TRUE)
+
+  build_trait_rule_fixture(con_db = con_db)
 
   data_trait_dataset_sample <-
     dplyr::tbl(con_db, "Datasets") %>%
@@ -864,9 +636,16 @@ if (!file.exists(path_db)) {
           rep_len(c(0.95, 1.0, 1.05), length.out = nrow(.))
       )
   ) %>%
+    # Each value takes the unit-conversion rule of the domain of its trait
+    dplyr::left_join(
+      dplyr::tbl(con_db, "Traits") %>%
+        dplyr::select(trait_id, trait_unit_conversion_id = trait_domain_id) %>%
+        dplyr::collect(),
+      by = "trait_id"
+    ) %>%
     dplyr::copy_to(con_db, df = ., name = "TraitsValue", append = TRUE)
 
-  .add_references(
+  build_reference_fixture(
     con_db,
     "Traits", "TraitsReference",
     "trait_id", "trait",
@@ -877,7 +656,7 @@ if (!file.exists(path_db)) {
   # 25 age-model iterations per temporal sample; SD baseline raised to 100
   # so that at 500 yr BP (SD=125) ~32 % of samples cross a 250-year bin
   # boundary, producing visible spread in the spaghetti richness plot.
-  .set_seed()
+  apply_fixture_seed()
 
   data_temporal_samples <-
     dplyr::tbl(con_db, "Samples") %>%
@@ -909,6 +688,16 @@ if (!file.exists(path_db)) {
       name = "SampleUncertainty",
       append = TRUE
     )
+
+  # 9. Versions ----------------------------------------------------------------
+  # The current version has the highest id, as in VegVault
+  DBI::dbExecute(
+    conn = con_db,
+    statement = paste(
+      "INSERT INTO version_control (version)",
+      "VALUES ('1.0.0'), ('2.0.0')"
+    )
+  )
 
   DBI::dbDisconnect(con_db)
 }

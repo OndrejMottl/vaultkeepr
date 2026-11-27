@@ -1,0 +1,12 @@
+---
+description: Route README, vignette, and pkgdown work
+globs:
+  - "README.qmd"
+  - "vignettes/**/*.Rmd"
+  - "vignettes/**/*.qmd"
+  - "_pkgdown.yml"
+  - "tools/**/*.R"
+alwaysApply: false
+---
+
+Read `AGENTS.md` and `.ai/documentation.md`.

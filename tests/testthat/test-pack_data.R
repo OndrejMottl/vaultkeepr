@@ -167,7 +167,7 @@ testthat::test_that("return trait data", {
     all(
       stringr::str_detect(vec_traits_colnames, "taxon_") |
         vec_traits_colnames %in% c(
-          "sample_name", "trait_domain_name", "trait_name"
+          "sample_name", "trait_domain_name", "trait_name", "trait_unit"
         )
     )
   )
@@ -214,7 +214,7 @@ testthat::test_that("return trait data - with taxa", {
     all(
       stringr::str_detect(vec_traits_colnames, "taxon_") |
         vec_traits_colnames %in% c(
-          "sample_name", "trait_domain_name", "trait_name"
+          "sample_name", "trait_domain_name", "trait_name", "trait_unit"
         )
     )
   )

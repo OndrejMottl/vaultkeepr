@@ -12,3 +12,9 @@
 ^vignettes$
 ^tools$
 ^\.pkgdown-build$
+^\.ai$
+^\.cursor$
+^AGENTS\.md$
+^CLAUDE\.md$
+^GEMINI\.md$
+^CITATION\.cff$

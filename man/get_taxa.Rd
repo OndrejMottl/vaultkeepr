@@ -35,3 +35,9 @@ database.
 For each Sample, get information about Taxa and their
 abundances from the Vault database.
 }
+\details{
+With \code{classify_to} other than \code{original}, only the taxa of the samples in
+the pipe are classified: SQLite receives their sample ids as a subquery
+and reads their rows of \code{SampleTaxa} through the index on \code{sample_id},
+instead of classifying the taxa of the whole database first.
+}

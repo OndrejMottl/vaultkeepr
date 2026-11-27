@@ -171,6 +171,132 @@ testthat::test_that(
   }
 )
 
+# Selected samples and row order -----
+
+testthat::test_that("get_age_uncertainty() sorts raw rows by sample", {
+  vault_selected <-
+    build_age_uncertainty_fixture()
+
+  withr::defer(
+    DBI::dbDisconnect(
+      conn = purrr::chuck(vault_selected, "db_con")
+    )
+  )
+
+  res <-
+    get_age_uncertainty(
+      con = vault_selected,
+      return_raw_data = TRUE
+    )
+
+  data_expected <-
+    tibble::tibble(
+      sample_id = c(1L, 1L, 2L, 2L, 3L, 3L),
+      iteration = c(1L, 2L, 1L, 2L, 1L, 2L),
+      age_uncertainty = c(110L, 120L, 210L, 220L, 310L, 320L)
+    )
+
+  testthat::expect_equal(res, data_expected)
+})
+
+testthat::test_that("get_age_uncertainty() gives one wide row per sample", {
+  vault_selected <-
+    build_age_uncertainty_fixture()
+
+  withr::defer(
+    DBI::dbDisconnect(
+      conn = purrr::chuck(vault_selected, "db_con")
+    )
+  )
+
+  res <-
+    get_age_uncertainty(
+      con = vault_selected,
+      return_raw_data = FALSE
+    )
+
+  data_expected <-
+    tibble::tibble(
+      sample_name = c("sample_1", "sample_2", "sample_3"),
+      iteration_1 = c(110L, 210L, 310L),
+      iteration_2 = c(120L, 220L, 320L)
+    )
+
+  testthat::expect_equal(res, data_expected)
+})
+
+testthat::test_that("get_age_uncertainty() reads the 2.0.0 layout", {
+  vault_selected <-
+    build_age_uncertainty_fixture(flag_primary_key = TRUE)
+
+  withr::defer(
+    DBI::dbDisconnect(
+      conn = purrr::chuck(vault_selected, "db_con")
+    )
+  )
+
+  res <-
+    get_age_uncertainty(
+      con = vault_selected,
+      return_raw_data = TRUE
+    )
+
+  data_expected <-
+    tibble::tibble(
+      sample_id = c(1L, 1L, 2L, 2L, 3L, 3L),
+      iteration = c(1L, 2L, 1L, 2L, 1L, 2L),
+      age_uncertainty = c(110L, 120L, 210L, 220L, 310L, 320L)
+    )
+
+  testthat::expect_equal(res, data_expected)
+})
+
+testthat::test_that("get_age_uncertainty() returns no rows without samples", {
+  vault_selected <-
+    build_age_uncertainty_fixture()
+
+  withr::defer(
+    DBI::dbDisconnect(
+      conn = purrr::chuck(vault_selected, "db_con")
+    )
+  )
+
+  data_samples_none <-
+    purrr::chuck(vault_selected, "data") |>
+    dplyr::filter(
+      .data[["sample_id"]] > 10L
+    )
+
+  vault_empty <-
+    base::structure(
+      base::list(
+        data = data_samples_none,
+        db_con = purrr::chuck(vault_selected, "db_con")
+      ),
+      class = c("list", "vault_pipe")
+    )
+
+  res_raw <-
+    get_age_uncertainty(
+      con = vault_empty,
+      return_raw_data = TRUE
+    )
+
+  res_wide <-
+    get_age_uncertainty(
+      con = vault_empty,
+      return_raw_data = FALSE
+    )
+
+  testthat::expect_equal(base::nrow(res_raw), 0L)
+  testthat::expect_equal(
+    base::colnames(res_raw),
+    c("sample_id", "iteration", "age_uncertainty")
+  )
+  testthat::expect_equal(base::nrow(res_wide), 0L)
+  testthat::expect_equal(base::colnames(res_wide), "sample_name")
+})
+
 # errors -----
 testthat::test_that("error when con is not vault_pipe", {
   testthat::expect_error(

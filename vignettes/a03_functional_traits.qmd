@@ -60,7 +60,7 @@ plan <-
 
 ## Step 2 — Add dataset metadata
 
-`get_datasets()` extends the plan with the central `Datasets` table. Trait datasets (`dataset_type == "traits"`) are global in scope — they are not filtered by geography in the next step because traits apply universally to a taxon regardless of where the pollen sample was collected. Only the `fossil_pollen_archive` datasets will be geographically filtered.
+`get_datasets()` extends the plan with the central `Datasets` table. In the next step, the geographic filter applies to both the `fossil_pollen_archive` and the `traits` datasets, so the trait values come from measurements taken in the same area as the pollen records.
 
 ```{r get-datasets}
 plan <-
@@ -96,7 +96,7 @@ plan <-
 
 We focus on western Amazonia (longitude −59 to −61 °W, latitude −14 to −16 °S), a biodiverse tropical region with a well-sampled Holocene pollen record.
 
-> **Note**: `traits` datasets are intentionally excluded from geographic filtering: trait values are assigned to taxa globally, not to the location where the TRY/BIEN measurement was taken. You will see a message confirming this behaviour.
+> **Note**: By default the box applies to every dataset type, `traits` included, so trait datasets outside the box, or without coordinates, are dropped. To use trait values measured anywhere, leave `traits` out of `sel_dataset_type`, for example `sel_dataset_type = "fossil_pollen_archive"`. The filter then keeps every trait dataset, wherever it lies, and a message names the dataset types it does not filter. On the full database this makes the query much larger and slower.
 
 ```{r filter-geo}
 plan <-
@@ -152,6 +152,9 @@ plan <-
 ## Step 8 — Attach trait data
 
 `get_traits()` extends the plan with the `TraitsValue`, `Traits`, and `TraitsDomain` tables linked to the taxa already in the pipeline. Harmonising to `classify_to = "genus"` here as well ensures that pollen taxa and trait observations are matched at the same taxonomic level. Multiple trait observations for the same genus and trait domain may be present; these are aggregated in the CWM calculation below.
+
+In VegVault 2, every trait value carries its unit and the rule that converted it to that unit. The output of `get_traits()` therefore includes `trait_unit`, the key of the unit-conversion rule (`conversion_rule_key`) and the key of the derivation rule (`derivation_rule_key`, missing for values that are not derived from another trait), together with the ids of both rules. The packed trait data of `extract_data()` keep `trait_unit`. vaultkeepr still reads VegVault 1 databases, but on those `get_traits()` warns that the trait units may be unreliable; the values themselves are returned unchanged.
+
 
 ::: {.callout-warning}
 `classify_to` triggers a computationally expensive join against the `TaxonClassification` table. On a large query this can be very slow. In addition, the taxonomic harmonisation is produced by an automated process: misclassifications can occur, especially for ambiguous names or taxa not covered by the GBIF backbone. Always verify results for taxa that are critical to your analysis.
@@ -218,7 +221,7 @@ data_sa_traits <-
 
 ## Visualising the data
 
-`data_sa_traits` holds one row per dataset. Fossil pollen datasets carry pollen abundances in `data_community` (wide format: one column per genus) and sample ages in `data_samples`. Trait datasets carry trait observations in `data_traits` (wide format: one row per trait × sample, one column per genus). We unnest these to compute a **community-weighted mean (CWM)** plant height for every fossil pollen sample by (1) extracting the mean trait value per genus from `data_traits`, and (2) computing the abundance-weighted mean over all genera present in each fossil sample.
+`data_sa_traits` holds one row per dataset. Fossil pollen datasets carry pollen abundances in `data_community` (wide format: one column per genus) and sample ages in `data_samples`. Trait datasets carry trait observations in `data_traits` (wide format: one row per trait × sample, with the unit of the trait in `trait_unit`, and one column per genus). We unnest these to compute a **community-weighted mean (CWM)** plant height for every fossil pollen sample by (1) extracting the mean trait value per genus from `data_traits`, and (2) computing the abundance-weighted mean over all genera present in each fossil sample.
 
 ```{r plot, fig.width = 6, fig.height = 5, out.width = "100%", message = FALSE, fig.alt = "Violin plot showing the distribution of community-weighted mean plant height across 2 000-year time bins in South America."}
 #| code-fold: true
@@ -229,7 +232,9 @@ data_genus_trait <-
   dplyr::select(dataset_name, data_traits) |>
   tidyr::unnest(cols = data_traits) |>
   tidyr::pivot_longer(
-    cols = -c(dataset_name, sample_name, trait_domain_name, trait_name),
+    cols = -c(
+      dataset_name, sample_name, trait_domain_name, trait_name, trait_unit
+    ),
     names_to = "taxon_name",
     values_to = "trait_value"
   ) |>
