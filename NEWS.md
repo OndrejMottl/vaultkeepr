@@ -10,6 +10,7 @@ vaultkeepr 0.2.0 is released for VegVault 2.0.0. It reads both VegVault 1.0.0 an
 * `open_vault()` stops with an error for a VegVault version that vaultkeepr does not support, and closes the connection it opened. vaultkeepr 0.2.0 supports VegVault 1 and 2 (so far, the releases 1.0.0 and 2.0.0); a version that cannot be read as a version number, such as `2.0.0-dev`, is not supported either. A database without version rows is read as VegVault 1.0.0.
 * `open_vault()` opens the database read-only. vaultkeepr only reads from it, and a read-only connection guarantees that no query changes the file. A statement that writes through the connection of a `vault_pipe`, such as `CREATE TABLE`, now fails with an error; temporary tables, for example from `dplyr::compute()`, still work.
 * `dplyr`, `dbplyr` and `tidyr` are now installed with vaultkeepr. The package calls them for every query, but they were listed only as suggested packages, so vaultkeepr failed on a computer without them.
+* vaultkeepr needs `dbplyr` 2.6.0 or newer. With `dbplyr` 2.5.0, queries that filter by the ids selected earlier in the pipe produce invalid SQL, and SQLite stops with `near "SELECT": syntax error`: for example `get_age_uncertainty()` on every call, and `get_taxa()` and `get_traits()` with `classify_to` other than `"original"`. The minimum version is now declared, so an older `dbplyr` is caught when vaultkeepr is installed or loaded, not at the first such query.
 
 ## VegVault 2 compatibility
 

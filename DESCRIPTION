@@ -13,7 +13,7 @@ URL: https://ondrejmottl.github.io/vaultkeepr/,
 Imports: 
     cli,
     DBI,
-    dbplyr,
+    dbplyr (>= 2.6.0),
     dplyr,
     lifecycle,
     magrittr,
