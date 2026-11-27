@@ -18,6 +18,7 @@ vaultkeepr 0.2.0 is released for VegVault 2.0.0. It reads both VegVault 1.0.0 an
 * VegVault 2 trait queries expose canonical `trait_unit`, `conversion_rule_key`, and `derivation_rule_key` fields while remaining lazy.
 * Packed trait data retains `trait_unit` but omits verbose record-level provenance.
 * `get_readable_column_names()`, and with it `pack_data()`, works on trait data from VegVault 2. Both the trait values and `TraitsDomain` carry `trait_unit` there, and the join of `TraitsDomain` failed on the duplicated column; the column of the trait values is now kept.
+* `select_traits_by_domain_name()` keeps one `trait_unit` column on trait data from VegVault 2. It joined the whole `TraitsDomain` table, so the unit that the trait values already carry was split into `trait_unit.x` and `trait_unit.y`, and `extract_data()` left the unit out of the packed trait data. The column of the trait values is now kept.
 
 ## Documentation
 

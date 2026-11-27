@@ -212,7 +212,7 @@
 <span><span class="va">plan</span></span>
 <span><span class="co">#&gt; $data</span></span>
 <span><span class="co">#&gt; # A query:  ?? x 24</span></span>
-<span><span class="co">#&gt; # Database: sqlite 3.53.3 [D:\Temp\RtmpWSUDuI\vaultkeepr_example.sqlite]</span></span>
+<span><span class="co">#&gt; # Database: sqlite 3.53.3 [D:\Temp\Rtmp6PLTkE\vaultkeepr_example.sqlite]</span></span>
 <span><span class="co">#&gt;    dataset_id dataset_name data_source_id dataset_type_id data_source_type_id</span></span>
 <span><span class="co">#&gt;         &lt;int&gt; &lt;chr&gt;                 &lt;int&gt;           &lt;int&gt;               &lt;int&gt;</span></span>
 <span><span class="co">#&gt;  1        259 dataset_259               1               2                   3</span></span>
@@ -235,7 +235,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $db_con</span></span>
 <span><span class="co">#&gt; &lt;SQLiteConnection&gt;</span></span>
-<span><span class="co">#&gt;   Path: D:\Temp\RtmpWSUDuI\vaultkeepr_example.sqlite</span></span>
+<span><span class="co">#&gt;   Path: D:\Temp\Rtmp6PLTkE\vaultkeepr_example.sqlite</span></span>
 <span><span class="co">#&gt;   Extensions: TRUE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; attr(,"class")</span></span>
@@ -271,7 +271,7 @@
 <span><span class="co">#&gt; $ sampling_method_details &lt;chr&gt; "Standardised vegetation plot survey (1–1000 m…</span></span>
 <span><span class="co">#&gt; $ data_samples            &lt;list&gt; [&lt;tbl_df[42 x 5]&gt;], [&lt;tbl_df[42 x 5]&gt;], [&lt;tbl…</span></span>
 <span><span class="co">#&gt; $ data_community          &lt;list&gt; [&lt;tbl_df[42 x 9]&gt;], [&lt;tbl_df[42 x 8]&gt;], [&lt;tbl…</span></span>
-<span><span class="co">#&gt; $ data_traits             &lt;list&gt; &lt;NULL&gt;, &lt;NULL&gt;, &lt;NULL&gt;, [&lt;tbl_df[2 x 4]&gt;], [&lt;…</span></span></code></pre></div>
+<span><span class="co">#&gt; $ data_traits             &lt;list&gt; &lt;NULL&gt;, &lt;NULL&gt;, &lt;NULL&gt;, [&lt;tbl_df[2 x 5]&gt;], [&lt;…</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="full-pipeline">Full pipeline<a class="anchor" aria-label="anchor" href="#full-pipeline"></a>
 </h2>
@@ -296,7 +296,7 @@
 </div>
 <hr></section><section class="level2"><h2 id="visualising-the-data">Visualising the data<a class="anchor" aria-label="anchor" href="#visualising-the-data"></a>
 </h2>
-<p><code>data_sa_traits</code> holds one row per dataset. Fossil pollen datasets carry pollen abundances in <code>data_community</code> (wide format: one column per genus) and sample ages in <code>data_samples</code>. Trait datasets carry trait observations in <code>data_traits</code> (wide format: one row per trait × sample, one column per genus). We unnest these to compute a <strong>community-weighted mean (CWM)</strong> plant height for every fossil pollen sample by (1) extracting the mean trait value per genus from <code>data_traits</code>, and (2) computing the abundance-weighted mean over all genera present in each fossil sample.</p>
+<p><code>data_sa_traits</code> holds one row per dataset. Fossil pollen datasets carry pollen abundances in <code>data_community</code> (wide format: one column per genus) and sample ages in <code>data_samples</code>. Trait datasets carry trait observations in <code>data_traits</code> (wide format: one row per trait × sample, with the unit of the trait in <code>trait_unit</code>, and one column per genus). We unnest these to compute a <strong>community-weighted mean (CWM)</strong> plant height for every fossil pollen sample by (1) extracting the mean trait value per genus from <code>data_traits</code>, and (2) computing the abundance-weighted mean over all genera present in each fossil sample.</p>
 <div class="cell" data-layout-align="center">
 <details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Mean trait value per genus from the nested trait datasets</span></span>
@@ -306,7 +306,9 @@
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">dataset_name</span>, <span class="va">data_traits</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="va">data_traits</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span></span>
-<span>    cols <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">dataset_name</span>, <span class="va">sample_name</span>, <span class="va">trait_domain_name</span>, <span class="va">trait_name</span><span class="op">)</span>,</span>
+<span>    cols <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>      <span class="va">dataset_name</span>, <span class="va">sample_name</span>, <span class="va">trait_domain_name</span>, <span class="va">trait_name</span>, <span class="va">trait_unit</span></span>
+<span>    <span class="op">)</span>,</span>
 <span>    names_to <span class="op">=</span> <span class="st">"taxon_name"</span>,</span>
 <span>    values_to <span class="op">=</span> <span class="st">"trait_value"</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>

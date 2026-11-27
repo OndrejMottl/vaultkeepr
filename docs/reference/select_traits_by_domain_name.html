@@ -68,7 +68,17 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list of class `vault_pipe</p>
+    <p>A list of class <code>vault_pipe</code>. Its data keep the trait values of
+the selected domains and gain the columns of their trait domain and
+trait: <code>trait_domain_id</code>, <code>trait_domain_name</code>,
+<code>trait_domanin_description</code> and <code>trait_name</code>.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>In VegVault 2, <code><a href="get_traits.html">get_traits()</a></code> adds the unit of each trait value as
+<code>trait_unit</code>, taken from the <code>TraitsDomain</code> table. The function does not
+add this unit a second time, so the data keep one <code>trait_unit</code> column.
+In VegVault 1, <code>TraitsDomain</code> has no unit column.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

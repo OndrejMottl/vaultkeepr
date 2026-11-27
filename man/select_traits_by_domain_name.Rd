@@ -12,8 +12,17 @@ select_traits_by_domain_name(con = NULL, sel_domain = NULL)
 \item{sel_domain}{A character vector of the selected Trait Domain name.}
 }
 \value{
-A list of class `vault_pipe
+A list of class \code{vault_pipe}. Its data keep the trait values of
+the selected domains and gain the columns of their trait domain and
+trait: \code{trait_domain_id}, \code{trait_domain_name},
+\code{trait_domanin_description} and \code{trait_name}.
 }
 \description{
 Filters the data for the selected Trait Domain name.
+}
+\details{
+In VegVault 2, \code{\link[=get_traits]{get_traits()}} adds the unit of each trait value as
+\code{trait_unit}, taken from the \code{TraitsDomain} table. The function does not
+add this unit a second time, so the data keep one \code{trait_unit} column.
+In VegVault 1, \code{TraitsDomain} has no unit column.
 }
