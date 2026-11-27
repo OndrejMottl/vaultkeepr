@@ -309,6 +309,45 @@ testthat::test_that("no reference query when the check is switched off", {
   )
 })
 
+# Trait units -----
+testthat::test_that("extract_data() keeps the unit after the domain filter", {
+  vault_traits <-
+    open_vault(
+      path = base::file.path(base::tempdir(), "example.sqlite"),
+      verbose = FALSE
+    ) |>
+    get_datasets() |>
+    select_dataset_by_type(sel_dataset_type = "traits") |>
+    get_samples() |>
+    get_traits(verbose = FALSE) |>
+    select_traits_by_domain_name(sel_domain = "Plant heigh")
+
+  data_raw <-
+    extract_data(
+      con = vault_traits,
+      return_raw_data = TRUE,
+      verbose = FALSE
+    )
+
+  data_packed <-
+    extract_data(
+      con = vault_traits,
+      return_raw_data = FALSE,
+      verbose = FALSE
+    )
+
+  vec_flag_packed_unit <-
+    dplyr::pull(data_packed, "data_traits") |>
+    purrr::map_lgl(
+      .f = ~ "trait_unit" %in% base::colnames(.x)
+    )
+
+  testthat::expect_true("trait_unit" %in% base::colnames(data_raw))
+  testthat::expect_false(base::anyNA(dplyr::pull(data_raw, "trait_unit")))
+  testthat::expect_true(base::length(vec_flag_packed_unit) > 0L)
+  testthat::expect_true(base::all(vec_flag_packed_unit))
+})
+
 # errors -----
 testthat::test_that("error wihtout `open_vault()`", {
   testthat::expect_error(

@@ -144,6 +144,189 @@ testthat::test_that("return empty dataset", {
   testthat::expect_equal(nrows_empty, 0)
 })
 
+# Trait units -----
+testthat::test_that("select_traits_by_domain_name() keeps one trait_unit", {
+  vec_column_names <-
+    open_vault(
+      path = base::file.path(base::tempdir(), "example.sqlite"),
+      verbose = FALSE
+    ) |>
+    get_datasets() |>
+    select_dataset_by_type(sel_dataset_type = "traits") |>
+    get_samples() |>
+    get_traits(verbose = FALSE) |>
+    select_traits_by_domain_name(sel_domain = "Plant heigh") |>
+    purrr::chuck("data") |>
+    base::colnames()
+
+  testthat::expect_equal(base::sum(vec_column_names == "trait_unit"), 1L)
+  testthat::expect_false(
+    base::any(c("trait_unit.x", "trait_unit.y") %in% vec_column_names)
+  )
+})
+
+testthat::test_that("select_traits_by_domain_name() keeps the domain units", {
+  vec_domain <-
+    c("Stem specific density", "Diaspore mass")
+
+  path_database <-
+    base::file.path(base::tempdir(), "example.sqlite")
+
+  data_units <-
+    open_vault(
+      path = path_database,
+      verbose = FALSE
+    ) |>
+    get_datasets() |>
+    select_dataset_by_type(sel_dataset_type = "traits") |>
+    get_samples() |>
+    get_traits(verbose = FALSE) |>
+    select_traits_by_domain_name(sel_domain = vec_domain) |>
+    purrr::chuck("data") |>
+    dplyr::select(
+      dplyr::all_of(c("trait_domain_name", "trait_unit"))
+    ) |>
+    dplyr::distinct() |>
+    dplyr::collect() |>
+    dplyr::arrange(.data[["trait_domain_name"]])
+
+  con_database <-
+    DBI::dbConnect(
+      drv = RSQLite::SQLite(),
+      dbname = path_database
+    )
+
+  withr::defer(
+    DBI::dbDisconnect(conn = con_database)
+  )
+
+  data_expected <-
+    dplyr::tbl(con_database, "TraitsDomain") |>
+    dplyr::filter(.data[["trait_domain_name"]] %in% vec_domain) |>
+    dplyr::select(
+      dplyr::all_of(c("trait_domain_name", "trait_unit"))
+    ) |>
+    dplyr::collect() |>
+    dplyr::arrange(.data[["trait_domain_name"]])
+
+  testthat::expect_equal(base::nrow(data_units), 2L)
+  testthat::expect_equal(data_units, data_expected)
+})
+
+testthat::test_that("select_traits_by_domain_name() keeps VegVault 2 units", {
+  path_v2 <-
+    build_trait_version_fixture(sel_version = "2.0.0")
+
+  withr::defer(
+    base::unlink(x = path_v2)
+  )
+
+  vault_v2 <-
+    open_vault(
+      path = path_v2,
+      verbose = FALSE
+    )
+
+  withr::defer(
+    DBI::dbDisconnect(conn = purrr::chuck(vault_v2, "db_con"))
+  )
+
+  # The trait values with their unit, as get_traits() reads them, in a
+  #   trait dataset
+  data_values <-
+    get_trait_values_by_version(
+      db_con = purrr::chuck(vault_v2, "db_con")
+    ) |>
+    dplyr::mutate(dataset_type = "traits")
+
+  vault_values <-
+    base::structure(
+      base::list(
+        data = data_values,
+        db_con = purrr::chuck(vault_v2, "db_con")
+      ),
+      class = c("list", "vault_pipe")
+    )
+
+  data_res <-
+    select_traits_by_domain_name(
+      con = vault_values,
+      sel_domain = "Leaf Area"
+    ) |>
+    purrr::chuck("data") |>
+    dplyr::collect()
+
+  testthat::expect_equal(
+    base::colnames(data_res),
+    c(
+      base::colnames(data_values),
+      "trait_domain_id",
+      "trait_domain_name",
+      "trait_domanin_description",
+      "trait_name"
+    )
+  )
+  testthat::expect_equal(dplyr::pull(data_res, "trait_unit"), "mm2")
+})
+
+testthat::test_that("select_traits_by_domain_name() keeps VegVault 1 as is", {
+  path_v1 <-
+    build_trait_version_fixture(sel_version = "1.0.0")
+
+  withr::defer(
+    base::unlink(x = path_v1)
+  )
+
+  vault_v1 <-
+    open_vault(
+      path = path_v1,
+      verbose = FALSE
+    )
+
+  withr::defer(
+    DBI::dbDisconnect(conn = purrr::chuck(vault_v1, "db_con"))
+  )
+
+  # The trait values as get_traits() reads them, in a trait dataset
+  data_values <-
+    get_trait_values_by_version(
+      db_con = purrr::chuck(vault_v1, "db_con")
+    ) |>
+    dplyr::mutate(dataset_type = "traits")
+
+  vault_values <-
+    base::structure(
+      base::list(
+        data = data_values,
+        db_con = purrr::chuck(vault_v1, "db_con")
+      ),
+      class = c("list", "vault_pipe")
+    )
+
+  data_res <-
+    select_traits_by_domain_name(
+      con = vault_values,
+      sel_domain = "Leaf Area"
+    ) |>
+    purrr::chuck("data") |>
+    dplyr::collect()
+
+  testthat::expect_equal(
+    base::colnames(data_res),
+    c(
+      base::colnames(data_values),
+      "trait_domain_id",
+      "trait_domain_name",
+      "trait_domanin_description",
+      "trait_name"
+    )
+  )
+  testthat::expect_equal(
+    dplyr::pull(data_res, "trait_domain_name"),
+    "Leaf Area"
+  )
+})
+
 # errors ----
 testthat::test_that("error wihtout `open_vault()`", {
   testthat::expect_error(

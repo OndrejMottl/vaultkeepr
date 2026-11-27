@@ -72,6 +72,8 @@
 <li>Packed trait data retains <code>trait_unit</code> but omits verbose record-level provenance.</li>
 <li>
 <code><a href="../reference/get_readable_column_names.html">get_readable_column_names()</a></code>, and with it <code><a href="../reference/pack_data.html">pack_data()</a></code>, works on trait data from VegVault 2. Both the trait values and <code>TraitsDomain</code> carry <code>trait_unit</code> there, and the join of <code>TraitsDomain</code> failed on the duplicated column; the column of the trait values is now kept.</li>
+<li>
+<code><a href="../reference/select_traits_by_domain_name.html">select_traits_by_domain_name()</a></code> keeps one <code>trait_unit</code> column on trait data from VegVault 2. It joined the whole <code>TraitsDomain</code> table, so the unit that the trait values already carry was split into <code>trait_unit.x</code> and <code>trait_unit.y</code>, and <code><a href="../reference/extract_data.html">extract_data()</a></code> left the unit out of the packed trait data. The column of the trait values is now kept.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="documentation-0-2-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-2-0"></a></h3>

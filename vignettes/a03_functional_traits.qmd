@@ -221,7 +221,7 @@ data_sa_traits <-
 
 ## Visualising the data
 
-`data_sa_traits` holds one row per dataset. Fossil pollen datasets carry pollen abundances in `data_community` (wide format: one column per genus) and sample ages in `data_samples`. Trait datasets carry trait observations in `data_traits` (wide format: one row per trait × sample, one column per genus). We unnest these to compute a **community-weighted mean (CWM)** plant height for every fossil pollen sample by (1) extracting the mean trait value per genus from `data_traits`, and (2) computing the abundance-weighted mean over all genera present in each fossil sample.
+`data_sa_traits` holds one row per dataset. Fossil pollen datasets carry pollen abundances in `data_community` (wide format: one column per genus) and sample ages in `data_samples`. Trait datasets carry trait observations in `data_traits` (wide format: one row per trait × sample, with the unit of the trait in `trait_unit`, and one column per genus). We unnest these to compute a **community-weighted mean (CWM)** plant height for every fossil pollen sample by (1) extracting the mean trait value per genus from `data_traits`, and (2) computing the abundance-weighted mean over all genera present in each fossil sample.
 
 ```{r plot, fig.width = 6, fig.height = 5, out.width = "100%", message = FALSE, fig.alt = "Violin plot showing the distribution of community-weighted mean plant height across 2 000-year time bins in South America."}
 #| code-fold: true
@@ -232,7 +232,9 @@ data_genus_trait <-
   dplyr::select(dataset_name, data_traits) |>
   tidyr::unnest(cols = data_traits) |>
   tidyr::pivot_longer(
-    cols = -c(dataset_name, sample_name, trait_domain_name, trait_name),
+    cols = -c(
+      dataset_name, sample_name, trait_domain_name, trait_name, trait_unit
+    ),
     names_to = "taxon_name",
     values_to = "trait_value"
   ) |>
